@@ -1,0 +1,39 @@
+{
+  "name": "ascii-visual-engine",
+  "version": "0.1.0",
+  "description": "A reusable TypeScript framework for building expressive, real-time ASCII visual systems",
+  "type": "module",
+  "main": "./dist/ascii-visual-engine.cjs",
+  "module": "./dist/ascii-visual-engine.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/ascii-visual-engine.js",
+      "require": "./dist/ascii-visual-engine.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vite-plugin-dts": "^4.5.0"
+  },
+  "keywords": [
+    "ascii",
+    "visual",
+    "canvas",
+    "animation",
+    "generative"
+  ],
+  "license": "MIT"
+}
