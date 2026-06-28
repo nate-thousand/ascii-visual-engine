@@ -22,16 +22,19 @@ System design for ASCII Visual Engine. This document describes how the engine is
                     │       │               │          │
                     │  ┌────▼───────────────▼───────┐  │
                     │  │       Effect Pipeline      │  │
-                    │  │  Motion → Burst → Glitch   │  │
-                    │  │         → Trails           │  │
+                    │  │  Motion → Patterns → Post  │  │
+                    │  │  Burst → Glitch → Trails   │  │
+                    │  └────────────┬───────────────┘  │
+                    │               │                  │
+                    │  ┌────────────▼───────────────┐  │
+                    │  │      PatternRegistry       │  │
+                    │  │  Radial · Spiral · Wave    │  │
+                    │  │  Grid · Cellular · Scanline│  │
+                    │  └────────────┬───────────────┘  │
                     │  └────────────┬───────────────┘  │
                     │               │                  │
                     │  ┌────────────▼───────────────┐  │
                     │  │     CanvasAsciiRenderer    │  │
-                    │  └────────────┬───────────────┘  │
-                    │               │                  │
-                    │  ┌────────────▼───────────────┐  │
-                    │  │         EventBus           │  │
                     │  └────────────────────────────┘  │
                     └───────────────┬──────────────────┘
                                     │
@@ -79,14 +82,16 @@ On construction the engine:
 3. Creates `CanvasAsciiRenderer` with preset density and glyph set
 4. Initializes control values from preset defaults
 5. Builds the effect pipeline from preset configuration
-6. Starts the animation loop (unless `autoStart: false`)
+6. Registers built-in patterns and enables preset `patterns`
+7. Starts the animation loop (unless `autoStart: false`)
 
 On destroy:
 
 1. Stops the animation loop
 2. Calls `reset()` on all active effects
-3. Clears renderer grid and canvas
-4. Clears all event bus listeners
+3. Destroys all registered patterns
+4. Clears renderer grid and canvas
+5. Clears all event bus listeners
 
 ---
 
@@ -122,7 +127,17 @@ Each frame follows a fixed sequence:
        │
        ▼
 ┌─────────────┐
-│Effect pipeline│──► for each effect: effect.update(ctx)
+│Effect pipeline│──► motion effects: noise, wave
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Pattern layer│──► registry.update → registry.apply
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Post effects │──► burst, glitch, trails
 └──────┬──────┘
        │
        ▼
@@ -229,49 +244,117 @@ Effects mutate `grid.cells` in place. The renderer reads the final state.
 
 ---
 
-## Plugin Lifecycle
+## Pattern System
 
-> **Status: Planned.** The current v0.1.0 release uses a hardcoded effect pool. The plugin architecture described here is the target design for v0.2.0+.
+Patterns are a reusable procedural layer that shapes glyph selection and brightness across the grid. They sit between motion effects and post-effects in the frame pipeline.
 
 ```
-register ──► init ──► [active] ──► update (each frame) ──► destroy
-                │                        │
-                │         onNoteOn/off   │
-                └────────────────────────┘
+Preset patterns: ["radialSymmetry", "cellular"]
+         │
+         ▼
+┌────────────────────┐
+│  PatternRegistry   │
+│  enable/disable    │
+└─────────┬──────────┘
+          │
+          ▼
+For each enabled pattern:
+  pattern.update(dt, context)
+          │
+          ▼
+For each grid cell (nx, ny):
+  value = weighted average of pattern.sample(nx, ny, context)
+  cell.brightness ← blend with value
+  cell.char ← glyphSet[floor(value * len)]
 ```
 
-### Planned plugin interface
+### Pattern interface
+
+```typescript
+interface Pattern {
+  readonly id: PatternId;
+  readonly name: string;
+  initialize(engine: AsciiEngine): void;
+  update(deltaTime: number, context: PatternSampleContext): void;
+  sample(x: number, y: number, context: PatternSampleContext): number;
+  destroy(): void;
+}
+```
+
+Coordinates passed to `sample()` are normalized (0–1) across the grid.
+
+### Built-in patterns
+
+| Pattern | Id | Use case |
+| --- | --- | --- |
+| `RadialSymmetryPattern` | `radialSymmetry` | Flowers, mandalas, blooms, circular growth |
+| `SpiralPattern` | `spiral` | Growth, orbiting, hypnotic motion |
+| `WavePattern` | `wave` | Ambient flow, soft motion |
+| `GridPattern` | `grid` | Structured lattice forms |
+| `CellularPattern` | `cellular` | Mold, bacteria, decay, crawling texture |
+| `ScanlinePattern` | `scanline` | Terminal, broadcast, glitch, cyberpunk |
+
+### Pattern controls
+
+| Control | Affects |
+| --- | --- |
+| `symmetry` | Radial fold count (2–12) |
+| `petals` | Radial petal count (3–12) |
+| `spiralAmount` | Spiral pattern intensity (0–1) |
+| `cellularAmount` | Cellular pattern intensity (0–1) |
+| `scanlineAmount` | Scanline pattern intensity (0–1) |
+
+Presets declare active patterns via the `patterns` array. The engine enables them on `setPreset()` without modifying engine internals.
+
+---
+
+## Plugin Architecture
+
+The engine is plugin-driven. All patterns and effects are registered with `PluginManager` and toggled via presets or the public API.
+
+```
+registerPlugin(plugin)
+     │
+     ├── plugin.initialize(engine)
+     └── Store in PluginManager
+
+setPreset(preset)
+     │
+     ├── resolvePresetPlugins(preset) ──► plugin ids
+     └── pluginManager.setEnabledIds(ids)
+
+Each frame:
+     ├── runMotionEffects(ctx)     ── effect plugins, phase: motion
+     ├── updatePatterns(dt, ctx)   ── pattern plugins
+     ├── applyPatterns(ctx)        ── composite pattern samples
+     └── runPostEffects(ctx)       ── effect plugins, phase: post
+```
+
+### Plugin interface
 
 ```typescript
 interface Plugin {
   id: string;
   name: string;
   version: string;
-
-  init(engine: AsciiEngine): void;
-  update(ctx: EffectContext): void;
+  type: 'pattern' | 'effect' | 'input' | 'renderer' | 'utility';
+  enabled: boolean;
+  initialize(engine: AsciiEngine): void;
+  update(deltaTime: number, context: PluginContext): void;
   destroy(): void;
-
-  onNoteOn?(event: NoteEvent): void;
-  onNoteOff?(event: NoteEvent): void;
 }
 ```
 
-### Current effect interface (v0.1.0)
+### Typed wrappers
 
-Built-in effects implement a simpler interface today:
+| Wrapper | Wraps | Purpose |
+| --- | --- | --- |
+| `EffectPlugin` | `Effect` | Motion and post-processing effects |
+| `PatternPlugin` | `Pattern` | Procedural grid sampling |
+| `InputPlugin` | — | Future input adapters |
+| `RendererPlugin` | — | Future renderer backends |
 
-```typescript
-interface Effect {
-  readonly type: EffectType;
-  update(ctx: EffectContext): void;
-  onNoteOn?(event: NoteEvent): void;
-  onNoteOff?(event: NoteEvent): void;
-  reset?(): void;
-}
-```
-
-This interface is the foundation the plugin system will extend.
+Legacy `Effect` and `Pattern` interfaces remain for implementation. They are wrapped at registration time — consumers use the plugin API.
 
 ---
 
@@ -281,23 +364,15 @@ This interface is the foundation the plugin system will extend.
 setPreset(preset)
      │
      ├── Store preset reference
-     │
      ├── initControls(preset)
-     │     └── Set density, speed, trailAmount, glitchAmount
-     │         + any custom control defaults
-     │
-     ├── renderer.setDensity(preset.density)
-     ├── renderer.setGlyphSet(preset.glyphSet)
-     │
-     ├── rebuildEffects(preset.effects, preset.motionField)
-     │     ├── Reset all current effects
-     │     ├── Filter enabled effects from config
-     │     └── Select motion field matching motionField type
-     │
+     ├── renderer.setDensity / setGlyphSet
+     ├── pluginManager.resetEffects()
+     ├── resolvePresetPlugins(preset)
+     │     ├── Use preset.plugins if defined
+     │     └── Else migrate legacy effects + patterns + motionField
+     ├── pluginManager.setEnabledIds(ids)
      └── emit('preset', preset)
 ```
-
-Presets are plain objects. No async loading in v0.1.0. Future versions will support JSON fetch, validation, and interpolation.
 
 ---
 
@@ -377,7 +452,8 @@ interface AsciiRenderer {
 
 | Extension point | Purpose | Status |
 | --- | --- | --- |
-| **Plugin registration** | Add custom effects and behaviors | Planned |
+| **Plugin registration** | Add custom effects, patterns, inputs, renderers | Implemented |
+| **Pattern registration** | Add custom procedural patterns | Implemented |
 | **Renderer swap** | Switch between canvas, WebGL, terminal | Planned |
 | **Input adapters** | Route MIDI, touch, keyboard to engine | Planned |
 | **Preset loader** | Load/validate/morph presets at runtime | Planned |
@@ -394,8 +470,14 @@ index.ts
   ├── core/AsciiEngine.ts
   │     ├── core/EventBus.ts
   │     ├── core/types.ts
+  │     ├── patterns/PatternRegistry.ts
+  │     ├── patterns/*.ts
   │     ├── renderers/CanvasAsciiRenderer.ts
   │     └── effects/*.ts
+  ├── patterns/
+  │     ├── Pattern.ts
+  │     ├── PatternRegistry.ts
+  │     └── *Pattern.ts
   ├── renderers/CanvasAsciiRenderer.ts
   │     ├── core/types.ts
   │     └── effects/Trails.ts

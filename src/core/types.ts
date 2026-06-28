@@ -38,17 +38,43 @@ export interface EffectConfig {
   params?: Record<string, number>;
 }
 
+export type PatternId =
+  | 'radialSymmetry'
+  | 'spiral'
+  | 'wave'
+  | 'grid'
+  | 'cellular'
+  | 'scanline';
+
+export type PluginType = 'pattern' | 'effect' | 'input' | 'renderer' | 'utility';
+
+export interface PluginConfig {
+  id: string;
+  type: PluginType;
+  enabled?: boolean;
+  options?: Record<string, unknown>;
+}
+
 export interface AsciiPreset {
   id: string;
   name: string;
   glyphSet: string[];
   motionField: MotionFieldType;
-  effects: EffectConfig[];
+  plugins: PluginConfig[];
+  /** @deprecated Use `plugins` array instead */
+  effects?: EffectConfig[];
+  /** @deprecated Use `plugins` array instead */
+  patterns?: PatternId[];
   controls: ControlDef[];
   density: number;
   speed: number;
   trailAmount: number;
   glitchAmount: number;
+  symmetry?: number;
+  petals?: number;
+  spiralAmount?: number;
+  cellularAmount?: number;
+  scanlineAmount?: number;
 }
 
 export interface GridDimensions {
@@ -111,6 +137,8 @@ export type EngineEventMap = {
   stop: void;
   preset: AsciiPreset;
   control: { name: string; value: number };
+  pattern: { id: PatternId; enabled: boolean };
+  plugin: { id: string; type: PluginType; enabled: boolean };
   noteOn: NoteEvent;
   noteOff: NoteEvent;
   resize: { width: number; height: number };

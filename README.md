@@ -42,21 +42,40 @@ The engine handles grid management, frame timing, effect composition, preset loa
 
 ## Features
 
-### Current (v0.1.0)
+### Stabilization Pass (in progress)
+
+Before adding new architecture, the current engine is being hardened so presets, sliders, effects, and patterns work together reliably:
+
+- Audited UI → engine → renderer control flow
+- Fixed preset control reset on `setPreset()` (controls fully reinitialize from preset)
+- Console warnings for unknown controls, plugins, and presets
+- `getDebugState()` API for live engine introspection
+- Vanilla demo debug panel (preset, effects, patterns, controls, FPS, last noteOn)
+- Manual test buttons: Trigger Burst, Max Glitch, Max Trails, Reset Controls
+- Exaggerated effect strengths for visible verification (glitch, trails, burst)
+- Stronger pattern blending so each pattern looks distinct when enabled
+- Trails fade gated on trails plugin enabled state
+
+Run `npm run dev` and use the debug panel + test buttons to verify behavior.
+
+### Current (v0.3.0)
 
 - `AsciiEngine` with full lifecycle (`start`, `stop`, `destroy`, `resize`)
+- **Plugin architecture** — unified `PluginManager` for patterns, effects, inputs, renderers
+- `registerPlugin`, `enablePlugin`, `disablePlugin`, `getPlugin` public API
+- Built-in effect plugins: `noise`, `wave`, `burst`, `glitch`, `trails`
+- Built-in pattern plugins: `radialSymmetry`, `spiral`, `wavePattern`, `grid`, `cellular`, `scanline`
+- Preset-driven plugin configuration via `plugins` array
 - `CanvasAsciiRenderer` — grid-based ASCII rendering to HTML canvas
-- Built-in effects: `NoiseField`, `WaveField`, `GlyphBurst`, `Glitch`, `Trails`
-- Preset system with declarative schema and three built-in presets
-- Runtime controls: density, speed, trail amount, glitch amount
-- Event bus with typed events (`noteOn`, `noteOff`, `control`, `preset`, `frame`, etc.)
-- ESM + CJS library build with TypeScript declarations
-- Vanilla example with preset selector, sliders, and burst triggers
+- Runtime controls: density, speed, symmetry, petals, spiral/cellular/scanline amount
+- Event bus with typed events including `plugin`, `noteOn`, `control`, `preset`, `frame`
+- Vanilla example with effect and pattern plugin toggles, debug panel, and manual test buttons
 
-### Planned (v0.2 – v0.5)
+### Planned (v0.4 – v0.5)
 
-- Formal plugin registration API and plugin manager
-- Custom effect registration at runtime
+- Input plugin adapters (MIDI, keyboard, touch)
+- Renderer plugins (WebGL, terminal)
+- Image/video sampling patterns for ASCII translation
 - Preset validation, loading from JSON, and interpolation
 - Color palette support and per-cell color gradients
 - React hook (`useAsciiEngine`)
@@ -84,23 +103,24 @@ See [ROADMAP.md](./ROADMAP.md) for the full milestone plan.
 The engine is organized into distinct systems:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      AsciiEngine                        │
-│  Lifecycle · Controls · Presets · Frame Loop            │
-├──────────────┬──────────────┬──────────────┬────────────┤
-│   Renderer   │   Effects    │   Presets    │  EventBus  │
-│  Canvas 2D   │ Noise · Wave │ basic · term │ noteOn/off │
-│  (abstract)  │ Burst · Glitch│ organic    │ control    │
-│              │ Trails       │              │ custom     │
-└──────────────┴──────────────┴──────────────┴────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                        AsciiEngine                           │
+│  Lifecycle · Controls · Presets · Patterns · Frame Loop      │
+├────────────┬─────────────┬────────────┬────────────┬────────┤
+│  Renderer  │  Patterns   │  Effects   │  Presets   │ Events │
+│ Canvas 2D  │ Radial·Spiral│ Noise·Wave │ basic·term │ noteOn │
+│            │ Wave·Grid   │ Burst·Glitch│ organic    │ pattern│
+│            │ Cellular·Scan│ Trails     │            │ control│
+└────────────┴─────────────┴────────────┴────────────┴────────┘
 ```
 
 | System | Role |
 | --- | --- |
 | **Core** | Engine lifecycle, frame loop, control state, preset management |
 | **Renderer** | Grid creation, glyph drawing, resize, density changes |
-| **Plugin Manager** | *(planned)* Registration and lifecycle for custom plugins |
-| **Effects** | Per-frame visual modifiers applied to the character grid |
+| **Plugins** | Unified registration for patterns, effects, inputs, renderers |
+| **Patterns** | Procedural forms — flowers, spirals, waves, grids, decay, scanlines |
+| **Effects** | Per-frame visual modifiers (motion, glitch, trails, burst) |
 | **Motion** | Field generators (`NoiseField`, `WaveField`) that drive glyph selection |
 | **Input** | *(planned)* Unified input layer for MIDI, touch, keyboard, OSC |
 | **Presets** | Declarative visual configurations (glyphs, effects, defaults) |
@@ -162,25 +182,36 @@ const engine = new AsciiEngine({
 });
 ```
 
-### Loading a preset
+### Loading a preset with plugins
 
 ```typescript
-import { terminalPreset, listPresets } from 'ascii-visual-engine';
+import { terminalPreset } from 'ascii-visual-engine';
 
 engine.setPreset(terminalPreset);
-
-// Or select from all built-in presets
-const preset = listPresets().find((p) => p.id === 'organic');
-if (preset) engine.setPreset(preset);
+// Enables plugins declared in preset.plugins:
+// noise, burst, glitch, trails, scanline, grid
 ```
 
-### Changing controls
+### Toggling plugins live
+
+```typescript
+engine.enablePlugin('radialSymmetry');
+engine.disablePlugin('glitch');
+engine.getPlugin('burst');
+```
+
+### Changing controls and patterns
 
 ```typescript
 engine.setControl('density', 1.5);
-engine.setControl('speed', 0.8);
-engine.setControl('trailAmount', 0.6);
-engine.setControl('glitchAmount', 0.2);
+engine.setControl('symmetry', 8);
+engine.setControl('petals', 7);
+engine.setControl('cellularAmount', 0.65);
+engine.setControl('scanlineAmount', 0.75);
+
+engine.enablePattern('radialSymmetry');
+engine.enablePattern('spiral');
+engine.disablePattern('grid');
 ```
 
 ### Handling events
@@ -219,7 +250,9 @@ ascii-visual-engine/
 ├── src/
 │   ├── core/           Engine, event bus, shared types
 │   ├── renderers/      Canvas renderer (future: WebGL, terminal)
-│   ├── effects/        Built-in visual effects
+│   ├── patterns/       Procedural pattern implementations
+│   ├── plugins/        Plugin system (manager, typed wrappers)
+│   ├── effects/        Effect implementations (wrapped as plugins)
 │   ├── presets/        Built-in preset definitions
 │   └── index.ts        Public API barrel export
 ├── examples/
@@ -243,28 +276,29 @@ ascii-visual-engine/
 
 ## Roadmap Summary
 
-Development follows eighteen milestones from foundation through version 1.0:
+Development follows nineteen milestones from foundation through version 1.0:
 
 1. Foundation
-2. Rendering Engine
-3. Plugin Architecture
-4. Motion Systems
-5. Visual Effects
-6. Preset System
-7. Input Layer
-8. Audio Reactivity
-9. MIDI Integration
-10. Touch & Gestures
-11. Performance Optimization
-12. GPU Rendering Research
-13. Shader Pipeline
-14. Examples
-15. Documentation
-16. Testing
-17. NPM Publishing
-18. Version 1.0
+2. Pattern System
+3. Rendering Engine
+4. Plugin Architecture
+5. Motion Systems
+6. Visual Effects
+7. Preset System
+8. Input Layer
+9. Audio Reactivity
+10. MIDI Integration
+11. Touch & Gestures
+12. Performance Optimization
+13. GPU Rendering Research
+14. Shader Pipeline
+15. Examples
+16. Documentation
+17. Testing
+18. NPM Publishing
+19. Version 1.0
 
-Current overall progress: **~12%**
+Current overall progress: **~18%**
 
 See [ROADMAP.md](./ROADMAP.md) for task-level detail and completion status.
 

@@ -1,6 +1,6 @@
 # API Reference
 
-Public API for ASCII Visual Engine v0.1.0.
+Public API for ASCII Visual Engine v0.3.0.
 
 All symbols listed here are exported from the package entry point:
 
@@ -12,7 +12,7 @@ import { AsciiEngine, /* ... */ } from 'ascii-visual-engine';
 
 ## AsciiEngine
 
-Primary entry point. Manages lifecycle, presets, controls, effects, rendering, and events.
+Primary entry point. Manages lifecycle, presets, controls, plugins, rendering, and events.
 
 ### Constructor
 
@@ -46,7 +46,47 @@ Permanently tears down the engine. Stops loop, resets effects, clears renderer a
 
 #### `setPreset(preset: AsciiPreset): void`
 
-Switches active preset. Rebuilds effect pipeline, updates glyph set and density, reinitializes control defaults. Emits `preset` event.
+Switches active preset. Enables plugins from preset configuration. Emits `preset` event.
+
+#### `registerPlugin(plugin: Plugin): void`
+
+Registers a plugin with the engine. Calls `plugin.initialize(engine)`.
+
+#### `unregisterPlugin(id: string): void`
+
+Removes and destroys a plugin.
+
+#### `enablePlugin(id: string): void`
+
+Enables a registered plugin. Emits `plugin` event.
+
+#### `disablePlugin(id: string): void`
+
+Disables a plugin without removing it. Emits `plugin` event.
+
+#### `getPlugin(id: string): Plugin | undefined`
+
+Returns a registered plugin by id.
+
+#### `getEnabledPlugins(): Plugin[]`
+
+Returns all currently enabled plugins.
+
+#### `getPluginManager(): PluginManager`
+
+Returns the internal plugin manager for advanced use.
+
+#### `registerPattern(pattern: Pattern): void` *(deprecated)*
+
+Wraps pattern in `PatternPlugin` and calls `registerPlugin`.
+
+#### `enablePattern(id: PatternId): void` *(deprecated)*
+
+Calls `enablePlugin`. Maps legacy `wave` → `wavePattern`.
+
+#### `disablePattern(id: PatternId): void` *(deprecated)*
+
+Calls `disablePlugin`.
 
 #### `setControl(name: string, value: number): void`
 
@@ -301,19 +341,60 @@ interface ControlDef {
 
 ---
 
-## Future APIs
+## PluginManager
 
-The following APIs are planned but not yet implemented. Signatures may change.
+Central registry for all plugins.
 
-### PluginManager *(planned v0.2)*
+| Method | Description |
+| --- | --- |
+| `register(plugin)` | Add plugin, call initialize |
+| `unregister(id)` | Remove and destroy plugin |
+| `enable(id)` / `disable(id)` | Toggle plugin enabled state |
+| `get(id)` | Lookup by id |
+| `getAll()` | All registered plugins |
+| `getByType(type)` | Filter by plugin type |
+| `getEnabled()` | All enabled plugins |
+| `setEnabledIds(ids)` | Enable only listed ids |
+| `runMotionEffects(ctx)` | Motion-phase effect plugins |
+| `applyPatterns(ctx)` | Composite pattern plugins |
+| `runPostEffects(ctx)` | Post-phase effect plugins |
+| `destroy()` | Destroy all plugins |
+
+See [PLUGIN_API.md](./PLUGIN_API.md) for building custom plugins.
+
+## PatternRegistry *(legacy)*
+
+Still exported. Engine uses `PluginManager` internally.
+
+## Pattern (interface)
 
 ```typescript
-engine.registerPlugin(plugin: Plugin): void;
-engine.unregisterPlugin(id: string): void;
-engine.getPlugin(id: string): Plugin | undefined;
+interface Pattern {
+  readonly id: PatternId;
+  readonly name: string;
+  initialize(engine: AsciiEngine): void;
+  update(deltaTime: number, context: PatternSampleContext): void;
+  sample(x: number, y: number, context: PatternSampleContext): number;
+  destroy(): void;
+}
 ```
 
-### AsciiRenderer interface *(planned v0.2)*
+### Built-in patterns
+
+| Class | Id |
+| --- | --- |
+| `RadialSymmetryPattern` | `radialSymmetry` |
+| `SpiralPattern` | `spiral` |
+| `WavePattern` | `wave` (plugin id: `wavePattern`) |
+| `GridPattern` | `grid` |
+| `CellularPattern` | `cellular` |
+| `ScanlinePattern` | `scanline` |
+
+---
+
+## Future APIs
+
+### AsciiRenderer interface *(planned)*
 
 ```typescript
 engine.setRenderer(renderer: AsciiRenderer): void;

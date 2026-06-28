@@ -9,7 +9,7 @@ export class Glitch implements Effect {
     const { grid, glyphSet, glitchAmount } = ctx;
     if (glitchAmount <= 0) return;
 
-    const chance = glitchAmount * 0.08;
+    const chance = glitchAmount * 0.28;
 
     for (const cell of grid.cells) {
       if (Math.random() < chance) {

@@ -1,29 +1,36 @@
 import { EventBus } from './EventBus';
 import { CanvasAsciiRenderer } from '../renderers/CanvasAsciiRenderer';
-import { NoiseField } from '../effects/NoiseField';
-import { WaveField } from '../effects/WaveField';
-import { GlyphBurst } from '../effects/GlyphBurst';
-import { Glitch } from '../effects/Glitch';
-import { Trails } from '../effects/Trails';
+import {
+  PluginManager,
+  PatternPlugin,
+  createBuiltInPlugins,
+  resolvePresetPlugins,
+} from '../plugins';
+import type { Plugin, PluginContext } from '../plugins';
+import type { Pattern, PatternId } from '../patterns';
 import type {
   AsciiEngineOptions,
   AsciiPreset,
-  Effect,
-  EffectConfig,
   EngineEventPayload,
   NoteEvent,
 } from './types';
+import { warnUnknownControl, warnUnknownPluginIds } from './validate';
+import type { EngineDebugState } from './debug';
+
+const LEGACY_PATTERN_IDS: Record<string, string> = {
+  wave: 'wavePattern',
+};
 
 const DEFAULT_PRESET: AsciiPreset = {
   id: 'basic',
   name: 'Basic',
   glyphSet: ['.', ':', '-', '=', '+', '*', '#'],
-  motionField: 'noise',
-  effects: [
-    { type: 'noise', enabled: true },
-    { type: 'burst', enabled: true },
-    { type: 'glitch', enabled: true },
-    { type: 'trails', enabled: true },
+  motionField: 'wave',
+  plugins: [
+    { id: 'wave', type: 'effect' },
+    { id: 'burst', type: 'effect' },
+    { id: 'glitch', type: 'effect' },
+    { id: 'trails', type: 'effect' },
   ],
   controls: [],
   density: 1,
@@ -36,8 +43,8 @@ export class AsciiEngine {
   private canvas: HTMLCanvasElement;
   private renderer: CanvasAsciiRenderer;
   private eventBus = new EventBus();
+  private pluginManager = new PluginManager();
   private preset: AsciiPreset;
-  private effects: Effect[] = [];
   private controlValues = new Map<string, number>();
   private rafId: number | null = null;
   private running = false;
@@ -46,6 +53,8 @@ export class AsciiEngine {
   private frameCount = 0;
   private fpsTime = 0;
   private time = 0;
+  private lastFps = 0;
+  private lastNoteOn: NoteEvent | null = null;
 
   constructor(options: AsciiEngineOptions) {
     this.canvas = options.canvas;
@@ -62,8 +71,10 @@ export class AsciiEngine {
       glyphSet: this.preset.glyphSet,
     });
 
+    this.pluginManager.setEngine(this);
+    this.initPlugins();
     this.initControls(this.preset);
-    this.rebuildEffects(this.preset.effects, this.preset.motionField);
+    this.applyPresetPlugins(this.preset);
 
     if (options.autoStart !== false) {
       this.start();
@@ -92,9 +103,7 @@ export class AsciiEngine {
   destroy(): void {
     this.stop();
     this.destroyed = true;
-    for (const effect of this.effects) {
-      effect.reset?.();
-    }
+    this.pluginManager.destroy();
     this.renderer.destroy();
     this.eventBus.clear();
   }
@@ -104,19 +113,17 @@ export class AsciiEngine {
     this.initControls(preset);
     this.renderer.setDensity(this.getControl('density', preset.density));
     this.renderer.setGlyphSet(preset.glyphSet);
-    this.rebuildEffects(preset.effects, preset.motionField);
+    this.pluginManager.resetEffects();
+    this.applyPresetPlugins(preset);
     this.eventBus.emit('preset', preset);
   }
 
   setControl(name: string, value: number): void {
+    warnUnknownControl(name);
     this.controlValues.set(name, value);
 
-    switch (name) {
-      case 'density':
-        this.renderer.setDensity(value);
-        break;
-      default:
-        break;
+    if (name === 'density') {
+      this.renderer.setDensity(value);
     }
 
     this.eventBus.emit('control', { name, value });
@@ -129,17 +136,93 @@ export class AsciiEngine {
     return fallback ?? 0;
   }
 
-  noteOn(event: NoteEvent = {}): void {
-    for (const effect of this.effects) {
-      effect.onNoteOn?.(event);
+  registerPlugin(plugin: Plugin): void {
+    this.pluginManager.register(plugin);
+  }
+
+  unregisterPlugin(id: string): void {
+    this.pluginManager.unregister(id);
+  }
+
+  enablePlugin(id: string): void {
+    this.pluginManager.enable(id);
+    const plugin = this.pluginManager.get(id);
+    if (plugin) {
+      this.eventBus.emit('plugin', { id, type: plugin.type, enabled: true });
     }
+  }
+
+  disablePlugin(id: string): void {
+    const plugin = this.pluginManager.get(id);
+    this.pluginManager.disable(id);
+    if (plugin) {
+      this.eventBus.emit('plugin', { id, type: plugin.type, enabled: false });
+    }
+  }
+
+  getPlugin(id: string): Plugin | undefined {
+    return this.pluginManager.get(id);
+  }
+
+  getEnabledPlugins(): Plugin[] {
+    return this.pluginManager.getEnabled();
+  }
+
+  getPluginManager(): PluginManager {
+    return this.pluginManager;
+  }
+
+  /** @deprecated Use registerPlugin with a PatternPlugin wrapper */
+  registerPattern(pattern: Pattern): void {
+    this.registerPlugin(new PatternPlugin(pattern, { version: '1.0.0' }));
+  }
+
+  /** @deprecated Use unregisterPlugin */
+  unregisterPattern(id: PatternId): void {
+    this.unregisterPlugin(LEGACY_PATTERN_IDS[id] ?? id);
+  }
+
+  /** @deprecated Use enablePlugin */
+  enablePattern(id: PatternId): void {
+    const pluginId = LEGACY_PATTERN_IDS[id] ?? id;
+    this.enablePlugin(pluginId);
+    this.eventBus.emit('pattern', { id, enabled: true });
+  }
+
+  /** @deprecated Use disablePlugin */
+  disablePattern(id: PatternId): void {
+    const pluginId = LEGACY_PATTERN_IDS[id] ?? id;
+    this.disablePlugin(pluginId);
+    this.eventBus.emit('pattern', { id, enabled: false });
+  }
+
+  /** @deprecated Use getPlugin */
+  getPattern(id: PatternId): Pattern | undefined {
+    const plugin = this.pluginManager.get(LEGACY_PATTERN_IDS[id] ?? id);
+    if (plugin instanceof PatternPlugin) {
+      return plugin.getPattern();
+    }
+    return undefined;
+  }
+
+  /** @deprecated Use getEnabledPlugins filtered by type pattern */
+  getEnabledPatterns(): PatternId[] {
+    return this.pluginManager
+      .getEnabledByType('pattern')
+      .map((p) => {
+        const reverse = Object.entries(LEGACY_PATTERN_IDS).find(([, v]) => v === p.id);
+        return (reverse?.[0] ?? p.id) as PatternId;
+      });
+  }
+
+  noteOn(event: NoteEvent = {}): void {
+    this.lastNoteOn = { ...event };
+    this.pluginManager.dispatchNoteOn(event);
     this.eventBus.emit('noteOn', event);
   }
 
   noteOff(event: NoteEvent = {}): void {
-    for (const effect of this.effects) {
-      effect.onNoteOff?.(event);
-    }
+    this.pluginManager.dispatchNoteOff(event);
     this.eventBus.emit('noteOff', event);
   }
 
@@ -159,46 +242,73 @@ export class AsciiEngine {
     return this.preset;
   }
 
+  getDebugState(): EngineDebugState {
+    return {
+      preset: this.preset.id,
+      effects: this.pluginManager
+        .getEnabledByType('effect')
+        .map((plugin) => plugin.id),
+      patterns: this.pluginManager
+        .getEnabledByType('pattern')
+        .map((plugin) => plugin.id),
+      density: this.getControl('density', this.preset.density),
+      speed: this.getControl('speed', this.preset.speed),
+      glitchAmount: this.getControl('glitchAmount', this.preset.glitchAmount),
+      trailAmount: this.getControl('trailAmount', this.preset.trailAmount),
+      symmetry: this.getControl('symmetry', this.preset.symmetry ?? 6),
+      petals: this.getControl('petals', this.preset.petals ?? 5),
+      spiralAmount: this.getControl('spiralAmount', this.preset.spiralAmount ?? 0.5),
+      cellularAmount: this.getControl('cellularAmount', this.preset.cellularAmount ?? 0.5),
+      scanlineAmount: this.getControl('scanlineAmount', this.preset.scanlineAmount ?? 0.5),
+      lastNoteOn: this.lastNoteOn,
+      fps: this.lastFps,
+      time: this.time,
+    };
+  }
+
+  private initPlugins(): void {
+    for (const plugin of createBuiltInPlugins()) {
+      this.pluginManager.register(plugin);
+    }
+  }
+
   private initControls(preset: AsciiPreset): void {
+    this.controlValues.clear();
+
+    for (const control of preset.controls) {
+      this.controlValues.set(control.name, control.default);
+    }
+
     this.controlValues.set('density', preset.density);
     this.controlValues.set('speed', preset.speed);
     this.controlValues.set('trailAmount', preset.trailAmount);
     this.controlValues.set('glitchAmount', preset.glitchAmount);
-
-    for (const control of preset.controls) {
-      if (!this.controlValues.has(control.name)) {
-        this.controlValues.set(control.name, control.default);
-      }
-    }
+    this.controlValues.set('symmetry', preset.symmetry ?? 6);
+    this.controlValues.set('petals', preset.petals ?? 5);
+    this.controlValues.set('spiralAmount', preset.spiralAmount ?? 0.5);
+    this.controlValues.set('cellularAmount', preset.cellularAmount ?? 0.5);
+    this.controlValues.set('scanlineAmount', preset.scanlineAmount ?? 0.5);
   }
 
-  private rebuildEffects(
-    configs: EffectConfig[],
-    motionField: AsciiPreset['motionField'],
-  ): void {
-    for (const effect of this.effects) {
-      effect.reset?.();
-    }
+  private applyPresetPlugins(preset: AsciiPreset): void {
+    const enabledIds = resolvePresetPlugins(preset);
+    warnUnknownPluginIds(enabledIds);
+    this.pluginManager.setEnabledIds(enabledIds);
+  }
 
-    const enabled = new Set(
-      configs.filter((c) => c.enabled !== false).map((c) => c.type),
-    );
-
-    const pool: Effect[] = [
-      new NoiseField(),
-      new WaveField(),
-      new GlyphBurst(),
-      new Glitch(),
-      new Trails(),
-    ];
-
-    this.effects = pool.filter((effect) => {
-      if (effect.type === 'noise' || effect.type === 'wave') {
-        if (motionField === 'none') return false;
-        return effect.type === motionField && enabled.has(effect.type);
-      }
-      return enabled.has(effect.type);
-    });
+  private buildPluginContext(dt: number): PluginContext {
+    const grid = this.renderer.getGridState(this.time);
+    return {
+      engine: this,
+      grid,
+      glyphSet: this.preset.glyphSet,
+      time: this.time,
+      dt,
+      speed: this.getControl('speed', this.preset.speed),
+      glitchAmount: this.getControl('glitchAmount', this.preset.glitchAmount),
+      trailAmount: this.getControl('trailAmount', this.preset.trailAmount),
+      getControl: (name, fallback) => this.getControl(name, fallback),
+    };
   }
 
   private tick = (now: number): void => {
@@ -208,29 +318,20 @@ export class AsciiEngine {
     this.lastTime = now;
     this.time += dt;
 
-    const speed = this.getControl('speed', this.preset.speed);
     const trailAmount = this.getControl('trailAmount', this.preset.trailAmount);
-    const glitchAmount = this.getControl('glitchAmount', this.preset.glitchAmount);
+    const ctx = this.buildPluginContext(dt);
 
-    const grid = this.renderer.getGridState(this.time);
-    const ctx = {
-      grid,
-      glyphSet: this.preset.glyphSet,
-      speed,
-      glitchAmount,
-      trailAmount,
-      dt,
-      time: this.time,
-    };
+    this.pluginManager.runMotionEffects(ctx);
+    this.pluginManager.updatePatterns(dt, ctx);
+    this.pluginManager.applyPatterns(ctx);
+    this.pluginManager.runPostEffects(ctx);
 
-    for (const effect of this.effects) {
-      effect.update(ctx);
-    }
-
-    this.renderer.render(trailAmount);
+    const trailsEnabled = this.pluginManager.get('trails')?.enabled ?? false;
+    this.renderer.render(trailsEnabled ? trailAmount : 0);
 
     this.frameCount++;
     if (now - this.fpsTime >= 1000) {
+      this.lastFps = this.frameCount;
       this.eventBus.emit('frame', {
         time: this.time,
         fps: this.frameCount,

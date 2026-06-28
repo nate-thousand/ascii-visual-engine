@@ -15,7 +15,7 @@ export class Trails implements Effect {
 
   applyFade(ctx: CanvasRenderingContext2D, trailAmount: number): void {
     if (trailAmount <= 0) return;
-    const alpha = Math.min(0.95, 0.3 + trailAmount * 0.6);
+    const alpha = Math.min(0.98, 0.12 + trailAmount * 0.86);
     ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }

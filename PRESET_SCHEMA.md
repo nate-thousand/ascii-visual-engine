@@ -14,13 +14,30 @@ interface AsciiPreset {
   name: string;
   glyphSet: string[];
   motionField: MotionFieldType;
-  effects: EffectConfig[];
+  plugins: PluginConfig[];
+  /** @deprecated Use `plugins` array */
+  effects?: EffectConfig[];
+  /** @deprecated Use `plugins` array */
+  patterns?: PatternId[];
   controls: ControlDef[];
   density: number;
   speed: number;
   trailAmount: number;
   glitchAmount: number;
+  symmetry?: number;
+  petals?: number;
+  spiralAmount?: number;
+  cellularAmount?: number;
+  scanlineAmount?: number;
 }
+
+type PatternId =
+  | 'radialSymmetry'
+  | 'spiral'
+  | 'wave'
+  | 'grid'
+  | 'cellular'
+  | 'scanline';
 ```
 
 ---
@@ -111,6 +128,88 @@ interface EffectConfig {
 **Pipeline order:** Motion field → Burst → Glitch → Trails.
 
 **Note:** Only one motion field (`noise` or `wave`) should be active, matching the `motionField` value. The `params` field is reserved for future per-effect configuration and is not yet consumed by the engine.
+
+---
+
+### `plugins`
+
+| | |
+| --- | --- |
+| **Type** | `PluginConfig[]` |
+| **Required** | Yes |
+| **Description** | Declarative list of plugins to enable when the preset loads. |
+
+```typescript
+interface PluginConfig {
+  id: string;
+  type: 'pattern' | 'effect' | 'input' | 'renderer' | 'utility';
+  enabled?: boolean;  // default: true
+  options?: Record<string, unknown>;
+}
+```
+
+Example:
+
+```json
+"plugins": [
+  { "id": "radialSymmetry", "type": "pattern", "options": {} },
+  { "id": "trails", "type": "effect", "options": {} },
+  { "id": "glitch", "type": "effect" }
+]
+```
+
+Legacy `effects` and `patterns` arrays are still supported and automatically migrated when `plugins` is omitted.
+
+---
+
+### `patterns` (deprecated)
+
+Use `plugins` with `type: "pattern"` instead. Still supported for backward compatibility.
+
+---
+
+### `effects` (deprecated)
+
+Use `plugins` with `type: "effect"` instead. Still supported for backward compatibility.
+
+---
+
+| | |
+| --- | --- |
+| **Type** | `PatternId[]` |
+| **Required** | Yes (may be empty array) |
+| **Description** | Procedural patterns enabled when the preset loads. Patterns shape glyph brightness and character selection. |
+
+| Pattern id | Class | Visual character |
+| --- | --- | --- |
+| `'radialSymmetry'` | `RadialSymmetryPattern` | Flowers, mandalas, blooms |
+| `'spiral'` | `SpiralPattern` | Growth, orbiting, hypnotic motion |
+| `'wave'` | `WavePattern` | Ambient flowing motion |
+| `'grid'` | `GridPattern` | Structured lattice |
+| `'cellular'` | `CellularPattern` | Organic decay, mold, crawling texture |
+| `'scanline'` | `ScanlinePattern` | Terminal, broadcast, CRT scanlines |
+
+Example:
+
+```json
+"patterns": ["radialSymmetry", "cellular"]
+```
+
+**Pipeline order:** Motion field → Patterns → Burst → Glitch → Trails.
+
+---
+
+### Pattern control defaults
+
+Optional top-level fields set initial pattern control values:
+
+| Field | Type | Range | Description |
+| --- | --- | --- | --- |
+| `symmetry` | `number` | 2–12 | Radial fold count |
+| `petals` | `number` | 3–12 | Petal count for radial forms |
+| `spiralAmount` | `number` | 0–1 | Spiral pattern intensity |
+| `cellularAmount` | `number` | 0–1 | Cellular/decay intensity |
+| `scanlineAmount` | `number` | 0–1 | Scanline/broadcast intensity |
 
 ---
 
@@ -229,6 +328,7 @@ Soft, flowing dot characters with gentle noise motion and long trails. No glitch
     { "type": "glitch", "enabled": false },
     { "type": "trails", "enabled": true }
   ],
+  "patterns": ["radialSymmetry", "cellular"],
   "controls": [
     { "name": "density", "label": "Density", "min": 0.3, "max": 2, "default": 0.9, "step": 0.1 },
     { "name": "speed", "label": "Speed", "min": 0.1, "max": 3, "default": 0.5, "step": 0.1 },
@@ -238,7 +338,12 @@ Soft, flowing dot characters with gentle noise motion and long trails. No glitch
   "density": 0.9,
   "speed": 0.5,
   "trailAmount": 0.7,
-  "glitchAmount": 0
+  "glitchAmount": 0,
+  "symmetry": 8,
+  "petals": 7,
+  "spiralAmount": 0.25,
+  "cellularAmount": 0.65,
+  "scanlineAmount": 0
 }
 ```
 
@@ -262,6 +367,7 @@ Hex digit glyphs with noise motion, moderate glitch, and medium trails. Evokes r
     { "type": "glitch", "enabled": true },
     { "type": "trails", "enabled": true }
   ],
+  "patterns": ["scanline", "grid"],
   "controls": [
     { "name": "density", "label": "Density", "min": 0.3, "max": 2, "default": 1.2, "step": 0.1 },
     { "name": "speed", "label": "Speed", "min": 0.1, "max": 3, "default": 0.8, "step": 0.1 },
@@ -271,7 +377,12 @@ Hex digit glyphs with noise motion, moderate glitch, and medium trails. Evokes r
   "density": 1.2,
   "speed": 0.8,
   "trailAmount": 0.5,
-  "glitchAmount": 0.25
+  "glitchAmount": 0.25,
+  "symmetry": 4,
+  "petals": 4,
+  "spiralAmount": 0.2,
+  "cellularAmount": 0.15,
+  "scanlineAmount": 0.75
 }
 ```
 
@@ -295,6 +406,7 @@ Geometric symbols with wave motion, heavy glitch, and short trails. Designed for
     { "type": "glitch", "enabled": true },
     { "type": "trails", "enabled": true }
   ],
+  "patterns": ["spiral", "wave"],
   "controls": [
     { "name": "density", "label": "Density", "min": 0.3, "max": 2, "default": 1.4, "step": 0.1 },
     { "name": "speed", "label": "Speed", "min": 0.1, "max": 3, "default": 1.8, "step": 0.1 },
@@ -304,7 +416,12 @@ Geometric symbols with wave motion, heavy glitch, and short trails. Designed for
   "density": 1.4,
   "speed": 1.8,
   "trailAmount": 0.2,
-  "glitchAmount": 0.45
+  "glitchAmount": 0.45,
+  "symmetry": 6,
+  "petals": 6,
+  "spiralAmount": 0.8,
+  "cellularAmount": 0.1,
+  "scanlineAmount": 0.3
 }
 ```
 

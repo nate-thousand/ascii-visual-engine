@@ -1,10 +1,60 @@
 import type { AsciiPreset } from '../core/types';
 
+const patternControls = [
+  {
+    name: 'symmetry',
+    label: 'Symmetry',
+    min: 2,
+    max: 12,
+    default: 6,
+    step: 1,
+  },
+  {
+    name: 'petals',
+    label: 'Petals',
+    min: 3,
+    max: 12,
+    default: 5,
+    step: 1,
+  },
+  {
+    name: 'spiralAmount',
+    label: 'Spiral',
+    min: 0,
+    max: 1,
+    default: 0.5,
+    step: 0.05,
+  },
+  {
+    name: 'cellularAmount',
+    label: 'Cellular',
+    min: 0,
+    max: 1,
+    default: 0.5,
+    step: 0.05,
+  },
+  {
+    name: 'scanlineAmount',
+    label: 'Scanline',
+    min: 0,
+    max: 1,
+    default: 0.5,
+    step: 0.05,
+  },
+] as const;
+
 export const basicPreset: AsciiPreset = {
   id: 'basic',
   name: 'Basic',
   glyphSet: ['.', ':', '-', '=', '+', '*', '#', '@'],
   motionField: 'wave',
+  plugins: [
+    { id: 'wave', type: 'effect' },
+    { id: 'burst', type: 'effect' },
+    { id: 'glitch', type: 'effect' },
+    { id: 'trails', type: 'effect' },
+  ],
+  patterns: ['wave'],
   effects: [
     { type: 'wave', enabled: true },
     { type: 'burst', enabled: true },
@@ -44,9 +94,15 @@ export const basicPreset: AsciiPreset = {
       default: 0.15,
       step: 0.05,
     },
+    ...patternControls,
   ],
   density: 1,
   speed: 1,
   trailAmount: 0.35,
   glitchAmount: 0.15,
+  symmetry: 6,
+  petals: 5,
+  spiralAmount: 0.3,
+  cellularAmount: 0.2,
+  scanlineAmount: 0.1,
 };

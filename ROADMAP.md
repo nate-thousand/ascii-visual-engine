@@ -2,9 +2,31 @@
 
 Milestone-driven development plan for ASCII Visual Engine.
 
-Each milestone contains concrete, checkable tasks. Completion percentages reflect work done as of **v0.1.0**. Unfinished work is never marked complete.
+Each milestone contains concrete, checkable tasks. Completion percentages reflect work done as of **v0.2.0**. Unfinished work is never marked complete.
 
-**Overall project progress: ~12%**
+**Overall project progress: ~28%**
+
+---
+
+## Stabilization Pass — Controls & Effects
+
+**Progress: 90%**
+
+Hardening the existing engine before new architecture work. Ensures presets, sliders, effects, and patterns are wired correctly and visibly verifiable.
+
+- [x] Audit UI → engine → renderer data flow
+- [x] Fix preset control reset on `setPreset()` (full reinitialize from preset)
+- [x] Verify slider → `setControl()` → effect/pattern context wiring
+- [x] Gate trails fade on trails plugin enabled state
+- [x] Exaggerate glitch, trails, and burst effect strengths for testing
+- [x] Increase pattern blend weight for distinct pattern visuals
+- [x] Console warnings for unknown controls, plugins, and presets
+- [x] `getDebugState()` API on `AsciiEngine`
+- [x] Debug panel in vanilla example (preset, effects, patterns, controls, FPS)
+- [x] Manual test buttons: Trigger Burst, Max Glitch, Max Trails, Reset Controls
+- [x] Integration tests for engine plugin pipeline
+- [ ] Automated visual regression snapshots
+- [ ] Preset JSON schema validation at load time
 
 ---
 
@@ -31,7 +53,35 @@ Core engine scaffolding, types, build tooling, and project structure.
 
 ---
 
-## Milestone 02 — Rendering Engine
+## Milestone 02 — Pattern System
+
+**Progress: 75%**
+
+Reusable procedural pattern layer for flowers, spirals, waves, grids, cellular decay, and scanline visuals.
+
+- [x] Define `Pattern` interface with `initialize`, `update`, `sample`, `destroy`
+- [x] Implement `PatternRegistry` with register/unregister/enable/disable
+- [x] Add engine API: `registerPattern`, `unregisterPattern`, `enablePattern`, `disablePattern`, `getPattern`
+- [x] Integrate pattern sampling into frame loop between motion and post-effects
+- [x] Add `RadialSymmetryPattern` for flowers, mandalas, and blooms
+- [x] Add `SpiralPattern` for growth and orbiting motion
+- [x] Add `WavePattern` for ambient flowing motion
+- [x] Add `GridPattern` for structured lattice forms
+- [x] Add `CellularPattern` for organic decay and crawling texture
+- [x] Add `ScanlinePattern` for terminal and broadcast aesthetics
+- [x] Extend preset schema with `patterns` array
+- [x] Add pattern controls: symmetry, petals, spiralAmount, cellularAmount, scanlineAmount
+- [x] Update built-in presets with pattern configurations
+- [x] Update vanilla example with pattern selector and controls
+- [ ] Add pattern blending modes (multiply, max, overlay)
+- [ ] Support pattern-specific `params` in preset schema
+- [ ] Add image/video sampling pattern for ASCII translation
+- [ ] Create pattern unit tests
+- [ ] Add pattern preview/debug overlay
+
+---
+
+## Milestone 03 — Rendering Engine
 
 **Progress: 55%**
 
@@ -56,31 +106,36 @@ Canvas-based ASCII grid renderer and renderer abstraction groundwork.
 
 ---
 
-## Milestone 03 — Plugin Architecture
+## Milestone 04 — Plugin Architecture
 
-**Progress: 10%**
+**Progress: 70%**
 
-Formal plugin system for registering custom effects, render hooks, and extensions.
+Unified plugin system for patterns, effects, inputs, and renderers.
 
-- [x] Define `Effect` interface with `update`, `onNoteOn`, `onNoteOff`, `reset`
-- [ ] Implement `PluginManager` class
-- [ ] Define `Plugin` base interface with lifecycle hooks
-- [ ] Add `engine.registerPlugin(plugin)` API
-- [ ] Add `engine.unregisterPlugin(id)` API
+- [x] Define `Plugin` base interface with lifecycle hooks
+- [x] Implement `PluginManager` class
+- [x] Add plugin types: pattern, effect, input, renderer, utility
+- [x] Add `engine.registerPlugin(plugin)` API
+- [x] Add `engine.unregisterPlugin(id)` API
+- [x] Add `engine.enablePlugin(id)` / `engine.disablePlugin(id)` API
+- [x] Add `engine.getPlugin(id)` API
+- [x] Refactor effects into `EffectPlugin` wrappers (Noise, Wave, Burst, Glitch, Trails)
+- [x] Refactor patterns into `PatternPlugin` wrappers (all six patterns)
+- [x] Extend preset schema with `plugins` array
+- [x] Migrate legacy `effects` / `patterns` preset fields automatically
+- [x] Update vanilla example with effect and pattern plugin toggles
+- [x] Document plugin API and architecture
 - [ ] Support plugin dependency ordering
-- [ ] Support plugin enable/disable at runtime
-- [ ] Add plugin metadata (id, name, version, author)
-- [ ] Implement plugin initialization and teardown lifecycle
 - [ ] Add plugin sandboxing for third-party code
 - [ ] Create example custom plugin in `examples/plugins/`
-- [ ] Document plugin discovery and lazy loading
-- [ ] Add plugin conflict resolution (duplicate type registration)
+- [ ] Implement `InputPlugin` concrete adapters
+- [ ] Implement `RendererPlugin` for alternate backends
+- [ ] Add plugin conflict resolution and versioning
 - [ ] Support plugin-provided preset contributions
-- [ ] Add plugin event subscription API
 
 ---
 
-## Milestone 04 — Motion Systems
+## Milestone 05 — Motion Systems
 
 **Progress: 40%**
 
@@ -102,7 +157,7 @@ Field generators that drive glyph selection and spatial animation.
 
 ---
 
-## Milestone 05 — Visual Effects
+## Milestone 06 — Visual Effects
 
 **Progress: 45%**
 
@@ -125,9 +180,9 @@ Post-motion visual modifiers applied per frame.
 
 ---
 
-## Milestone 06 — Preset System
+## Milestone 07 — Preset System
 
-**Progress: 50%**
+**Progress: 55%**
 
 Declarative visual configuration format and management.
 
@@ -136,7 +191,7 @@ Declarative visual configuration format and management.
 - [x] Implement `setPreset(preset)` with effect pipeline rebuild
 - [x] Implement `getPreset()` accessor
 - [x] Add `listPresets()` and `getPreset(id)` helpers
-- [x] Define `ControlDef` schema for UI metadata
+- [x] Extend preset schema with `patterns` array and pattern control defaults
 - [ ] Implement preset JSON loader from URL or file
 - [ ] Add preset validation utility with error messages
 - [ ] Support preset interpolation / morphing
@@ -149,7 +204,7 @@ Declarative visual configuration format and management.
 
 ---
 
-## Milestone 07 — Input Layer
+## Milestone 08 — Input Layer
 
 **Progress: 0%**
 
@@ -168,7 +223,7 @@ Unified input abstraction for routing external signals to engine events.
 
 ---
 
-## Milestone 08 — Audio Reactivity
+## Milestone 09 — Audio Reactivity
 
 **Progress: 0%**
 
@@ -187,7 +242,7 @@ Utilities for mapping audio analysis data to visual parameters.
 
 ---
 
-## Milestone 09 — MIDI Integration
+## Milestone 10 — MIDI Integration
 
 **Progress: 0%**
 
@@ -205,7 +260,7 @@ MIDI input adapter for note-driven visuals.
 
 ---
 
-## Milestone 10 — Touch & Gestures
+## Milestone 11 — Touch & Gestures
 
 **Progress: 0%**
 
@@ -222,7 +277,7 @@ Multi-touch and gesture recognition for interactive installations.
 
 ---
 
-## Milestone 11 — Performance Optimization
+## Milestone 12 — Performance Optimization
 
 **Progress: 5%**
 
@@ -242,7 +297,7 @@ Profiling, adaptive quality, and render path optimization.
 
 ---
 
-## Milestone 12 — GPU Rendering Research
+## Milestone 13 — GPU Rendering Research
 
 **Progress: 0%**
 
@@ -259,7 +314,7 @@ Investigate WebGL and compute-based ASCII rendering.
 
 ---
 
-## Milestone 13 — Shader Pipeline
+## Milestone 14 — Shader Pipeline
 
 **Progress: 0%**
 
@@ -276,14 +331,14 @@ Post-processing and shader-based visual effects.
 
 ---
 
-## Milestone 14 — Examples
+## Milestone 15 — Examples
 
-**Progress: 15%**
+**Progress: 25%**
 
 Reference integrations demonstrating engine capabilities.
 
 - [x] Vanilla browser example with preset selector and controls
-- [x] Burst trigger buttons and keyboard shortcut (Space)
+- [x] Pattern selector and pattern intensity controls in vanilla example
 - [ ] React example with `useAsciiEngine` hook
 - [ ] Node.js terminal example (headless or stdout)
 - [ ] Audio-reactive example
@@ -296,7 +351,7 @@ Reference integrations demonstrating engine capabilities.
 
 ---
 
-## Milestone 15 — Documentation
+## Milestone 16 — Documentation
 
 **Progress: 70%**
 
@@ -320,7 +375,7 @@ Professional open-source documentation for developers and contributors.
 
 ---
 
-## Milestone 16 — Testing
+## Milestone 17 — Testing
 
 **Progress: 0%**
 
@@ -339,7 +394,7 @@ Automated test coverage for core systems.
 
 ---
 
-## Milestone 17 — NPM Publishing
+## Milestone 18 — NPM Publishing
 
 **Progress: 0%**
 
@@ -357,14 +412,15 @@ Package distribution and release automation.
 
 ---
 
-## Milestone 18 — Version 1.0
+## Milestone 19 — Version 1.0
 
 **Progress: 0%**
 
 Stable public API with long-term support guarantees.
 
-- [ ] Complete plugin architecture (Milestone 03)
-- [ ] Complete preset system (Milestone 06)
+- [ ] Complete plugin architecture (Milestone 04)
+- [ ] Complete preset system (Milestone 07)
+- [ ] Complete pattern system (Milestone 02)
 - [ ] At least two renderer backends (Canvas + one other)
 - [ ] Comprehensive test suite with >80% coverage
 - [ ] Full API documentation with examples
@@ -383,8 +439,8 @@ Stable public API with long-term support guarantees.
 | Version | Milestone focus | Status |
 | --- | --- | --- |
 | 0.1.0 | Foundation, rendering, effects, presets, docs | Released |
-| 0.2.0 | Plugin architecture, preset validation | Planned |
-| 0.3.0 | Input layer, audio reactivity | Planned |
+| 0.2.0 | Pattern system, pattern controls, preset patterns | Released |
+| 0.3.0 | Plugin architecture, plugin presets | In progress |
 | 0.4.0 | Performance, React hook, examples | Planned |
 | 0.5.0 | GPU research, shader pipeline | Planned |
 | 1.0.0 | Stable API, npm, tests, full docs | Planned |

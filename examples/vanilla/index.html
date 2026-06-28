@@ -35,7 +35,9 @@
         top: 16px;
         left: 16px;
         z-index: 10;
-        max-width: 320px;
+        max-width: 340px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
         padding: 16px;
         background: rgba(0, 0, 0, 0.75);
         border: 1px solid rgba(0, 255, 136, 0.3);
@@ -63,12 +65,39 @@
         margin-bottom: 12px;
       }
 
+      .section-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(0, 255, 136, 0.5);
+        margin-bottom: 8px;
+      }
+
       label {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 4px;
         font-size: 12px;
+      }
+
+      .pattern-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      .pattern-list label {
+        justify-content: flex-start;
+        gap: 6px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+
+      .pattern-list input[type='checkbox'] {
+        width: auto;
+        accent-color: #00ff88;
       }
 
       select,
@@ -125,6 +154,25 @@
         font-size: 11px;
         color: rgba(0, 255, 136, 0.5);
       }
+
+      #debug-panel {
+        margin-top: 12px;
+        padding: 10px;
+        background: rgba(0, 20, 10, 0.9);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: 4px;
+        font-size: 10px;
+        line-height: 1.6;
+        color: rgba(0, 255, 136, 0.85);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .test-buttons button {
+        min-width: 70px;
+        font-size: 11px;
+        padding: 6px 8px;
+      }
     </style>
   </head>
   <body>
@@ -133,13 +181,23 @@
     <div id="ui">
       <h1>ASCII Visual Engine</h1>
       <p>
-        Fullscreen animated ASCII canvas. Change presets and sliders to alter
-        glyphs and motion. Click Burst buttons to trigger noteOn bursts.
+        Stabilization demo — switch presets, toggle plugins, and drag sliders.
+        Use test buttons to verify effects. Debug panel shows live engine state.
       </p>
 
       <div class="control-group">
         <label for="preset">Preset</label>
         <select id="preset"></select>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Effect Plugins</div>
+        <div id="effect-plugins" class="pattern-list"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Pattern Plugins</div>
+        <div id="pattern-plugins" class="pattern-list"></div>
       </div>
 
       <div class="control-group">
@@ -154,6 +212,41 @@
           Speed <span class="value" id="speed-value"></span>
         </label>
         <input type="range" id="speed" min="0.1" max="3" step="0.1" />
+      </div>
+
+      <div class="control-group">
+        <label for="symmetry">
+          Symmetry <span class="value" id="symmetry-value"></span>
+        </label>
+        <input type="range" id="symmetry" min="2" max="12" step="1" />
+      </div>
+
+      <div class="control-group">
+        <label for="petals">
+          Petals <span class="value" id="petals-value"></span>
+        </label>
+        <input type="range" id="petals" min="3" max="12" step="1" />
+      </div>
+
+      <div class="control-group">
+        <label for="spiralAmount">
+          Spiral <span class="value" id="spiralAmount-value"></span>
+        </label>
+        <input type="range" id="spiralAmount" min="0" max="1" step="0.05" />
+      </div>
+
+      <div class="control-group">
+        <label for="cellularAmount">
+          Cellular <span class="value" id="cellularAmount-value"></span>
+        </label>
+        <input type="range" id="cellularAmount" min="0" max="1" step="0.05" />
+      </div>
+
+      <div class="control-group">
+        <label for="scanlineAmount">
+          Scanline <span class="value" id="scanlineAmount-value"></span>
+        </label>
+        <input type="range" id="scanlineAmount" min="0" max="1" step="0.05" />
       </div>
 
       <div class="control-group">
@@ -175,7 +268,20 @@
         <button id="burst-random">Burst Random</button>
       </div>
 
-      <div id="fps">FPS: —</div>
+      <div class="control-group">
+        <div class="section-label">Manual Tests</div>
+        <div class="buttons test-buttons">
+          <button id="test-burst">Trigger Burst</button>
+          <button id="test-glitch">Max Glitch</button>
+          <button id="test-trails">Max Trails</button>
+          <button id="test-reset">Reset Controls</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Debug State</div>
+        <pre id="debug-panel">loading…</pre>
+      </div>
     </div>
 
     <script type="module" src="./main.ts"></script>

@@ -19,7 +19,7 @@ export class GlyphBurst implements Effect {
       y: event.y ?? Math.random(),
       intensity,
       age: 0,
-      maxAge: 0.6 + intensity * 0.4,
+      maxAge: 0.9 + intensity * 0.7,
     });
   }
 
@@ -42,12 +42,12 @@ export class GlyphBurst implements Effect {
         const dy = ny - burst.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const progress = burst.age / burst.maxAge;
-        const radius = (0.05 + burst.intensity * 0.25) * (1 + progress * 2);
+        const radius = (0.1 + burst.intensity * 0.5) * (1 + progress * 2.5);
         const falloff = Math.max(0, 1 - dist / radius) * (1 - progress);
 
         if (falloff > 0) {
-          cell.burst = Math.max(cell.burst, falloff * burst.intensity);
-          cell.brightness = Math.min(1, cell.brightness + falloff * 0.8);
+          cell.burst = Math.max(cell.burst, falloff * burst.intensity * 1.4);
+          cell.brightness = Math.min(1, cell.brightness + falloff * 1.2);
         }
       }
     }
