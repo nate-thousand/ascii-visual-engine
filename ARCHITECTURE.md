@@ -127,7 +127,18 @@ Each frame follows a fixed sequence:
        │
        ▼
 ┌─────────────┐
-│Effect pipeline│──► motion effects: noise, wave
+│ MotionManager│──► combineMotions → ox, oy, vx, vy, brightness, phase
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ applyMotion │──► phase → glyph char selection
+│ Glyphs      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Effect pipeline│──► legacy motion effects (when no motions active)
 └──────┬──────┘
        │
        ▼
@@ -184,6 +195,11 @@ Each cell stores:
 | `phase` | Deterministic seed for glyph variation |
 | `brightness` | Opacity multiplier (0–1) |
 | `burst` | Temporary burst intensity from `noteOn` |
+| `ox`, `oy` | Motion position offset in pixels |
+| `vx`, `vy` | Motion velocity |
+| `scale` | Motion scale factor |
+| `rotation` | Motion rotation in radians |
+| `deformation` | Motion deformation amount |
 
 Grid dimensions are computed from canvas size and density:
 

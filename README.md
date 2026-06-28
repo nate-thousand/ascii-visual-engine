@@ -58,7 +58,17 @@ Before adding new architecture, the current engine is being hardened so presets,
 
 Run `npm run dev` and use the debug panel + test buttons to verify behavior.
 
-### Current (v0.3.0)
+### Current (v0.4.0)
+
+- **Motion system** — `MotionManager` with 12 blendable motion behaviors
+- Motions: flowField, organicGrowth, orbital, wave, gravity, brownian, flocking, wind, pulse, breathing, spiral, curlNoise
+- Weighted motion blending with priorities — multiple motions run simultaneously
+- Motion controls: strength, randomness, frequency, amplitude, decay, drag, gravity, noiseScale, flowStrength, blendWeight
+- Six motion presets: Ambient, Organic, Mechanical, Terminal, Chaotic, Minimal
+- Motion debug panel in vanilla example (frame time, velocities, active motions)
+- Per-cell motion properties: offset, velocity, scale, rotation, deformation
+
+### Previous (v0.3.0)
 
 - `AsciiEngine` with full lifecycle (`start`, `stop`, `destroy`, `resize`)
 - **Plugin architecture** — unified `PluginManager` for patterns, effects, inputs, renderers
@@ -107,10 +117,9 @@ The engine is organized into distinct systems:
 │                        AsciiEngine                           │
 │  Lifecycle · Controls · Presets · Patterns · Frame Loop      │
 ├────────────┬─────────────┬────────────┬────────────┬────────┤
-│  Renderer  │  Patterns   │  Effects   │  Presets   │ Events │
-│ Canvas 2D  │ Radial·Spiral│ Noise·Wave │ basic·term │ noteOn │
-│            │ Wave·Grid   │ Burst·Glitch│ organic    │ pattern│
-│            │ Cellular·Scan│ Trails     │            │ control│
+│  Renderer  │  Motions    │  Patterns   │  Effects   │ Presets │
+│ Canvas 2D  │ Flow·Wave   │ Radial·Grid │ Burst·Glitch│ ambient │
+│            │ Organic·Wind│ Spiral·Scan │ Trails     │ chaotic │
 └────────────┴─────────────┴────────────┴────────────┴────────┘
 ```
 

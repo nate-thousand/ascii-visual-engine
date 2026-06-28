@@ -2,7 +2,7 @@ import type { AsciiPreset } from '../core/types';
 
 export const terminalPreset: AsciiPreset = {
   id: 'terminal',
-  name: 'Terminal',
+  name: 'Terminal Classic',
   glyphSet: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'F'],
   motionField: 'noise',
   plugins: [

@@ -109,6 +109,7 @@ describe('AsciiEngine plugin integration', () => {
     engine.disablePlugin('wavePattern');
     engine.disablePlugin('glitch');
     engine.disablePlugin('burst');
+    engine.disableMotion('wave');
 
     advanceFrames(2);
     const renderer = (engine as unknown as { renderer: { getGridState: (t: number) => { cells: { char: string; brightness: number }[] } } }).renderer;

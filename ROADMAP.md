@@ -4,7 +4,7 @@ Milestone-driven development plan for ASCII Visual Engine.
 
 Each milestone contains concrete, checkable tasks. Completion percentages reflect work done as of **v0.2.0**. Unfinished work is never marked complete.
 
-**Overall project progress: ~28%**
+**Overall project progress: ~35%**
 
 ---
 
@@ -137,23 +137,26 @@ Unified plugin system for patterns, effects, inputs, and renderers.
 
 ## Milestone 05 — Motion Systems
 
-**Progress: 40%**
+**Progress: 85%**
 
-Field generators that drive glyph selection and spatial animation.
+Reusable motion engine combining multiple procedural behaviors with weighted blending.
 
-- [x] Implement `NoiseField` — organic sine-product motion
-- [x] Implement `WaveField` — sine wave glyph animation
-- [x] Wire motion field selection via preset `motionField` property
-- [ ] Implement proper simplex/perlin noise generator
-- [ ] Add `FlowField` — directional vector field motion
-- [ ] Add `RadialField` — center-outward ripple motion
-- [ ] Add `ScrollField` — directional scrolling marquee
-- [ ] Support motion field blending between two fields
-- [ ] Expose motion field parameters via preset `params`
-- [ ] Add motion field preview/debug visualization
-- [ ] Support time-scaled and spatially-scaled motion independently
-- [ ] Add deterministic seed support for reproducible motion
-- [ ] Create motion field unit tests
+- [x] Define `Motion` interface (`initialize`, `update`, `destroy`)
+- [x] Implement `MotionManager` with register/enable/blend/weight/priority
+- [x] Reusable `Float32Array` buffers — no per-frame allocations in blend loop
+- [x] Integrate motion pipeline into `AsciiEngine` (before patterns/effects)
+- [x] Per-cell motion properties: ox, oy, vx, vy, scale, rotation, deformation
+- [x] Renderer uses motion offsets for glyph positioning
+- [x] Built-in motions: FlowField, OrganicGrowth, Orbital, Wave, Gravity, Brownian, Flocking, Wind, Pulse, Breathing, Spiral, CurlNoise
+- [x] Motion controls: speed, strength, randomness, frequency, amplitude, decay, drag, gravity, noiseScale, flowStrength, blendWeight
+- [x] Preset `motions` array configuration with weight and priority
+- [x] Six example presets: Ambient, Organic, Mechanical, Terminal, Chaotic, Minimal
+- [x] Motion debug panel in vanilla example
+- [x] Motion system unit tests (8 tests)
+- [x] Documentation: [MOTION_SYSTEM.md](./MOTION_SYSTEM.md)
+- [ ] Motion field preview/debug overlay on canvas
+- [ ] Deterministic seed support for reproducible motion
+- [ ] Motion-specific params in preset schema
 
 ---
 

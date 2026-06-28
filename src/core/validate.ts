@@ -1,4 +1,6 @@
 import { listPluginIds } from '../plugins/builtins';
+import { listMotionIds } from '../motion/builtins';
+import { MOTION_CONTROLS } from '../motion/Motion';
 
 /** Control names wired through AsciiEngine.setControl / getControl. */
 export const KNOWN_CONTROLS = new Set([
@@ -11,10 +13,12 @@ export const KNOWN_CONTROLS = new Set([
   'spiralAmount',
   'cellularAmount',
   'scanlineAmount',
+  ...MOTION_CONTROLS,
 ]);
 
 const warnedControls = new Set<string>();
 const warnedPlugins = new Set<string>();
+const warnedMotions = new Set<string>();
 
 export function warnUnknownControl(name: string): void {
   if (KNOWN_CONTROLS.has(name) || warnedControls.has(name)) return;
@@ -40,4 +44,15 @@ export function warnUnknownPreset(id: string, knownIds: string[]): void {
   console.warn(
     `[AsciiEngine] Unknown preset "${id}". Available presets: ${knownIds.join(', ')}`,
   );
+}
+
+export function warnUnknownMotionIds(ids: string[]): void {
+  const known = new Set(listMotionIds());
+  for (const id of ids) {
+    if (known.has(id) || warnedMotions.has(id)) continue;
+    warnedMotions.add(id);
+    console.warn(
+      `[AsciiEngine] Unknown motion "${id}" in preset. Registered motions: ${listMotionIds().join(', ')}`,
+    );
+  }
 }

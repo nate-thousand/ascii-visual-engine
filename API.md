@@ -362,6 +362,39 @@ Central registry for all plugins.
 
 See [PLUGIN_API.md](./PLUGIN_API.md) for building custom plugins.
 
+---
+
+## MotionManager
+
+Procedural motion engine — independent from rendering and effects. See [MOTION_SYSTEM.md](./MOTION_SYSTEM.md).
+
+| Method | Description |
+| --- | --- |
+| `registerMotion(motion)` | Register a motion behavior |
+| `unregisterMotion(id)` | Remove and destroy motion |
+| `enableMotion(id)` / `disableMotion(id)` | Toggle motion |
+| `getMotion(id)` | Lookup by id |
+| `getAll()` / `getEnabled()` | List motions |
+| `setMotionWeight(id, weight)` | Set blend weight |
+| `setMotionPriority(id, priority)` | Set blend priority |
+| `setEnabledIds(configs)` | Enable motions from preset config |
+| `combineMotions(context)` | Run and blend all enabled motions |
+| `getDebugState()` | Frame time, velocities, active motions |
+| `destroy()` | Destroy all motions |
+
+### AsciiEngine motion API
+
+| Method | Description |
+| --- | --- |
+| `registerMotion(motion)` | Register custom motion |
+| `enableMotion(id)` / `disableMotion(id)` | Toggle motion |
+| `getMotion(id)` | Get motion instance |
+| `getEnabledMotions()` | List enabled motions |
+| `setMotionWeight(id, weight)` | Adjust blend weight |
+| `getMotionManager()` | Direct manager access |
+
+---
+
 ## PatternRegistry *(legacy)*
 
 Still exported. Engine uses `PluginManager` internally.

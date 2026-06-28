@@ -83,4 +83,36 @@ export {
 } from './presets';
 export type { PresetId } from './presets';
 export type { EngineDebugState } from './core/debug';
-export { KNOWN_CONTROLS, warnUnknownControl, warnUnknownPluginIds, warnUnknownPreset } from './core/validate';
+export { KNOWN_CONTROLS, warnUnknownControl, warnUnknownPluginIds, warnUnknownPreset, warnUnknownMotionIds } from './core/validate';
+
+// Motion
+export {
+  MotionManager,
+  createBuiltInMotions,
+  motionCatalog,
+  listMotionIds,
+  resolvePresetMotions,
+  MOTION_CONTROLS,
+  DEFAULT_MOTION_CONTROLS,
+  FlowFieldMotion,
+  OrganicGrowthMotion,
+  OrbitalMotion,
+  WaveMotion,
+  GravityMotion,
+  BrownianMotion,
+  FlockingMotion,
+  WindMotion,
+  PulseMotion,
+  BreathingMotion,
+  SpiralMotion,
+  CurlNoiseMotion,
+} from './motion';
+export type {
+  Motion,
+  MotionContext,
+  MotionConfig,
+  MotionDebugInfo,
+  MotionManagerDebugState,
+  MotionControlName,
+} from './motion';
+export { listMotionPresets } from './presets';

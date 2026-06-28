@@ -7,14 +7,22 @@ import {
   resolvePresetPlugins,
 } from '../plugins';
 import type { Plugin, PluginContext } from '../plugins';
+import {
+  MotionManager,
+  createBuiltInMotions,
+  resolvePresetMotions,
+  DEFAULT_MOTION_CONTROLS,
+} from '../motion';
+import type { Motion } from '../motion';
 import type { Pattern, PatternId } from '../patterns';
 import type {
   AsciiEngineOptions,
   AsciiPreset,
   EngineEventPayload,
+  GridState,
   NoteEvent,
 } from './types';
-import { warnUnknownControl, warnUnknownPluginIds } from './validate';
+import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds } from './validate';
 import type { EngineDebugState } from './debug';
 
 const LEGACY_PATTERN_IDS: Record<string, string> = {
@@ -44,6 +52,7 @@ export class AsciiEngine {
   private renderer: CanvasAsciiRenderer;
   private eventBus = new EventBus();
   private pluginManager = new PluginManager();
+  private motionManager = new MotionManager();
   private preset: AsciiPreset;
   private controlValues = new Map<string, number>();
   private rafId: number | null = null;
@@ -72,9 +81,12 @@ export class AsciiEngine {
     });
 
     this.pluginManager.setEngine(this);
+    this.motionManager.setEngine(this);
     this.initPlugins();
+    this.initMotions();
     this.initControls(this.preset);
     this.applyPresetPlugins(this.preset);
+    this.applyPresetMotions(this.preset);
 
     if (options.autoStart !== false) {
       this.start();
@@ -104,6 +116,7 @@ export class AsciiEngine {
     this.stop();
     this.destroyed = true;
     this.pluginManager.destroy();
+    this.motionManager.destroy();
     this.renderer.destroy();
     this.eventBus.clear();
   }
@@ -115,6 +128,7 @@ export class AsciiEngine {
     this.renderer.setGlyphSet(preset.glyphSet);
     this.pluginManager.resetEffects();
     this.applyPresetPlugins(preset);
+    this.applyPresetMotions(preset);
     this.eventBus.emit('preset', preset);
   }
 
@@ -170,6 +184,40 @@ export class AsciiEngine {
 
   getPluginManager(): PluginManager {
     return this.pluginManager;
+  }
+
+  registerMotion(motion: Motion): void {
+    this.motionManager.registerMotion(motion);
+  }
+
+  unregisterMotion(id: string): void {
+    this.motionManager.unregisterMotion(id);
+  }
+
+  enableMotion(id: string): void {
+    this.motionManager.enableMotion(id);
+    this.eventBus.emit('motion', { id, enabled: true });
+  }
+
+  disableMotion(id: string): void {
+    this.motionManager.disableMotion(id);
+    this.eventBus.emit('motion', { id, enabled: false });
+  }
+
+  getMotion(id: string): Motion | undefined {
+    return this.motionManager.getMotion(id);
+  }
+
+  getEnabledMotions(): Motion[] {
+    return this.motionManager.getEnabled();
+  }
+
+  getMotionManager(): MotionManager {
+    return this.motionManager;
+  }
+
+  setMotionWeight(id: string, weight: number): void {
+    this.motionManager.setMotionWeight(id, weight);
   }
 
   /** @deprecated Use registerPlugin with a PatternPlugin wrapper */
@@ -251,6 +299,7 @@ export class AsciiEngine {
       patterns: this.pluginManager
         .getEnabledByType('pattern')
         .map((plugin) => plugin.id),
+      motions: this.motionManager.getEnabled().map((m) => m.id),
       density: this.getControl('density', this.preset.density),
       speed: this.getControl('speed', this.preset.speed),
       glitchAmount: this.getControl('glitchAmount', this.preset.glitchAmount),
@@ -260,10 +309,21 @@ export class AsciiEngine {
       spiralAmount: this.getControl('spiralAmount', this.preset.spiralAmount ?? 0.5),
       cellularAmount: this.getControl('cellularAmount', this.preset.cellularAmount ?? 0.5),
       scanlineAmount: this.getControl('scanlineAmount', this.preset.scanlineAmount ?? 0.5),
+      strength: this.getControl('strength', this.preset.strength ?? 0.7),
+      randomness: this.getControl('randomness', this.preset.randomness ?? 0.3),
+      frequency: this.getControl('frequency', this.preset.frequency ?? 1),
+      amplitude: this.getControl('amplitude', this.preset.amplitude ?? 1),
       lastNoteOn: this.lastNoteOn,
       fps: this.lastFps,
       time: this.time,
+      motion: this.motionManager.getDebugState(),
     };
+  }
+
+  private initMotions(): void {
+    for (const motion of createBuiltInMotions()) {
+      this.motionManager.registerMotion(motion);
+    }
   }
 
   private initPlugins(): void {
@@ -288,12 +348,60 @@ export class AsciiEngine {
     this.controlValues.set('spiralAmount', preset.spiralAmount ?? 0.5);
     this.controlValues.set('cellularAmount', preset.cellularAmount ?? 0.5);
     this.controlValues.set('scanlineAmount', preset.scanlineAmount ?? 0.5);
+
+    for (const [key, value] of Object.entries(DEFAULT_MOTION_CONTROLS)) {
+      const presetValue = preset[key as keyof AsciiPreset];
+      this.controlValues.set(
+        key,
+        typeof presetValue === 'number' ? presetValue : value,
+      );
+    }
+  }
+
+  private applyPresetMotions(preset: AsciiPreset): void {
+    const configs = resolvePresetMotions(preset);
+    warnUnknownMotionIds(configs.map((c) => c.id));
+    this.motionManager.setEnabledIds(configs);
+    for (const config of configs) {
+      if (config.weight !== undefined) {
+        this.motionManager.setMotionWeight(config.id, config.weight);
+      }
+      if (config.priority !== undefined) {
+        this.motionManager.setMotionPriority(config.id, config.priority);
+      }
+    }
   }
 
   private applyPresetPlugins(preset: AsciiPreset): void {
     const enabledIds = resolvePresetPlugins(preset);
     warnUnknownPluginIds(enabledIds);
     this.pluginManager.setEnabledIds(enabledIds);
+  }
+
+  private buildMotionContext(dt: number) {
+    const grid = this.renderer.getGridState(this.time);
+    return {
+      engine: this,
+      grid,
+      time: this.time,
+      dt,
+      cols: grid.cols,
+      rows: grid.rows,
+      cellCount: grid.cells.length,
+      getControl: (name: string, fallback?: number) => this.getControl(name, fallback),
+    };
+  }
+
+  private applyMotionGlyphs(grid: GridState): void {
+    const { glyphSet } = this.preset;
+    const len = glyphSet.length;
+    if (len <= 1) return;
+
+    for (const cell of grid.cells) {
+      const phase = ((cell.phase % 1) + 1) % 1;
+      const index = Math.floor(phase * (len - 1));
+      cell.char = glyphSet[Math.max(0, Math.min(len - 1, index))];
+    }
   }
 
   private buildPluginContext(dt: number): PluginContext {
@@ -319,9 +427,19 @@ export class AsciiEngine {
     this.time += dt;
 
     const trailAmount = this.getControl('trailAmount', this.preset.trailAmount);
+    const motionCtx = this.buildMotionContext(dt);
+    const motionsActive = this.motionManager.getEnabled().length > 0;
+
+    if (motionsActive) {
+      this.motionManager.combineMotions(motionCtx);
+      this.applyMotionGlyphs(motionCtx.grid);
+    }
+
     const ctx = this.buildPluginContext(dt);
 
-    this.pluginManager.runMotionEffects(ctx);
+    if (!motionsActive) {
+      this.pluginManager.runMotionEffects(ctx);
+    }
     this.pluginManager.updatePatterns(dt, ctx);
     this.pluginManager.applyPatterns(ctx);
     this.pluginManager.runPostEffects(ctx);
@@ -332,6 +450,7 @@ export class AsciiEngine {
     this.frameCount++;
     if (now - this.fpsTime >= 1000) {
       this.lastFps = this.frameCount;
+      this.motionManager.setFps(this.frameCount);
       this.eventBus.emit('frame', {
         time: this.time,
         fps: this.frameCount,

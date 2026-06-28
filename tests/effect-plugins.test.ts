@@ -20,6 +20,13 @@ function makeGrid(cols = 10, rows = 8): GridState {
         phase: 0,
         brightness: 0.5,
         burst: 0,
+        ox: 0,
+        oy: 0,
+        vx: 0,
+        vy: 0,
+        scale: 1,
+        rotation: 0,
+        deformation: 0,
       });
     }
   }

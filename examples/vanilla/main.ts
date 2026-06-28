@@ -1,6 +1,7 @@
 import {
   AsciiEngine,
   listPresets,
+  motionCatalog,
   pluginCatalog,
   warnUnknownPreset,
   type AsciiPreset,
@@ -13,11 +14,23 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const presetSelect = document.getElementById('preset') as HTMLSelectElement;
 const effectPluginList = document.getElementById('effect-plugins') as HTMLDivElement;
 const patternPluginList = document.getElementById('pattern-plugins') as HTMLDivElement;
+const motionPluginList = document.getElementById('motion-plugins') as HTMLDivElement;
 const debugPanel = document.getElementById('debug-panel') as HTMLPreElement;
+const motionDebugPanel = document.getElementById('motion-debug-panel') as HTMLPreElement;
 
 const sliderIds = [
   'density',
   'speed',
+  'strength',
+  'randomness',
+  'frequency',
+  'amplitude',
+  'decay',
+  'drag',
+  'gravity',
+  'noiseScale',
+  'flowStrength',
+  'blendWeight',
   'symmetry',
   'petals',
   'spiralAmount',
@@ -42,6 +55,7 @@ const valueDisplays = Object.fromEntries(
 const allPresets = listPresets();
 const presetIds = allPresets.map((p) => p.id);
 const pluginCheckboxes = new Map<string, HTMLInputElement>();
+const motionCheckboxes = new Map<string, HTMLInputElement>();
 
 const effectPluginIds = ['noise', 'wave', 'burst', 'glitch', 'trails'];
 const patternPluginIds = [
@@ -51,6 +65,20 @@ const patternPluginIds = [
   'grid',
   'cellular',
   'scanline',
+];
+const motionPluginIds = [
+  'flowField',
+  'organicGrowth',
+  'orbital',
+  'wave',
+  'gravity',
+  'brownian',
+  'flocking',
+  'wind',
+  'pulse',
+  'breathing',
+  'spiral',
+  'curlNoise',
 ];
 
 for (const preset of allPresets) {
@@ -68,7 +96,7 @@ const { width, height } = getViewportSize();
 
 const engine = new AsciiEngine({
   canvas,
-  preset: allPresets[0],
+  preset: allPresets.find((p) => p.id === 'ambient') ?? allPresets[0],
   width,
   height,
 });
@@ -84,12 +112,16 @@ function syncSlidersFromPreset(preset: AsciiPreset) {
   for (const id of sliderIds) {
     const control = preset.controls.find((c) => c.name === id);
     const presetValue = preset[id as keyof AsciiPreset];
+    const slider = sliders[id];
+    if (!slider) continue;
     const value =
       typeof presetValue === 'number'
         ? presetValue
-        : (control?.default ?? parseFloat(sliders[id].min));
-    sliders[id].value = String(value);
-    valueDisplays[id].textContent = formatSliderValue(id, value);
+        : (control?.default ?? parseFloat(slider.min));
+    slider.value = String(value);
+    if (valueDisplays[id]) {
+      valueDisplays[id].textContent = formatSliderValue(id, value);
+    }
     engine.setControl(id, value);
   }
 }
@@ -99,6 +131,13 @@ function syncPluginsFromEngine() {
     engine.getEnabledPlugins().map((plugin: Plugin) => plugin.id),
   );
   for (const [id, checkbox] of pluginCheckboxes) {
+    checkbox.checked = enabled.has(id);
+  }
+}
+
+function syncMotionsFromEngine() {
+  const enabled = new Set(engine.getEnabledMotions().map((m) => m.id));
+  for (const [id, checkbox] of motionCheckboxes) {
     checkbox.checked = enabled.has(id);
   }
 }
@@ -117,18 +156,28 @@ function updateDebugPanel() {
     `preset:       ${state.preset}`,
     `effects:      ${state.effects.join(', ') || '(none)'}`,
     `patterns:     ${state.patterns.join(', ') || '(none)'}`,
+    `motions:      ${state.motions.join(', ') || '(none)'}`,
     `density:      ${state.density.toFixed(2)}`,
     `speed:        ${state.speed.toFixed(2)}`,
+    `strength:     ${state.strength.toFixed(2)}`,
     `glitch:       ${state.glitchAmount.toFixed(2)}`,
     `trails:       ${state.trailAmount.toFixed(2)}`,
-    `symmetry:     ${state.symmetry}`,
-    `petals:       ${state.petals}`,
-    `spiral:       ${state.spiralAmount.toFixed(2)}`,
-    `cellular:     ${state.cellularAmount.toFixed(2)}`,
-    `scanline:     ${state.scanlineAmount.toFixed(2)}`,
     `last noteOn:  ${formatNoteOn(state.lastNoteOn)}`,
     `fps:          ${state.fps}`,
     `time:         ${state.time.toFixed(1)}s`,
+  ].join('\n');
+
+  const md = state.motion;
+  const motionLines = md.activeMotions.map(
+    (m) => `  ${m.id} w=${m.weight.toFixed(2)} p=${m.priority}`,
+  );
+  motionDebugPanel.textContent = [
+    `active:       ${md.activeMotions.length}`,
+    ...motionLines,
+    `frame time:   ${md.frameTimeMs.toFixed(2)} ms`,
+    `avg velocity: ${md.avgVelocity.toFixed(3)}`,
+    `particles:    ${md.particleCount}`,
+    `fps:          ${md.fps}`,
   ].join('\n');
 }
 
@@ -155,11 +204,8 @@ function createPluginCheckbox(id: string, container: HTMLElement) {
 
   checkbox.addEventListener('change', () => {
     try {
-      if (checkbox.checked) {
-        engine.enablePlugin(id);
-      } else {
-        engine.disablePlugin(id);
-      }
+      if (checkbox.checked) engine.enablePlugin(id);
+      else engine.disablePlugin(id);
       updateDebugPanel();
     } catch (error) {
       checkbox.checked = !checkbox.checked;
@@ -168,16 +214,48 @@ function createPluginCheckbox(id: string, container: HTMLElement) {
   });
 }
 
-for (const id of effectPluginIds) {
-  createPluginCheckbox(id, effectPluginList);
+function createMotionCheckbox(id: string, container: HTMLElement) {
+  const entry = motionCatalog[id as keyof typeof motionCatalog];
+  if (!entry) {
+    console.warn(`[Demo] Unknown motion id "${id}" — checkbox skipped`);
+    return;
+  }
+
+  const label = document.createElement('label');
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.value = id;
+  checkbox.id = `motion-${id}`;
+
+  const text = document.createElement('span');
+  text.textContent = entry.name;
+
+  label.appendChild(checkbox);
+  label.appendChild(text);
+  container.appendChild(label);
+  motionCheckboxes.set(id, checkbox);
+
+  checkbox.addEventListener('change', () => {
+    try {
+      if (checkbox.checked) engine.enableMotion(id);
+      else engine.disableMotion(id);
+      updateDebugPanel();
+    } catch (error) {
+      checkbox.checked = !checkbox.checked;
+      console.error(`Motion "${id}" toggle failed:`, error);
+    }
+  });
 }
 
-for (const id of patternPluginIds) {
-  createPluginCheckbox(id, patternPluginList);
-}
+for (const id of effectPluginIds) createPluginCheckbox(id, effectPluginList);
+for (const id of patternPluginIds) createPluginCheckbox(id, patternPluginList);
+for (const id of motionPluginIds) createMotionCheckbox(id, motionPluginList);
 
-syncSlidersFromPreset(allPresets[0]);
+const initialPreset = engine.getPreset();
+syncSlidersFromPreset(initialPreset);
 syncPluginsFromEngine();
+syncMotionsFromEngine();
+presetSelect.value = initialPreset.id;
 updateDebugPanel();
 
 presetSelect.addEventListener('change', () => {
@@ -191,13 +269,18 @@ presetSelect.addEventListener('change', () => {
   engine.setPreset(preset);
   syncSlidersFromPreset(preset);
   syncPluginsFromEngine();
+  syncMotionsFromEngine();
   updateDebugPanel();
 });
 
 for (const id of sliderIds) {
-  sliders[id].addEventListener('input', () => {
-    const value = parseFloat(sliders[id].value);
-    valueDisplays[id].textContent = formatSliderValue(id, value);
+  const slider = sliders[id];
+  if (!slider) continue;
+  slider.addEventListener('input', () => {
+    const value = parseFloat(slider.value);
+    if (valueDisplays[id]) {
+      valueDisplays[id].textContent = formatSliderValue(id, value);
+    }
     engine.setControl(id, value);
     updateDebugPanel();
   });
@@ -229,16 +312,13 @@ function maxTrails() {
 }
 
 function resetControls() {
-  const preset = engine.getPreset();
-  syncSlidersFromPreset(preset);
+  syncSlidersFromPreset(engine.getPreset());
   syncPluginsFromEngine();
+  syncMotionsFromEngine();
   updateDebugPanel();
 }
 
-document.getElementById('burst-center')!.addEventListener('click', () => {
-  triggerBurst();
-});
-
+document.getElementById('burst-center')!.addEventListener('click', triggerBurst);
 document.getElementById('burst-random')!.addEventListener('click', () => {
   engine.enablePlugin('burst');
   syncPluginsFromEngine();
@@ -249,24 +329,20 @@ document.getElementById('burst-random')!.addEventListener('click', () => {
   });
   updateDebugPanel();
 });
-
 document.getElementById('test-burst')!.addEventListener('click', triggerBurst);
 document.getElementById('test-glitch')!.addEventListener('click', maxGlitch);
 document.getElementById('test-trails')!.addEventListener('click', maxTrails);
 document.getElementById('test-reset')!.addEventListener('click', resetControls);
 
-engine.on('frame', () => {
-  updateDebugPanel();
-});
-
+engine.on('frame', () => updateDebugPanel());
 engine.on('noteOn', () => updateDebugPanel());
 engine.on('control', () => updateDebugPanel());
 engine.on('preset', () => updateDebugPanel());
 engine.on('plugin', () => updateDebugPanel());
+engine.on('motion', () => updateDebugPanel());
 
 window.addEventListener('resize', () => {
-  const size = getViewportSize();
-  engine.resize(size.width, size.height);
+  engine.resize(getViewportSize().width, getViewportSize().height);
 });
 
 window.addEventListener('keydown', (e) => {

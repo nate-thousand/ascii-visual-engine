@@ -2,7 +2,7 @@ import type { AsciiPreset } from '../core/types';
 
 export const organicPreset: AsciiPreset = {
   id: 'organic',
-  name: 'Organic',
+  name: 'Organic Classic',
   glyphSet: ['·', '°', '○', '●', '◦', '∘', '∙', '◉'],
   motionField: 'noise',
   plugins: [

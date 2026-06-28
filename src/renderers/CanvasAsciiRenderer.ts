@@ -110,9 +110,19 @@ export class CanvasAsciiRenderer {
       const alpha = 0.2 + brightness * 0.8;
       this.ctx.fillStyle = this.withAlpha(this.color, alpha);
 
-      const px = cell.x * this.cellWidth;
-      const py = cell.y * this.cellHeight;
-      this.ctx.fillText(cell.char, px, py);
+      const px = cell.x * this.cellWidth + cell.ox;
+      const py = cell.y * this.cellHeight + cell.oy;
+
+      if (cell.rotation !== 0 || cell.scale !== 1) {
+        this.ctx.save();
+        this.ctx.translate(px, py);
+        if (cell.rotation !== 0) this.ctx.rotate(cell.rotation);
+        if (cell.scale !== 1) this.ctx.scale(cell.scale, cell.scale);
+        this.ctx.fillText(cell.char, 0, 0);
+        this.ctx.restore();
+      } else {
+        this.ctx.fillText(cell.char, px, py);
+      }
     }
   }
 
@@ -148,6 +158,13 @@ export class CanvasAsciiRenderer {
           phase,
           brightness: 0.5,
           burst: 0,
+          ox: 0,
+          oy: 0,
+          vx: 0,
+          vy: 0,
+          scale: 1,
+          rotation: 0,
+          deformation: 0,
         });
       }
     }

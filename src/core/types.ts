@@ -55,12 +55,20 @@ export interface PluginConfig {
   options?: Record<string, unknown>;
 }
 
+export interface MotionConfig {
+  id: string;
+  enabled?: boolean;
+  weight?: number;
+  priority?: number;
+}
+
 export interface AsciiPreset {
   id: string;
   name: string;
   glyphSet: string[];
   motionField: MotionFieldType;
   plugins: PluginConfig[];
+  motions?: MotionConfig[];
   /** @deprecated Use `plugins` array instead */
   effects?: EffectConfig[];
   /** @deprecated Use `plugins` array instead */
@@ -75,6 +83,16 @@ export interface AsciiPreset {
   spiralAmount?: number;
   cellularAmount?: number;
   scanlineAmount?: number;
+  strength?: number;
+  randomness?: number;
+  frequency?: number;
+  amplitude?: number;
+  decay?: number;
+  drag?: number;
+  gravity?: number;
+  noiseScale?: number;
+  flowStrength?: number;
+  blendWeight?: number;
 }
 
 export interface GridDimensions {
@@ -92,6 +110,13 @@ export interface GridCell {
   phase: number;
   brightness: number;
   burst: number;
+  ox: number;
+  oy: number;
+  vx: number;
+  vy: number;
+  scale: number;
+  rotation: number;
+  deformation: number;
 }
 
 export interface GridState {
@@ -139,6 +164,7 @@ export type EngineEventMap = {
   control: { name: string; value: number };
   pattern: { id: PatternId; enabled: boolean };
   plugin: { id: string; type: PluginType; enabled: boolean };
+  motion: { id: string; enabled: boolean };
   noteOn: NoteEvent;
   noteOff: NoteEvent;
   resize: { width: number; height: number };
