@@ -3,11 +3,11 @@
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/nate-thousand/ascii-visual-engine/releases/tag/v0.1.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen.svg)](#development)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](#development)
 
 A reusable TypeScript framework for building expressive, real-time ASCII visual systems.
 
-**v0.1.0 MVP** — ready for integration into [Plantasonic](https://github.com/nate-thousand) and future prototypes.
+**v0.1.0 MVP** — core library ready for integration; see [INTEGRATION.md](./INTEGRATION.md) for the basic functionality contract.
 
 ---
 
@@ -37,7 +37,7 @@ The engine handles grid management, frame timing, effect composition, preset loa
 | **Modular** | Systems are separated into core, renderer, effects, presets, and events. Each can evolve independently. |
 | **Plugin based** | Visual behavior is composed from registered plugins and effects rather than monolithic rendering code. |
 | **Renderer agnostic** | The engine abstracts rendering behind a renderer interface. Canvas 2D is the first implementation; GPU renderers are planned. |
-| **High performance** | Built for real-time animation with `requestAnimationFrame`, efficient grid updates, and a path toward worker and GPU backends. |
+| **High performance** | Built for real-time animation with `requestAnimationFrame`, efficient grid updates, and planned worker/GPU backends (experimental in v0.1). |
 | **Framework first** | Optimized for reuse across projects, not for a single demo or product. |
 | **Creative coding friendly** | Presets, controls, and events map naturally to knobs, sliders, MIDI, OSC, and generative parameters. |
 | **TypeScript first** | Full type exports for consumers, contributors, and plugin authors. |
@@ -49,23 +49,35 @@ The engine handles grid management, frame timing, effect composition, preset loa
 
 ## Features (v0.1.0 MVP)
 
+### Stable (basic functionality contract)
+
 | System | Highlights |
 | --- | --- |
-| **Core** | `AsciiEngine`, presets, controls, typed events, `getDebugState()` |
+| **Core** | `AsciiEngine`, presets, controls, typed events, `getDebugState()`, preset validation |
 | **Plugins** | Effects (wave, burst, glitch, trails) and patterns (radial, spiral, grid, …) |
 | **Motion** | Blendable motion fields — flow, organic growth, orbital, breathing, curl noise |
 | **Simulation** | Particles, boids, CA, reaction diffusion, L-systems, gravity, spring, fluid |
 | **Sources** | Image, video, webcam, canvas, procedural |
-| **Renderers** | Canvas 2D, DOM, offscreen canvas (WebGL stub for future work) |
+| **Renderers** | Canvas 2D, DOM, offscreen canvas |
 | **Compositing** | Multi-layer blend modes, masks, post-processing passes |
 | **Audio** | Web Audio FFT analysis and reactive control mapping |
 | **MIDI** | Web MIDI, keyboard input, performance mapping, MIDI learn |
 | **Glyphs** | Procedural glyph languages, categories, morphing, animation |
 | **Export** | PNG, SVG, GIF, ASCII, JSON scene; recording and playback |
-| **Scripting** | Safe `ScriptAPI`, example gallery, hot reload in dev |
+| **Scripting** | Safe `ScriptAPI`, example gallery |
 | **Performance** | Frame profiler, quality presets, pooling, dirty region rendering |
 
-**29 built-in presets** · **162 tests** · **Full TypeScript definitions**
+### Experimental (not integration-ready)
+
+| System | Status |
+| --- | --- |
+| **WebGL renderer** | Stub only — `WebGLRendererStub` has no GPU draw path |
+| **Worker offload** | Infrastructure only — sync fallback is identity passthrough |
+| **Video export** | MP4, WebM, PDF planned — not implemented in v0.1 |
+
+**30 built-in presets** · **Full TypeScript definitions**
+
+See [INTEGRATION.md](./INTEGRATION.md) for the integration guide and verification steps.
 
 Run the demo locally:
 
@@ -85,6 +97,8 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) and [API.md](./API.md) for full referen
 ---
 
 ## Integration (Plantasonic & external projects)
+
+Full guide: **[INTEGRATION.md](./INTEGRATION.md)**
 
 Install from the built package or link locally:
 
@@ -173,11 +187,13 @@ cd ascii-visual-engine
 npm install
 ```
 
-### Build
+### Build & test
 
 ```bash
 npm run build      # Compile TypeScript + bundle to dist/
 npm run typecheck  # Type-check without emitting
+npm test           # Unit and integration tests (src/)
+npm run test:all   # Build + full suite including dist consumer smoke test
 ```
 
 ### Run the example
@@ -362,6 +378,7 @@ The goal is a mature, documented, npm-published framework that any developer can
 
 | Document | Description |
 | --- | --- |
+| [INTEGRATION.md](./INTEGRATION.md) | External project integration and basic functionality contract |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Engine design, pipelines, and extension points |
 | [API.md](./API.md) | Public class and method reference |
 | [PLUGIN_API.md](./PLUGIN_API.md) | How to build custom plugins and effects |

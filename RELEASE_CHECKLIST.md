@@ -6,7 +6,8 @@ Initial MVP release of ASCII Visual Engine. Use this checklist before tagging or
 
 - [x] `npm install` completes without errors
 - [x] `npm run typecheck` passes
-- [x] `npm test` — 162 tests passing
+- [x] `npm test` — unit and integration tests passing
+- [x] `npm run test:all` — build + consumer smoke test from `dist/`
 - [x] `npm run build` — library ESM + CJS + `.d.ts` artifacts
 - [x] `npm run build:demo` — static demo in `dist-demo/`
 - [x] `npm run lint` — TypeScript validation (via typecheck)
@@ -30,6 +31,7 @@ Initial MVP release of ASCII Visual Engine. Use this checklist before tagging or
 ## Documentation
 
 - [x] README.md — MVP overview, badges, integration guide
+- [x] INTEGRATION.md — basic functionality contract, quick start, experimental APIs
 - [x] CHANGELOG.md — v0.1.0 release notes
 - [x] ROADMAP.md — milestone status
 - [x] ARCHITECTURE.md, API.md, PLUGIN_API.md, PRESET_SCHEMA.md reviewed
@@ -50,11 +52,15 @@ Initial MVP release of ASCII Visual Engine. Use this checklist before tagging or
 ## Integration Readiness
 
 - [x] Engine importable into external projects (Plantasonic and prototypes)
-- [x] No blocking unfinished work for first integration
+- [x] Consumer smoke test imports built `dist/` bundle
+- [x] Preset validation at load time (`validatePreset` / `assertValidPreset`)
+- [x] Visual grid snapshots for core presets (basic, terminal, organic)
+- [x] Pattern unit tests
+- [ ] External Plantasonic integration verified in consuming repo
 - [x] Known future work tracked in ROADMAP (GPU rendering, npm publish, touch gestures)
 
 ---
 
 **Release date:** 2026-06-28  
 **Version:** 0.1.0  
-**Status:** MVP — ready for Plantasonic integration
+**Status:** MVP — core library integration-ready; see [INTEGRATION.md](./INTEGRATION.md)

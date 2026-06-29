@@ -25,8 +25,8 @@ Hardening the existing engine before new architecture work. Ensures presets, sli
 - [x] Debug panel in vanilla example (preset, effects, patterns, controls, FPS)
 - [x] Manual test buttons: Trigger Burst, Max Glitch, Max Trails, Reset Controls
 - [x] Integration tests for engine plugin pipeline
-- [ ] Automated visual regression snapshots
-- [ ] Preset JSON schema validation at load time
+- [x] Automated visual regression snapshots (grid fingerprints)
+- [x] Preset JSON schema validation at load time
 
 ---
 
@@ -76,7 +76,7 @@ Reusable procedural pattern layer for flowers, spirals, waves, grids, cellular d
 - [ ] Add pattern blending modes (multiply, max, overlay)
 - [ ] Support pattern-specific `params` in preset schema
 - [ ] Add image/video sampling pattern for ASCII translation
-- [ ] Create pattern unit tests
+- [x] Create pattern unit tests
 - [ ] Add pattern preview/debug overlay
 
 ---

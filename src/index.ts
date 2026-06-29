@@ -115,7 +115,17 @@ export {
 export type { PresetId } from './presets';
 export type { EngineDebugState } from './core/debug';
 export type { SourcePresetConfig } from './core/types';
-export { KNOWN_CONTROLS, warnUnknownControl, warnUnknownPluginIds, warnUnknownPreset, warnUnknownMotionIds, warnUnknownSimulationIds } from './core/validate';
+export {
+  KNOWN_CONTROLS,
+  validatePreset,
+  assertValidPreset,
+  warnUnknownControl,
+  warnUnknownPluginIds,
+  warnUnknownPreset,
+  warnUnknownMotionIds,
+  warnUnknownSimulationIds,
+} from './core/validate';
+export type { PresetValidationResult } from './core/validate';
 
 // Motion
 export {

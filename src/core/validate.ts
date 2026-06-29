@@ -7,6 +7,118 @@ import { POST_CONTROLS } from '../compositing/builtins';
 import { AUDIO_SMOOTHING_CONTROLS } from '../audio/AudioTypes';
 import { PERFORMANCE_CONTROLS } from '../performance/PerformanceTypes';
 import { listSimulationIds } from '../simulation/builtins';
+import { listPatternIds } from '../patterns';
+import type { AsciiPreset } from './types';
+
+export interface PresetValidationResult {
+  ok: boolean;
+  errors: string[];
+}
+
+const VALID_MOTION_FIELDS = new Set(['noise', 'wave', 'none']);
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+/** Structural validation for preset objects at load time. */
+export function validatePreset(preset: AsciiPreset): PresetValidationResult {
+  const errors: string[] = [];
+
+  if (!preset || typeof preset !== 'object') {
+    return { ok: false, errors: ['preset must be a non-null object'] };
+  }
+
+  if (typeof preset.id !== 'string' || preset.id.trim().length === 0) {
+    errors.push('preset.id must be a non-empty string');
+  }
+  if (typeof preset.name !== 'string' || preset.name.trim().length === 0) {
+    errors.push('preset.name must be a non-empty string');
+  }
+  if (!Array.isArray(preset.glyphSet) || preset.glyphSet.length === 0) {
+    errors.push('preset.glyphSet must be a non-empty string array');
+  } else if (preset.glyphSet.some((g) => typeof g !== 'string' || g.length === 0)) {
+    errors.push('preset.glyphSet entries must be non-empty strings');
+  }
+  if (!VALID_MOTION_FIELDS.has(preset.motionField)) {
+    errors.push(`preset.motionField must be one of: ${[...VALID_MOTION_FIELDS].join(', ')}`);
+  }
+
+  for (const field of ['density', 'speed', 'trailAmount', 'glitchAmount'] as const) {
+    if (!isFiniteNumber(preset[field])) {
+      errors.push(`preset.${field} must be a finite number`);
+    }
+  }
+
+  const pluginConfigs = preset.plugins ?? [];
+  if (!Array.isArray(pluginConfigs)) {
+    errors.push('preset.plugins must be an array when provided');
+  } else {
+    for (const [index, plugin] of pluginConfigs.entries()) {
+      if (!plugin || typeof plugin !== 'object') {
+        errors.push(`preset.plugins[${index}] must be an object`);
+        continue;
+      }
+      if (typeof plugin.id !== 'string' || plugin.id.trim().length === 0) {
+        errors.push(`preset.plugins[${index}].id must be a non-empty string`);
+      }
+      if (typeof plugin.type !== 'string' || plugin.type.trim().length === 0) {
+        errors.push(`preset.plugins[${index}].type must be a non-empty string`);
+      }
+    }
+  }
+
+  if (preset.patterns !== undefined) {
+    const knownPatterns = new Set(listPatternIds());
+    if (!Array.isArray(preset.patterns)) {
+      errors.push('preset.patterns must be an array when provided');
+    } else {
+      for (const patternId of preset.patterns) {
+        if (!knownPatterns.has(patternId)) {
+          errors.push(`preset.patterns contains unknown pattern "${patternId}"`);
+        }
+      }
+    }
+  }
+
+  if (preset.controls !== undefined) {
+    if (!Array.isArray(preset.controls)) {
+      errors.push('preset.controls must be an array when provided');
+    } else {
+      for (const [index, control] of preset.controls.entries()) {
+        if (!control || typeof control !== 'object') {
+          errors.push(`preset.controls[${index}] must be an object`);
+          continue;
+        }
+        if (typeof control.name !== 'string' || control.name.trim().length === 0) {
+          errors.push(`preset.controls[${index}].name must be a non-empty string`);
+        }
+        for (const bound of ['min', 'max', 'default'] as const) {
+          if (!isFiniteNumber(control[bound])) {
+            errors.push(`preset.controls[${index}].${bound} must be a finite number`);
+          }
+        }
+        if (
+          isFiniteNumber(control.min) &&
+          isFiniteNumber(control.max) &&
+          control.min > control.max
+        ) {
+          errors.push(`preset.controls[${index}] min must be <= max`);
+        }
+      }
+    }
+  }
+
+  return { ok: errors.length === 0, errors };
+}
+
+export function assertValidPreset(preset: AsciiPreset): void {
+  const result = validatePreset(preset);
+  if (!result.ok) {
+    const label = preset?.id ? `"${preset.id}"` : '(unknown)';
+    throw new Error(`Invalid preset ${label}: ${result.errors.join('; ')}`);
+  }
+}
 
 /** Control names wired through AsciiEngine.setControl / getControl. */
 export const KNOWN_CONTROLS = new Set([

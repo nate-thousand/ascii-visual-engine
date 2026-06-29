@@ -27,7 +27,13 @@ import type {
   GridState,
   NoteEvent,
 } from './types';
-import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds } from './validate';
+import {
+  assertValidPreset,
+  warnUnknownControl,
+  warnUnknownPluginIds,
+  warnUnknownMotionIds,
+  warnUnknownSimulationIds,
+} from './validate';
 import type { EngineDebugState } from './debug';
 import {
   SourceManager,
@@ -145,6 +151,7 @@ export class AsciiEngine {
     this.canvas = options.canvas;
     this.element = options.element;
     this.preset = options.preset ?? DEFAULT_PRESET;
+    assertValidPreset(this.preset);
 
     const width = options.width ?? window.innerWidth;
     const height = options.height ?? window.innerHeight;
@@ -232,6 +239,7 @@ export class AsciiEngine {
   }
 
   setPreset(preset: AsciiPreset): void {
+    assertValidPreset(preset);
     this.preset = preset;
     this.initControls(preset);
     this.rendererManager.setDensity(this.getControl('density', preset.density));
