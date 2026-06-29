@@ -5,8 +5,10 @@ import {
   simulationCatalog,
   pluginCatalog,
   listPostPassIds,
-  DEVICE_PRESET_IDS,
   warnUnknownPreset,
+  KNOWN_CONTROLS,
+  BUILTIN_GLYPH_LANGUAGES,
+  createDefaultMappings,
   type AsciiPreset,
   type BlendMode,
   type EngineDebugState,
@@ -14,11 +16,15 @@ import {
   type PresetId,
   type RendererId,
   type QualityPresetId,
+  type AudioFeatureMapping,
 } from 'ascii-visual-engine';
 import { galleryScripts } from '../scripts';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const domOutput = document.getElementById('dom-output') as HTMLPreElement;
+const uiPanel = document.getElementById('ui') as HTMLDivElement;
+const uiToggle = document.getElementById('ui-toggle') as HTMLButtonElement;
+const controlWarningsEl = document.getElementById('control-warnings') as HTMLDivElement;
 const presetSelect = document.getElementById('preset') as HTMLSelectElement;
 const effectPluginList = document.getElementById('effect-plugins') as HTMLDivElement;
 const patternPluginList = document.getElementById('pattern-plugins') as HTMLDivElement;
@@ -46,7 +52,7 @@ const audioElement = document.createElement('audio');
 audioElement.style.display = 'none';
 document.body.appendChild(audioElement);
 
-const audioMeterIds = ['amplitude', 'bass', 'mid', 'treble'] as const;
+const audioMeterIds = ['amplitude', 'bass', 'mid', 'treble', 'transient'] as const;
 type AudioMeterId = (typeof audioMeterIds)[number];
 const audioMeterValues = Object.fromEntries(
   audioMeterIds.map((id) => [id, document.getElementById(`meter-${id}`) as HTMLSpanElement]),
@@ -55,7 +61,14 @@ const audioMeterBars = Object.fromEntries(
   audioMeterIds.map((id) => [id, document.getElementById(`bar-${id}`) as HTMLDivElement]),
 ) as Record<AudioMeterId, HTMLDivElement>;
 
-const audioSliderIds = ['audioAttack', 'audioRelease', 'audioSensitivity', 'audioNoiseGate'] as const;
+const audioSliderIds = [
+  'audioAttack',
+  'audioRelease',
+  'audioSensitivity',
+  'audioNoiseGate',
+  'audioMinThreshold',
+  'audioMaxClamp',
+] as const;
 type AudioSliderId = (typeof audioSliderIds)[number];
 const audioSliders = Object.fromEntries(
   audioSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
@@ -103,6 +116,13 @@ const clearLearnedBtn = document.getElementById('clear-learned') as HTMLButtonEl
 const resetInputMappingBtn = document.getElementById('reset-input-mapping') as HTMLButtonElement;
 const mappingTable = document.getElementById('mapping-table') as HTMLPreElement;
 const noteMonitor = document.getElementById('note-monitor') as HTMLPreElement;
+const ccMonitor = document.getElementById('cc-monitor') as HTMLPreElement;
+const glyphLanguageSelect = document.getElementById('glyph-language') as HTMLSelectElement;
+const glyphSetInput = document.getElementById('glyph-set-input') as HTMLInputElement;
+const audioMapBassSelect = document.getElementById('audio-map-bass') as HTMLSelectElement;
+const audioMapMidSelect = document.getElementById('audio-map-mid') as HTMLSelectElement;
+const audioMapTrebleSelect = document.getElementById('audio-map-treble') as HTMLSelectElement;
+const audioMappingEnabledToggle = document.getElementById('audio-mapping-enabled') as HTMLInputElement;
 const rendererModeSelect = document.getElementById('renderer-mode') as HTMLSelectElement;
 const rendererWarning = document.getElementById('renderer-warning') as HTMLDivElement;
 const sourceModeSelect = document.getElementById('source-mode') as HTMLSelectElement;
@@ -175,7 +195,138 @@ const postPassCheckboxes = new Map<string, HTMLInputElement>();
 let activeLayerId: string | null = null;
 let layerCounter = 0;
 
-const postSliderIds = ['postFeedback', 'postSmear', 'postThreshold', 'postDither'] as const;
+const ccMonitorHistory: string[] = [];
+const controlWarningMessages = new Set<string>();
+const AUDIO_MAP_CONTROL_OPTIONS = [
+  '',
+  'density',
+  'speed',
+  'strength',
+  'glitchAmount',
+  'trailAmount',
+  'simSpawnRate',
+  'postFeedback',
+  'postSmear',
+  'postThreshold',
+  'postEdge',
+] as const;
+
+const DEFAULT_DEMO_PRESET_ID: PresetId = 'ambient';
+
+function showControlWarning(message: string): void {
+  controlWarningMessages.add(message);
+  controlWarningsEl.textContent = [...controlWarningMessages].join('\n');
+  controlWarningsEl.classList.add('visible');
+}
+
+function assertEngineControl(name: string): boolean {
+  if (KNOWN_CONTROLS.has(name)) return true;
+  showControlWarning(`Control "${name}" is not wired on the engine.`);
+  return false;
+}
+
+function bindEngineSlider(
+  controlName: string,
+  slider: HTMLInputElement,
+  valueEl: HTMLElement | null,
+  format: (value: number) => string = (v) => v.toFixed(2),
+  onChange?: (value: number) => void,
+): void {
+  if (!assertEngineControl(controlName)) return;
+  const apply = (value: number) => {
+    if (valueEl) valueEl.textContent = format(value);
+    engine.setControl(controlName, value);
+    onChange?.(value);
+    updateDebugPanel();
+  };
+  apply(parseFloat(slider.value));
+  slider.addEventListener('input', () => apply(parseFloat(slider.value)));
+}
+
+function populateSelectOptions(select: HTMLSelectElement, options: readonly string[], labels?: Record<string, string>): void {
+  select.innerHTML = '';
+  for (const value of options) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = labels?.[value] ?? (value || '(none)');
+    select.appendChild(opt);
+  }
+}
+
+function buildAudioMappingFromUi(): AudioFeatureMapping[] {
+  const mappings: AudioFeatureMapping[] = [];
+  const bassTarget = audioMapBassSelect.value;
+  const midTarget = audioMapMidSelect.value;
+  const trebleTarget = audioMapTrebleSelect.value;
+  if (bassTarget) {
+    mappings.push({
+      feature: 'bass',
+      target: { type: 'control', control: bassTarget, base: 0.3, amount: 0.7, min: 0, max: 1 },
+    });
+  }
+  if (midTarget) {
+    mappings.push({
+      feature: 'mid',
+      target: { type: 'control', control: midTarget, base: 0.4, amount: 0.5, min: 0, max: 1 },
+    });
+  }
+  if (trebleTarget) {
+    mappings.push({
+      feature: 'treble',
+      target: { type: 'control', control: trebleTarget, base: 0.2, amount: 0.8, min: 0, max: 1 },
+    });
+  }
+  mappings.push({
+    feature: 'transient',
+    target: { type: 'noteOn', minIntensity: 0.6, maxIntensity: 1.4, cooldownMs: 120 },
+  });
+  return mappings;
+}
+
+function applyAudioMappingFromUi(): void {
+  engine.setAudioMapping({
+    enabled: audioMappingEnabledToggle.checked,
+    mappings: buildAudioMappingFromUi(),
+  });
+  updateDebugPanel();
+}
+
+function syncAliasVisualSliders(): void {
+  const density = engine.getControl('density', 1);
+  const strength = engine.getControl('strength', 0.7);
+  const contrast = engine.getControl('sourceContrast', 1);
+
+  const scaleSlider = document.getElementById('scale') as HTMLInputElement;
+  const brightnessSlider = document.getElementById('brightness') as HTMLInputElement;
+  const contrastSlider = document.getElementById('contrast') as HTMLInputElement;
+
+  scaleSlider.value = String(density);
+  document.getElementById('scale-value')!.textContent = density.toFixed(2);
+  brightnessSlider.value = String(strength);
+  document.getElementById('brightness-value')!.textContent = strength.toFixed(2);
+  contrastSlider.value = String(contrast);
+  document.getElementById('contrast-value')!.textContent = contrast.toFixed(2);
+}
+
+function recordCcEvent(event: EngineDebugState['input']['lastEvent']): void {
+  if (!event || event.type !== 'controlChange' || event.controller === undefined) return;
+  const line = `CC${event.controller} = ${event.value ?? 0} [${event.source}]`;
+  ccMonitorHistory.unshift(line);
+  if (ccMonitorHistory.length > 12) ccMonitorHistory.length = 12;
+  ccMonitor.textContent = ccMonitorHistory.join('\n') || 'cc: —';
+}
+
+const postSliderIds = [
+  'postFeedback',
+  'postSmear',
+  'postDisplacement',
+  'postThreshold',
+  'postInvert',
+  'postEdge',
+  'postPosterize',
+  'postScanline',
+  'postDither',
+] as const;
 type PostSliderId = (typeof postSliderIds)[number];
 const postSliders = Object.fromEntries(
   postSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
@@ -237,6 +388,56 @@ for (const preset of allPresets) {
   presetSelect.appendChild(option);
 }
 
+for (const lang of BUILTIN_GLYPH_LANGUAGES) {
+  const opt = document.createElement('option');
+  opt.value = lang.id;
+  opt.textContent = lang.name;
+  glyphLanguageSelect.appendChild(opt);
+}
+
+populateSelectOptions(audioMapBassSelect, AUDIO_MAP_CONTROL_OPTIONS, {
+  '': '(none)',
+  density: 'Density',
+  speed: 'Speed',
+  strength: 'Strength',
+  glitchAmount: 'Glitch',
+  trailAmount: 'Trails',
+  simSpawnRate: 'Particle Spawn',
+  postFeedback: 'Post Feedback',
+  postSmear: 'Post Smear',
+  postThreshold: 'Post Threshold',
+  postEdge: 'Post Edge',
+});
+populateSelectOptions(audioMapMidSelect, AUDIO_MAP_CONTROL_OPTIONS, {
+  '': '(none)',
+  density: 'Density',
+  speed: 'Speed',
+  strength: 'Strength',
+  glitchAmount: 'Glitch',
+  trailAmount: 'Trails',
+  simSpawnRate: 'Particle Spawn',
+  postFeedback: 'Post Feedback',
+  postSmear: 'Post Smear',
+  postThreshold: 'Post Threshold',
+  postEdge: 'Post Edge',
+});
+populateSelectOptions(audioMapTrebleSelect, AUDIO_MAP_CONTROL_OPTIONS, {
+  '': '(none)',
+  density: 'Density',
+  speed: 'Speed',
+  strength: 'Strength',
+  glitchAmount: 'Glitch',
+  trailAmount: 'Trails',
+  simSpawnRate: 'Particle Spawn',
+  postFeedback: 'Post Feedback',
+  postSmear: 'Post Smear',
+  postThreshold: 'Post Threshold',
+  postEdge: 'Post Edge',
+});
+audioMapBassSelect.value = 'glitchAmount';
+audioMapMidSelect.value = 'trailAmount';
+audioMapTrebleSelect.value = 'density';
+
 function getViewportSize() {
   return { width: window.innerWidth, height: window.innerHeight };
 }
@@ -246,10 +447,12 @@ const { width, height } = getViewportSize();
 const engine = new AsciiEngine({
   canvas,
   element: domOutput,
-  preset: allPresets.find((p) => p.id === 'ambient') ?? allPresets[0],
+  preset: allPresets.find((p) => p.id === DEFAULT_DEMO_PRESET_ID) ?? allPresets[0],
   width,
   height,
 });
+
+applyAudioMappingFromUi();
 
 engine.registerScripts(galleryScripts);
 engine.getScriptEngine().setHotReload(import.meta.env.DEV);
@@ -282,7 +485,13 @@ function syncSlidersFromPreset(preset: AsciiPreset) {
     if (valueDisplays[id]) {
       valueDisplays[id].textContent = formatSliderValue(id, value);
     }
-    engine.setControl(id, value);
+    if (assertEngineControl(id)) {
+      engine.setControl(id, value);
+    }
+  }
+  syncAliasVisualSliders();
+  if (glyphSetInput && preset.glyphSet?.length) {
+    glyphSetInput.placeholder = preset.glyphSet.join('');
   }
 }
 
@@ -586,6 +795,8 @@ function updateInputDebugPanel() {
   noteMonitor.textContent = notes.length
     ? notes.map((n) => `${n.type === 'on' ? 'ON' : 'OFF'} ${n.note} v=${n.velocity} [${n.source}]`).join('\n')
     : 'notes: —';
+
+  recordCcEvent(id.lastEvent);
 }
 
 function updateAudioMeters(features: NonNullable<ReturnType<typeof engine.getAudioFeatures>>) {
@@ -594,6 +805,7 @@ function updateAudioMeters(features: NonNullable<ReturnType<typeof engine.getAud
     bass: features.bass,
     mid: features.mid,
     treble: features.treble,
+    transient: features.transient,
   };
   for (const id of audioMeterIds) {
     const v = values[id];
@@ -794,16 +1006,16 @@ syncPostPassesFromEngine();
 presetSelect.value = initialPreset.id;
 updateDebugPanel();
 
+for (const id of postSliderIds) {
+  const slider = postSliders[id];
+  if (!slider) continue;
+  bindEngineSlider(id, slider, postValueDisplays[id]);
+}
+
 for (const id of simSliderIds) {
   const slider = simSliders[id];
   if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    simValueDisplays[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
+  bindEngineSlider(id, slider, simValueDisplays[id]);
 }
 
 presetSelect.addEventListener('change', () => {
@@ -827,15 +1039,26 @@ presetSelect.addEventListener('change', () => {
 for (const id of sliderIds) {
   const slider = sliders[id];
   if (!slider) continue;
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    if (valueDisplays[id]) {
-      valueDisplays[id].textContent = formatSliderValue(id, value);
-    }
-    engine.setControl(id, value);
-    updateDebugPanel();
+  bindEngineSlider(id, slider, valueDisplays[id], (v) => formatSliderValue(id, v), () => {
+    if (id === 'density') syncAliasVisualSliders();
+    if (id === 'strength') syncAliasVisualSliders();
   });
 }
+
+const scaleSlider = document.getElementById('scale') as HTMLInputElement;
+bindEngineSlider('density', scaleSlider, document.getElementById('scale-value'), (v) => v.toFixed(2), (value) => {
+  sliders.density.value = String(value);
+  valueDisplays.density.textContent = formatSliderValue('density', value);
+});
+
+const brightnessSlider = document.getElementById('brightness') as HTMLInputElement;
+bindEngineSlider('strength', brightnessSlider, document.getElementById('brightness-value'), (v) => v.toFixed(2), (value) => {
+  sliders.strength.value = String(value);
+  valueDisplays.strength.textContent = formatSliderValue('strength', value);
+});
+
+const contrastSlider = document.getElementById('contrast') as HTMLInputElement;
+bindEngineSlider('sourceContrast', contrastSlider, document.getElementById('contrast-value'));
 
 function triggerBurst() {
   engine.enablePlugin('burst');
@@ -917,18 +1140,6 @@ resetCompositionBtn.addEventListener('click', () => {
   syncPostPassesFromEngine();
   updateDebugPanel();
 });
-
-for (const id of postSliderIds) {
-  const slider = postSliders[id];
-  if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    postValueDisplays[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
-}
 
 document.getElementById('burst-center')!.addEventListener('click', triggerBurst);
 document.getElementById('burst-random')!.addEventListener('click', () => {
@@ -1220,25 +1431,18 @@ startWebcamBtn.addEventListener('click', async () => {
 for (const id of sourceSliderIds) {
   const slider = sourceSliders[id];
   if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    sourceValueDisplays[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
+  bindEngineSlider(id, slider, sourceValueDisplays[id], (v) => v.toFixed(2), (value) => {
+    if (id === 'sourceContrast') {
+      contrastSlider.value = String(value);
+      document.getElementById('contrast-value')!.textContent = value.toFixed(2);
+    }
   });
 }
 
 for (const id of audioSliderIds) {
   const slider = audioSliders[id];
   if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    audioSliderValues[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
+  bindEngineSlider(id, slider, audioSliderValues[id]);
 }
 
 async function connectMicrophone() {
@@ -1370,3 +1574,186 @@ fpsTargetSlider.addEventListener('input', () => {
   engine.setControl('fpsTarget', val);
   engine.getPerformanceManager().setFpsTarget(val);
 });
+
+// ── UI panel toggle (mobile) ──
+uiToggle.addEventListener('click', () => {
+  const hidden = uiPanel.classList.toggle('ui-hidden');
+  uiToggle.setAttribute('aria-expanded', String(!hidden));
+  uiToggle.textContent = hidden ? '☰ Controls' : '✕ Close';
+});
+
+// ── Glyph language & set ──
+glyphLanguageSelect.addEventListener('change', () => {
+  const id = glyphLanguageSelect.value;
+  if (!id) return;
+  engine.applyGlyphLanguage(id);
+  updateDebugPanel();
+});
+
+document.getElementById('apply-glyph-set')!.addEventListener('click', () => {
+  const raw = glyphSetInput.value.trim() || glyphSetInput.placeholder;
+  const chars = [...raw.replace(/\s+/g, '')];
+  if (chars.length === 0) {
+    showControlWarning('Glyph set must contain at least one character.');
+    return;
+  }
+  engine.getRendererManager().setGlyphSet(chars);
+  updateDebugPanel();
+});
+
+document.getElementById('reset-glyph-set')!.addEventListener('click', () => {
+  const preset = engine.getPreset();
+  engine.setPreset(preset);
+  glyphSetInput.value = '';
+  glyphSetInput.placeholder = preset.glyphSet.join('');
+  updateDebugPanel();
+});
+
+// ── Audio mapping panel ──
+audioMappingEnabledToggle.addEventListener('change', applyAudioMappingFromUi);
+document.getElementById('apply-audio-mapping')!.addEventListener('click', applyAudioMappingFromUi);
+document.getElementById('reset-audio-mapping')!.addEventListener('click', () => {
+  engine.setAudioMapping({ enabled: true, mappings: createDefaultMappings() });
+  audioMapBassSelect.value = 'glitchAmount';
+  audioMapMidSelect.value = 'trailAmount';
+  audioMapTrebleSelect.value = 'density';
+  updateDebugPanel();
+});
+
+document.getElementById('audio-play')!.addEventListener('click', () => {
+  void audioElement.play().catch(() => {
+    audioErrorEl.textContent = 'No audio file loaded — upload a file first.';
+  });
+});
+
+document.getElementById('audio-pause')!.addEventListener('click', () => {
+  audioElement.pause();
+});
+
+// ── Note corner test triggers ──
+const noteCorners: Array<[string, number, number]> = [
+  ['note-test-1', 0.2, 0.2],
+  ['note-test-2', 0.8, 0.2],
+  ['note-test-3', 0.2, 0.8],
+  ['note-test-4', 0.8, 0.8],
+];
+for (const [id, x, y] of noteCorners) {
+  document.getElementById(id)!.addEventListener('click', () => {
+    engine.enablePlugin('burst');
+    syncPluginsFromEngine();
+    engine.noteOn({ x, y, intensity: 1.1 });
+    updateDebugPanel();
+  });
+}
+
+// ── Reset / Randomize / Copy preset ──
+function resetDemo(): void {
+  controlWarningMessages.clear();
+  controlWarningsEl.classList.remove('visible');
+  controlWarningsEl.textContent = '';
+  ccMonitorHistory.length = 0;
+  ccMonitor.textContent = 'cc: —';
+
+  const preset = allPresets.find((p) => p.id === DEFAULT_DEMO_PRESET_ID) ?? allPresets[0];
+  presetSelect.value = preset.id;
+  engine.setPreset(preset);
+  engine.resetComposition();
+  engine.disconnectAudio();
+  engine.disconnectMidi();
+  engine.disableKeyboardInput();
+  keyboardInputToggle.checked = false;
+  audioElement.pause();
+  engine.inputPanic();
+  engine.setSourceMode('procedural');
+  sourceModeSelect.value = 'procedural';
+  updateSourceInputs('procedural');
+  applyRendererMode('canvas');
+  rendererModeSelect.value = 'canvas';
+  applyAudioMappingFromUi();
+  syncSlidersFromPreset(preset);
+  syncPluginsFromEngine();
+  syncMotionsFromEngine();
+  syncSimulationsFromEngine();
+  syncLayersFromEngine();
+  syncPostPassesFromEngine();
+  updateDebugPanel();
+}
+
+function randomizeDemo(): void {
+  const preset = allPresets[Math.floor(Math.random() * allPresets.length)];
+  presetSelect.value = preset.id;
+  engine.setPreset(preset);
+  syncSlidersFromPreset(preset);
+
+  for (const [id, checkbox] of pluginCheckboxes) {
+    const on = Math.random() > 0.35;
+    checkbox.checked = on;
+    if (on) engine.enablePlugin(id);
+    else engine.disablePlugin(id);
+  }
+  for (const [id, checkbox] of motionCheckboxes) {
+    const on = Math.random() > 0.5;
+    checkbox.checked = on;
+    if (on) engine.enableMotion(id);
+    else engine.disableMotion(id);
+  }
+
+  for (const id of sliderIds) {
+    const slider = sliders[id];
+    if (!slider || !KNOWN_CONTROLS.has(id)) continue;
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    const value = min + Math.random() * (max - min);
+    slider.value = String(value);
+    if (valueDisplays[id]) valueDisplays[id].textContent = formatSliderValue(id, value);
+    engine.setControl(id, value);
+  }
+  syncAliasVisualSliders();
+  engine.noteOn({ x: Math.random(), y: Math.random(), intensity: 1 + Math.random() });
+  updateDebugPanel();
+}
+
+async function copyPresetJson(): Promise<void> {
+  const payload = {
+    preset: engine.getPreset(),
+    controls: engine.getControls(),
+    enabledPlugins: engine.getEnabledPlugins().map((p) => p.id),
+    enabledMotions: engine.getEnabledMotions().map((m) => m.id),
+    enabledSimulations: engine.getEnabledSimulations().map((s) => s.id),
+    audioMapping: engine.getAudioMapping(),
+    inputMapping: engine.getInputMapping(),
+  };
+  const text = JSON.stringify(payload, null, 2);
+  try {
+    await navigator.clipboard.writeText(text);
+    controlWarningsEl.textContent = 'Preset JSON copied to clipboard.';
+    controlWarningsEl.classList.add('visible');
+    window.setTimeout(() => {
+      if (controlWarningMessages.size === 0) controlWarningsEl.classList.remove('visible');
+    }, 2000);
+  } catch {
+    showControlWarning('Clipboard unavailable — copy from console.');
+    console.log(text);
+  }
+}
+
+document.getElementById('reset-demo')!.addEventListener('click', resetDemo);
+document.getElementById('randomize-demo')!.addEventListener('click', randomizeDemo);
+document.getElementById('copy-preset-json')!.addEventListener('click', () => {
+  void copyPresetJson();
+});
+
+// Validate demo sliders reference known engine controls at startup
+for (const id of [...sliderIds, ...simSliderIds, ...postSliderIds, ...sourceSliderIds, ...audioSliderIds]) {
+  assertEngineControl(id);
+}
+if (engine.getActiveRendererId() === 'webgl') {
+  showControlWarning('WebGL renderer is a stub — no GPU draw path yet.');
+}
+syncAliasVisualSliders();
+if (initialPreset.glyphLanguage) {
+  const langId = Array.isArray(initialPreset.glyphLanguage)
+    ? initialPreset.glyphLanguage[0]
+    : initialPreset.glyphLanguage;
+  if (langId) glyphLanguageSelect.value = langId;
+}

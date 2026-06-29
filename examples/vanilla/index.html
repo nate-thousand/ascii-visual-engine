@@ -2,633 +2,546 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ASCII Visual Engine v0.1.0 — real-time generative ASCII visuals with motion, simulation, audio, MIDI, and compositing." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="ASCII Visual Engine — full control surface demo for presets, motion, audio, MIDI, and compositing." />
     <meta name="theme-color" content="#000000" />
-    <title>ASCII Visual Engine — Demo</title>
+    <title>ASCII Visual Engine — Control Surface Demo</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='4' y='24' font-family='monospace' font-size='20' fill='%2300ff88'>#</text></svg>" />
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
+      html, body {
+        width: 100%; height: 100%; overflow: hidden;
         background: #000;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          monospace;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         color: #00ff88;
       }
 
       #canvas {
-        display: block;
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
+        display: block; position: fixed; inset: 0;
+        width: 100vw; height: 100vh; z-index: 0;
       }
 
       #dom-output {
-        display: none;
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-        z-index: 1;
+        display: none; position: fixed; inset: 0;
+        width: 100vw; height: 100vh; overflow: hidden; z-index: 1;
       }
 
-      #renderer-warning {
-        margin-top: 6px;
-        font-size: 11px;
-        color: #ffaa00;
-        line-height: 1.4;
+      #ui-toggle {
+        position: fixed; top: 12px; right: 12px; z-index: 20;
+        padding: 10px 14px; background: rgba(0,0,0,0.85);
+        color: #00ff88; border: 1px solid rgba(0,255,136,0.5);
+        border-radius: 6px; cursor: pointer; font: inherit; font-size: 13px;
       }
 
       #ui {
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 10;
-        max-width: 340px;
-        max-height: calc(100vh - 32px);
-        overflow-y: auto;
-        padding: 16px;
-        background: rgba(0, 0, 0, 0.75);
-        border: 1px solid rgba(0, 255, 136, 0.3);
-        border-radius: 8px;
-        backdrop-filter: blur(8px);
-        font-size: 13px;
-        line-height: 1.5;
+        position: fixed; top: 0; left: 0; z-index: 10;
+        width: min(380px, 100vw); max-height: 100vh;
+        overflow-y: auto; overflow-x: hidden;
+        padding: 14px; padding-top: 52px;
+        background: rgba(0, 0, 0, 0.82);
+        border-right: 1px solid rgba(0, 255, 136, 0.25);
+        backdrop-filter: blur(10px);
+        font-size: 12px; line-height: 1.45;
+        transition: transform 0.25s ease;
       }
 
-      #ui h1 {
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+      #ui.ui-hidden { transform: translateX(-105%); }
+
+      #ui header { margin-bottom: 10px; }
+      #ui h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+      #ui .subtitle { color: rgba(0,255,136,0.55); font-size: 11px; margin-bottom: 10px; }
+
+      .demo-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+      .demo-actions button { flex: 1; min-width: 100px; }
+
+      #control-warnings {
+        font-size: 10px; color: #ffaa00; margin-bottom: 8px;
+        padding: 6px 8px; border-radius: 4px;
+        background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.25);
+        display: none;
+      }
+      #control-warnings.visible { display: block; }
+
+      details.demo-section {
+        margin-bottom: 8px; border: 1px solid rgba(0,255,136,0.18);
+        border-radius: 6px; background: rgba(0,20,10,0.35);
+      }
+      details.demo-section > summary {
+        padding: 8px 10px; cursor: pointer; font-size: 11px;
+        text-transform: uppercase; letter-spacing: 0.07em;
+        color: rgba(0,255,136,0.75); list-style: none;
+        user-select: none;
+      }
+      details.demo-section > summary::-webkit-details-marker { display: none; }
+      details.demo-section > summary::before { content: '▸ '; }
+      details.demo-section[open] > summary::before { content: '▾ '; }
+      .section-body { padding: 0 10px 10px; }
+
+      .subsection-label {
+        font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+        color: rgba(0,255,136,0.45); margin: 10px 0 6px;
       }
 
-      #ui p {
-        color: rgba(0, 255, 136, 0.7);
-        margin-bottom: 12px;
-        font-size: 12px;
+      label.row {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 4px; font-size: 11px; gap: 8px;
       }
+      label.inline { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; cursor: pointer; }
 
-      .control-group {
-        margin-bottom: 12px;
-      }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+      .grid-2 label { justify-content: flex-start; font-size: 10px; }
 
-      .section-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: rgba(0, 255, 136, 0.5);
-        margin-bottom: 8px;
+      select, input[type='text'], input[type='file'] {
+        width: 100%; background: #111; color: #00ff88;
+        border: 1px solid rgba(0,255,136,0.3); border-radius: 4px;
+        padding: 6px 8px; margin-bottom: 6px; font: inherit; font-size: 11px;
       }
+      input[type='range'] { width: 100%; accent-color: #00ff88; margin-bottom: 6px; }
+      input[type='checkbox'] { accent-color: #00ff88; }
 
-      label {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4px;
-        font-size: 12px;
-      }
-
-      .pattern-list {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-        margin-bottom: 8px;
-      }
-
-      .pattern-list label {
-        justify-content: flex-start;
-        gap: 6px;
-        font-size: 11px;
-        cursor: pointer;
-      }
-
-      .pattern-list input[type='checkbox'] {
-        width: auto;
-        accent-color: #00ff88;
-      }
-
-      select,
-      input[type='range'] {
-        width: 100%;
-        accent-color: #00ff88;
-      }
-
-      select {
-        background: #111;
-        color: #00ff88;
-        border: 1px solid rgba(0, 255, 136, 0.3);
-        border-radius: 4px;
-        padding: 6px 8px;
-        margin-bottom: 8px;
-      }
-
-      .buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 8px;
-      }
+      .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+      .buttons button { flex: 1; min-width: 72px; }
 
       button {
-        flex: 1;
-        min-width: 80px;
-        padding: 8px 12px;
-        background: transparent;
-        color: #00ff88;
-        border: 1px solid rgba(0, 255, 136, 0.5);
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 12px;
-        transition: background 0.15s;
+        padding: 7px 10px; background: transparent; color: #00ff88;
+        border: 1px solid rgba(0,255,136,0.45); border-radius: 4px;
+        cursor: pointer; font: inherit; font-size: 11px;
       }
+      button:hover { background: rgba(0,255,136,0.12); }
+      button:active { background: rgba(0,255,136,0.25); }
+      button.primary { border-color: #00ff88; background: rgba(0,255,136,0.1); }
 
-      button:hover {
-        background: rgba(0, 255, 136, 0.15);
-      }
-
-      button:active {
-        background: rgba(0, 255, 136, 0.3);
-      }
-
-      .value {
-        color: rgba(0, 255, 136, 0.6);
-        font-size: 11px;
-      }
-
-      #fps {
-        margin-top: 8px;
-        font-size: 11px;
-        color: rgba(0, 255, 136, 0.5);
-      }
-
-      #debug-panel {
-        margin-top: 12px;
-        padding: 10px;
-        background: rgba(0, 20, 10, 0.9);
-        border: 1px solid rgba(0, 255, 136, 0.2);
-        border-radius: 4px;
-        font-size: 10px;
-        line-height: 1.6;
-        color: rgba(0, 255, 136, 0.85);
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
-
-      .test-buttons button {
-        min-width: 70px;
-        font-size: 11px;
-        padding: 6px 8px;
-      }
+      .value { color: rgba(0,255,136,0.55); font-size: 10px; }
+      .hint { font-size: 10px; color: rgba(0,255,136,0.4); margin-bottom: 6px; }
+      .error-text { font-size: 10px; color: #ffaa00; margin: 4px 0; min-height: 14px; }
 
       .meter-bar {
-        height: 8px;
-        background: rgba(0, 255, 136, 0.12);
-        border-radius: 4px;
-        margin-bottom: 8px;
-        overflow: hidden;
+        height: 7px; background: rgba(0,255,136,0.1); border-radius: 4px;
+        margin-bottom: 6px; overflow: hidden;
+      }
+      .meter-fill { height: 100%; width: 0%; background: #00ff88; transition: width 0.05s linear; }
+      .meter-fill.transient { background: #ffaa00; }
+
+      .debug-pre {
+        font-size: 9px; line-height: 1.5; padding: 8px;
+        background: rgba(0,0,0,0.45); border-radius: 4px;
+        white-space: pre-wrap; word-break: break-word;
+        max-height: 140px; overflow-y: auto; margin-top: 6px;
+        color: rgba(0,255,136,0.85);
       }
 
-      .meter-fill {
-        height: 100%;
-        width: 0%;
-        background: #00ff88;
-        transition: width 0.05s linear;
+      #renderer-warning { font-size: 10px; color: #ffaa00; margin-bottom: 6px; }
+
+      @media (min-width: 900px) {
+        #ui-toggle { display: none; }
+        #ui { padding-top: 14px; }
+      }
+      @media (max-width: 899px) {
+        #ui.ui-hidden + #ui-toggle { right: 12px; }
       }
     </style>
   </head>
   <body>
     <canvas id="canvas"></canvas>
     <pre id="dom-output" aria-label="ASCII DOM output"></pre>
+    <button type="button" id="ui-toggle" aria-expanded="true">☰ Controls</button>
 
     <div id="ui">
-      <h1>ASCII Visual Engine</h1>
-      <p>
-        Motion system demo — switch presets, toggle motions/effects/patterns,
-        and drag sliders. Debug panels show live engine and motion state.
-      </p>
-
-      <div class="control-group">
-        <div class="section-label">Renderer Pipeline</div>
-        <label for="renderer-mode">Renderer</label>
-        <select id="renderer-mode">
-          <option value="canvas">Canvas 2D</option>
-          <option value="dom">DOM Text</option>
-          <option value="offscreen-canvas">Offscreen Canvas</option>
-          <option value="webgl">WebGL (Planned)</option>
-        </select>
-        <div id="renderer-warning"></div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Source Pipeline</div>
-        <label for="source-mode">Source Mode</label>
-        <select id="source-mode">
-          <option value="procedural">Procedural</option>
-          <option value="image">Image</option>
-          <option value="video">Video</option>
-          <option value="webcam">Webcam</option>
-          <option value="canvas">Canvas</option>
-        </select>
-        <label for="source-fit">Fit Mode</label>
-        <select id="source-fit">
-          <option value="fit">Fit</option>
-          <option value="fill">Fill</option>
-          <option value="stretch">Stretch</option>
-          <option value="center">Center</option>
-        </select>
-        <label for="image-input" id="image-input-label" style="display:none">Image File</label>
-        <input type="file" id="image-input" accept="image/*" style="display:none" />
-        <label for="video-input" id="video-input-label" style="display:none">Video File</label>
-        <input type="file" id="video-input" accept="video/*" style="display:none" />
-        <button id="start-webcam" style="display:none">Start Webcam</button>
-        <label for="sourceContrast">
-          Contrast <span class="value" id="sourceContrast-value">1.00</span>
-        </label>
-        <input type="range" id="sourceContrast" min="0.5" max="2" step="0.05" value="1" />
-        <label for="sourceEdge">
-          Edge <span class="value" id="sourceEdge-value">0.30</span>
-        </label>
-        <input type="range" id="sourceEdge" min="0" max="1" step="0.05" value="0.3" />
-        <label for="sourceBlend">
-          Blend <span class="value" id="sourceBlend-value">1.00</span>
-        </label>
-        <input type="range" id="sourceBlend" min="0" max="1" step="0.05" value="1" />
-      </div>
-
-      <div class="control-group">
-        <label for="preset">Preset</label>
-        <select id="preset"></select>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Audio Reactivity</div>
-        <button id="start-microphone">Enable Microphone</button>
-        <label for="audio-file-input">Audio File</label>
-        <input type="file" id="audio-file-input" accept="audio/*" />
-        <button id="disconnect-audio">Disconnect Audio</button>
-        <div id="audio-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
-        <div class="section-label" style="margin-top:10px">Live Meters</div>
-        <label>Amplitude <span class="value" id="meter-amplitude">0.00</span></label>
-        <div class="meter-bar"><div id="bar-amplitude" class="meter-fill"></div></div>
-        <label>Bass <span class="value" id="meter-bass">0.00</span></label>
-        <div class="meter-bar"><div id="bar-bass" class="meter-fill"></div></div>
-        <label>Mid <span class="value" id="meter-mid">0.00</span></label>
-        <div class="meter-bar"><div id="bar-mid" class="meter-fill"></div></div>
-        <label>Treble <span class="value" id="meter-treble">0.00</span></label>
-        <div class="meter-bar"><div id="bar-treble" class="meter-fill"></div></div>
-        <label for="audioAttack">Attack <span class="value" id="audioAttack-value">0.08</span></label>
-        <input type="range" id="audioAttack" min="0.01" max="1" step="0.01" value="0.08" />
-        <label for="audioRelease">Release <span class="value" id="audioRelease-value">0.25</span></label>
-        <input type="range" id="audioRelease" min="0.01" max="1" step="0.01" value="0.25" />
-        <label for="audioSensitivity">Sensitivity <span class="value" id="audioSensitivity-value">1.00</span></label>
-        <input type="range" id="audioSensitivity" min="0.1" max="3" step="0.05" value="1" />
-        <label for="audioNoiseGate">Noise Gate <span class="value" id="audioNoiseGate-value">0.02</span></label>
-        <input type="range" id="audioNoiseGate" min="0" max="0.2" step="0.005" value="0.02" />
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Export &amp; Recording</div>
-        <div id="recording-indicator" style="font-size:11px;margin-bottom:6px;color:#888;">● idle</div>
-        <div id="frame-counter" style="font-size:11px;margin-bottom:8px;">frames: 0</div>
-        <button id="export-png">Screenshot PNG</button>
-        <button id="export-svg">Download SVG</button>
-        <button id="export-ascii">Download ASCII</button>
-        <button id="export-json">Export JSON Scene</button>
-        <label for="import-json" style="margin-top:8px;display:block;">Import JSON Scene</label>
-        <input type="file" id="import-json" accept="application/json,.json" />
-        <button id="start-recording">Start Recording</button>
-        <button id="stop-recording">Stop Recording</button>
-        <button id="export-gif">Export GIF</button>
-        <button id="export-sequence">Export Frame Sequence</button>
-        <button id="play-recording">Play Recording</button>
-        <button id="stop-playback">Stop Playback</button>
-        <button id="step-back">◀ Step</button>
-        <button id="step-forward">Step ▶</button>
-        <div id="export-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Performance</div>
-        <label for="quality-preset">Quality Preset</label>
-        <select id="quality-preset">
-          <option value="ultra">Ultra</option>
-          <option value="high">High</option>
-          <option value="medium" selected>Medium</option>
-          <option value="low">Low</option>
-          <option value="batterySaver">Battery Saver</option>
-        </select>
-        <label>
-          <input type="checkbox" id="adaptive-quality" checked /> Adaptive Quality
-        </label>
-        <label>
-          <input type="checkbox" id="dirty-rendering" checked /> Dirty Region Rendering
-        </label>
-        <label>
-          <input type="checkbox" id="spatial-grid" /> Spatial Grid (Boids)
-        </label>
-        <label for="fps-target">FPS Target</label>
-        <input type="range" id="fps-target" min="30" max="120" step="15" value="60" />
-        <span id="fps-target-value">60</span>
-        <canvas id="fps-graph" width="280" height="40" style="margin-top:8px;background:rgba(0,0,0,0.4);border-radius:4px;"></canvas>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Script Console</div>
-        <label for="script-select">Example Script</label>
-        <select id="script-select"></select>
-        <button id="run-script">Run Script</button>
-        <button id="stop-script">Stop Script</button>
-        <button id="reload-script">Reload</button>
-        <button id="restart-script">Restart</button>
-        <button id="enable-script">Enable</button>
-        <button id="disable-script">Disable</button>
-        <button id="clear-script-console">Clear Console</button>
-        <div id="script-status" style="font-size:11px;margin:8px 0;color:#888;">idle</div>
-        <pre id="script-console" style="font-size:10px;max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.4);padding:8px;border-radius:4px;margin-top:6px;"></pre>
-        <pre id="script-vars" style="font-size:10px;max-height:80px;overflow-y:auto;background:rgba(0,0,0,0.4);padding:8px;border-radius:4px;margin-top:6px;"></pre>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">MIDI &amp; Performance</div>
-        <label for="midi-device">MIDI Device</label>
-        <select id="midi-device"><option value="">(scan devices)</option></select>
-        <button id="connect-midi">Connect MIDI</button>
-        <button id="disconnect-midi">Disconnect MIDI</button>
-        <label>
-          <input type="checkbox" id="keyboard-input-toggle" /> Keyboard Input (A-L keys, -/+ octave)
-        </label>
-        <button id="input-panic">Panic — All Notes Off</button>
-        <div id="midi-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
-        <label for="learn-control">MIDI Learn Target</label>
-        <select id="learn-control">
-          <option value="">(off)</option>
-          <option value="glitchAmount">Glitch Amount</option>
-          <option value="trailAmount">Trail Amount</option>
-          <option value="density">Density</option>
-          <option value="speed">Speed</option>
-          <option value="strength">Strength</option>
-          <option value="simSpawnRate">Particle Spawn</option>
-        </select>
-        <button id="start-learn">Start Learn</button>
-        <button id="clear-learned">Clear Learned</button>
-        <button id="reset-input-mapping">Reset Mappings</button>
-        <pre id="mapping-table" style="font-size:10px;margin-top:8px;">mappings: —</pre>
-        <pre id="note-monitor" style="font-size:10px;max-height:80px;overflow-y:auto;">notes: —</pre>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Effect Plugins</div>
-        <div id="effect-plugins" class="pattern-list"></div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Pattern Plugins</div>
-        <div id="pattern-plugins" class="pattern-list"></div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Motion Systems</div>
-        <div id="motion-plugins" class="pattern-list"></div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Simulations</div>
-        <div id="simulation-plugins" class="pattern-list"></div>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Compositing</div>
-        <div id="layer-controls" class="pattern-list"></div>
-        <label for="layer-blend-mode">Layer Blend Mode</label>
-        <select id="layer-blend-mode">
-          <option value="normal">Normal</option>
-          <option value="add">Add</option>
-          <option value="multiply">Multiply</option>
-          <option value="screen">Screen</option>
-          <option value="difference">Difference</option>
-          <option value="max">Max</option>
-          <option value="min">Min</option>
-          <option value="overlay">Overlay</option>
-        </select>
-        <label for="layer-opacity">
-          Layer Opacity <span class="value" id="layer-opacity-value">1.00</span>
-        </label>
-        <input type="range" id="layer-opacity" min="0" max="1" step="0.05" value="1" />
-        <div class="buttons">
-          <button id="add-layer">Add Layer</button>
-          <button id="reset-composition">Reset Composition</button>
+      <header>
+        <h1>ASCII Visual Engine</h1>
+        <p class="subtitle">Full control surface — every wired engine parameter, audio &amp; MIDI reactive.</p>
+        <div class="demo-actions">
+          <button type="button" id="reset-demo" class="primary">Reset Demo</button>
+          <button type="button" id="randomize-demo">Randomize</button>
+          <button type="button" id="copy-preset-json">Copy Preset JSON</button>
         </div>
-      </div>
+        <div id="control-warnings" role="status"></div>
+      </header>
 
-      <div class="control-group">
-        <div class="section-label">Post Processing</div>
-        <div id="post-passes" class="pattern-list"></div>
-        <label for="postFeedback">
-          Feedback <span class="value" id="postFeedback-value">0.70</span>
-        </label>
-        <input type="range" id="postFeedback" min="0" max="1" step="0.05" value="0.7" />
-        <label for="postSmear">
-          Smear <span class="value" id="postSmear-value">0.50</span>
-        </label>
-        <input type="range" id="postSmear" min="0" max="1" step="0.05" value="0.5" />
-        <label for="postThreshold">
-          Threshold <span class="value" id="postThreshold-value">0.50</span>
-        </label>
-        <input type="range" id="postThreshold" min="0" max="1" step="0.05" value="0.5" />
-        <label for="postDither">
-          Dither <span class="value" id="postDither-value">0.50</span>
-        </label>
-        <input type="range" id="postDither" min="0" max="1" step="0.05" value="0.5" />
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Simulation Controls</div>
-        <label for="simStrength">Strength <span class="value" id="simStrength-value">0.80</span></label>
-        <input type="range" id="simStrength" min="0" max="1" step="0.05" value="0.8" />
-        <label for="simSpeed">Speed <span class="value" id="simSpeed-value">1.00</span></label>
-        <input type="range" id="simSpeed" min="0.1" max="3" step="0.1" value="1" />
-        <label for="simDensity">Density <span class="value" id="simDensity-value">0.50</span></label>
-        <input type="range" id="simDensity" min="0" max="1" step="0.05" value="0.5" />
-        <label for="simSpawnRate">Spawn <span class="value" id="simSpawnRate-value">0.60</span></label>
-        <input type="range" id="simSpawnRate" min="0" max="1" step="0.05" value="0.6" />
-        <label for="simDecay">Decay <span class="value" id="simDecay-value">0.20</span></label>
-        <input type="range" id="simDecay" min="0" max="1" step="0.05" value="0.2" />
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Core Controls</div>
-        <label for="density">
-          Density <span class="value" id="density-value"></span>
-        </label>
-        <input type="range" id="density" min="0.3" max="2" step="0.1" />
-        <label for="speed">
-          Speed <span class="value" id="speed-value"></span>
-        </label>
-        <input type="range" id="speed" min="0.1" max="3" step="0.1" />
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Motion Controls</div>
-        <label for="strength">Strength <span class="value" id="strength-value"></span></label>
-        <input type="range" id="strength" min="0" max="1" step="0.05" />
-        <label for="randomness">Randomness <span class="value" id="randomness-value"></span></label>
-        <input type="range" id="randomness" min="0" max="1" step="0.05" />
-        <label for="frequency">Frequency <span class="value" id="frequency-value"></span></label>
-        <input type="range" id="frequency" min="0.1" max="3" step="0.1" />
-        <label for="amplitude">Amplitude <span class="value" id="amplitude-value"></span></label>
-        <input type="range" id="amplitude" min="0" max="2" step="0.05" />
-        <label for="flowStrength">Flow <span class="value" id="flowStrength-value"></span></label>
-        <input type="range" id="flowStrength" min="0" max="1" step="0.05" />
-        <label for="noiseScale">Noise Scale <span class="value" id="noiseScale-value"></span></label>
-        <input type="range" id="noiseScale" min="0.1" max="3" step="0.1" />
-        <label for="gravity">Gravity <span class="value" id="gravity-value"></span></label>
-        <input type="range" id="gravity" min="0" max="2" step="0.05" />
-        <label for="drag">Drag <span class="value" id="drag-value"></span></label>
-        <input type="range" id="drag" min="0" max="1" step="0.05" />
-        <label for="decay">Decay <span class="value" id="decay-value"></span></label>
-        <input type="range" id="decay" min="0" max="1" step="0.05" />
-        <label for="blendWeight">Blend <span class="value" id="blendWeight-value"></span></label>
-        <input type="range" id="blendWeight" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Pattern Controls</div>
-        <label for="symmetry">
-          Symmetry <span class="value" id="symmetry-value"></span>
-        </label>
-        <input type="range" id="symmetry" min="2" max="12" step="1" />
-      </div>
-
-      <div class="control-group">
-        <label for="petals">
-          Petals <span class="value" id="petals-value"></span>
-        </label>
-        <input type="range" id="petals" min="3" max="12" step="1" />
-      </div>
-
-      <div class="control-group">
-        <label for="spiralAmount">
-          Spiral <span class="value" id="spiralAmount-value"></span>
-        </label>
-        <input type="range" id="spiralAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <label for="cellularAmount">
-          Cellular <span class="value" id="cellularAmount-value"></span>
-        </label>
-        <input type="range" id="cellularAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <label for="scanlineAmount">
-          Scanline <span class="value" id="scanlineAmount-value"></span>
-        </label>
-        <input type="range" id="scanlineAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <label for="trailAmount">
-          Trails <span class="value" id="trailAmount-value"></span>
-        </label>
-        <input type="range" id="trailAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <label for="glitchAmount">
-          Glitch <span class="value" id="glitchAmount-value"></span>
-        </label>
-        <input type="range" id="glitchAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="buttons">
-        <button id="burst-center">Burst Center</button>
-        <button id="burst-random">Burst Random</button>
-      </div>
-
-      <div class="control-group">
-        <div class="section-label">Manual Tests</div>
-        <div class="buttons test-buttons">
-          <button id="test-burst">Trigger Burst</button>
-          <button id="test-glitch">Max Glitch</button>
-          <button id="test-trails">Max Trails</button>
-          <button id="test-reset">Reset Controls</button>
+      <!-- PRESETS -->
+      <details class="demo-section" open>
+        <summary>Presets</summary>
+        <div class="section-body">
+          <label class="row" for="preset">Preset</label>
+          <select id="preset"></select>
+          <div class="subsection-label">Note Triggers</div>
+          <div class="buttons">
+            <button type="button" id="burst-center">Burst Center</button>
+            <button type="button" id="burst-random">Burst Random</button>
+            <button type="button" id="test-burst">Trigger Burst</button>
+            <button type="button" id="test-glitch">Max Glitch</button>
+            <button type="button" id="test-trails">Max Trails</button>
+            <button type="button" id="test-reset">Reset Sliders</button>
+          </div>
+          <div class="buttons">
+            <button type="button" id="note-test-1">Note TL</button>
+            <button type="button" id="note-test-2">Note TR</button>
+            <button type="button" id="note-test-3">Note BL</button>
+            <button type="button" id="note-test-4">Note BR</button>
+          </div>
         </div>
-      </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Input Debug</div>
-        <pre id="input-debug-panel">loading…</pre>
-      </div>
+      <!-- VISUALS -->
+      <details class="demo-section" open>
+        <summary>Visuals</summary>
+        <div class="section-body">
+          <label class="row" for="renderer-mode">Renderer</label>
+          <select id="renderer-mode">
+            <option value="canvas">Canvas 2D</option>
+            <option value="dom">DOM Text</option>
+            <option value="offscreen-canvas">Offscreen Canvas</option>
+            <option value="webgl">WebGL (Stub)</option>
+          </select>
+          <div id="renderer-warning"></div>
 
-      <div class="control-group">
-        <div class="section-label">Glyph Inspector</div>
-        <pre id="glyph-debug-panel">loading…</pre>
-      </div>
+          <label class="row" for="density">Density <span class="value" id="density-value"></span></label>
+          <input type="range" id="density" min="0.3" max="2" step="0.1" />
+          <label class="row" for="scale">Scale (density alias) <span class="value" id="scale-value"></span></label>
+          <input type="range" id="scale" min="0.3" max="2" step="0.1" />
+          <label class="row" for="speed">Speed <span class="value" id="speed-value"></span></label>
+          <input type="range" id="speed" min="0.1" max="3" step="0.1" />
+          <label class="row" for="brightness">Brightness (strength) <span class="value" id="brightness-value"></span></label>
+          <input type="range" id="brightness" min="0" max="1" step="0.05" />
+          <label class="row" for="contrast">Contrast (source) <span class="value" id="contrast-value"></span></label>
+          <input type="range" id="contrast" min="0.5" max="2" step="0.05" value="1" />
+          <p class="hint">Contrast affects source pipeline; use Sources mode for image/video/webcam.</p>
 
-      <div class="control-group">
-        <div class="section-label">Export Debug</div>
-        <pre id="export-debug-panel">loading…</pre>
-      </div>
+          <div class="subsection-label">Trails &amp; Glitch</div>
+          <label class="row" for="trailAmount">Trail Amount <span class="value" id="trailAmount-value"></span></label>
+          <input type="range" id="trailAmount" min="0" max="1" step="0.05" />
+          <label class="row" for="glitchAmount">Glitch Amount <span class="value" id="glitchAmount-value"></span></label>
+          <input type="range" id="glitchAmount" min="0" max="1" step="0.05" />
 
-      <div class="control-group">
-        <div class="section-label">Performance Debug</div>
-        <pre id="performance-debug-panel">loading…</pre>
-      </div>
+          <div class="subsection-label">Layers &amp; Blend</div>
+          <div id="layer-controls" class="grid-2"></div>
+          <label class="row" for="layer-blend-mode">Layer Blend Mode</label>
+          <select id="layer-blend-mode">
+            <option value="normal">Normal</option>
+            <option value="add">Add</option>
+            <option value="multiply">Multiply</option>
+            <option value="screen">Screen</option>
+            <option value="difference">Difference</option>
+            <option value="max">Max</option>
+            <option value="min">Min</option>
+            <option value="overlay">Overlay</option>
+          </select>
+          <label class="row" for="layer-opacity">Layer Opacity <span class="value" id="layer-opacity-value">1.00</span></label>
+          <input type="range" id="layer-opacity" min="0" max="1" step="0.05" value="1" />
+          <div class="buttons">
+            <button type="button" id="add-layer">Add Layer</button>
+            <button type="button" id="reset-composition">Reset Composition</button>
+          </div>
 
-      <div class="control-group">
-        <div class="section-label">Script Debug</div>
-        <pre id="script-debug-panel">loading…</pre>
-      </div>
+          <div class="subsection-label">Post Processing</div>
+          <div id="post-passes" class="grid-2"></div>
+          <label class="row" for="postFeedback">Feedback <span class="value" id="postFeedback-value">0.70</span></label>
+          <input type="range" id="postFeedback" min="0" max="1" step="0.05" value="0.7" />
+          <label class="row" for="postSmear">Smear <span class="value" id="postSmear-value">0.50</span></label>
+          <input type="range" id="postSmear" min="0" max="1" step="0.05" value="0.5" />
+          <label class="row" for="postDisplacement">Displacement <span class="value" id="postDisplacement-value">0.30</span></label>
+          <input type="range" id="postDisplacement" min="0" max="1" step="0.05" value="0.3" />
+          <label class="row" for="postThreshold">Threshold <span class="value" id="postThreshold-value">0.50</span></label>
+          <input type="range" id="postThreshold" min="0" max="1" step="0.05" value="0.5" />
+          <label class="row" for="postInvert">Invert <span class="value" id="postInvert-value">1.00</span></label>
+          <input type="range" id="postInvert" min="0" max="1" step="0.05" value="1" />
+          <label class="row" for="postEdge">Edge <span class="value" id="postEdge-value">0.60</span></label>
+          <input type="range" id="postEdge" min="0" max="1" step="0.05" value="0.6" />
+          <label class="row" for="postPosterize">Posterize <span class="value" id="postPosterize-value">4.00</span></label>
+          <input type="range" id="postPosterize" min="2" max="8" step="1" value="4" />
+          <label class="row" for="postScanline">Scanline <span class="value" id="postScanline-value">0.50</span></label>
+          <input type="range" id="postScanline" min="0" max="1" step="0.05" value="0.5" />
+          <label class="row" for="postDither">Dither <span class="value" id="postDither-value">0.50</span></label>
+          <input type="range" id="postDither" min="0" max="1" step="0.05" value="0.5" />
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Audio Debug</div>
-        <pre id="audio-debug-panel">loading…</pre>
-      </div>
+      <!-- GLYPHS -->
+      <details class="demo-section">
+        <summary>Glyphs</summary>
+        <div class="section-body">
+          <label class="row" for="glyph-language">Glyph Language</label>
+          <select id="glyph-language"></select>
+          <label class="row" for="glyph-set-input">Custom Glyph Set</label>
+          <input type="text" id="glyph-set-input" placeholder=" .:-=+*#@" spellcheck="false" />
+          <div class="buttons">
+            <button type="button" id="apply-glyph-set">Apply Glyph Set</button>
+            <button type="button" id="reset-glyph-set">Reset from Preset</button>
+          </div>
+          <pre id="glyph-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Compositing Debug</div>
-        <pre id="compositing-debug-panel">loading…</pre>
-      </div>
+      <!-- PATTERNS -->
+      <details class="demo-section">
+        <summary>Patterns</summary>
+        <div class="section-body">
+          <div id="pattern-plugins" class="grid-2"></div>
+          <label class="row" for="symmetry">Symmetry <span class="value" id="symmetry-value"></span></label>
+          <input type="range" id="symmetry" min="2" max="12" step="1" />
+          <label class="row" for="petals">Petals <span class="value" id="petals-value"></span></label>
+          <input type="range" id="petals" min="3" max="12" step="1" />
+          <label class="row" for="spiralAmount">Spiral <span class="value" id="spiralAmount-value"></span></label>
+          <input type="range" id="spiralAmount" min="0" max="1" step="0.05" />
+          <label class="row" for="cellularAmount">Cellular <span class="value" id="cellularAmount-value"></span></label>
+          <input type="range" id="cellularAmount" min="0" max="1" step="0.05" />
+          <label class="row" for="scanlineAmount">Scanline <span class="value" id="scanlineAmount-value"></span></label>
+          <input type="range" id="scanlineAmount" min="0" max="1" step="0.05" />
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Simulation Debug</div>
-        <pre id="simulation-debug-panel">loading…</pre>
-      </div>
+      <!-- MOTION -->
+      <details class="demo-section">
+        <summary>Motion</summary>
+        <div class="section-body">
+          <div id="motion-plugins" class="grid-2"></div>
+          <label class="row" for="strength">Strength <span class="value" id="strength-value"></span></label>
+          <input type="range" id="strength" min="0" max="1" step="0.05" />
+          <label class="row" for="randomness">Randomness <span class="value" id="randomness-value"></span></label>
+          <input type="range" id="randomness" min="0" max="1" step="0.05" />
+          <label class="row" for="frequency">Frequency <span class="value" id="frequency-value"></span></label>
+          <input type="range" id="frequency" min="0.1" max="3" step="0.1" />
+          <label class="row" for="amplitude">Amplitude <span class="value" id="amplitude-value"></span></label>
+          <input type="range" id="amplitude" min="0" max="2" step="0.05" />
+          <label class="row" for="flowStrength">Flow <span class="value" id="flowStrength-value"></span></label>
+          <input type="range" id="flowStrength" min="0" max="1" step="0.05" />
+          <label class="row" for="noiseScale">Noise Scale <span class="value" id="noiseScale-value"></span></label>
+          <input type="range" id="noiseScale" min="0.1" max="3" step="0.1" />
+          <label class="row" for="gravity">Gravity <span class="value" id="gravity-value"></span></label>
+          <input type="range" id="gravity" min="0" max="2" step="0.05" />
+          <label class="row" for="drag">Drag <span class="value" id="drag-value"></span></label>
+          <input type="range" id="drag" min="0" max="1" step="0.05" />
+          <label class="row" for="decay">Decay <span class="value" id="decay-value"></span></label>
+          <input type="range" id="decay" min="0" max="1" step="0.05" />
+          <label class="row" for="blendWeight">Blend Weight <span class="value" id="blendWeight-value"></span></label>
+          <input type="range" id="blendWeight" min="0" max="1" step="0.05" />
+          <pre id="motion-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Renderer Debug</div>
-        <pre id="renderer-debug-panel">loading…</pre>
-      </div>
+      <!-- SIMULATION -->
+      <details class="demo-section">
+        <summary>Simulation</summary>
+        <div class="section-body">
+          <div id="simulation-plugins" class="grid-2"></div>
+          <label class="row" for="simStrength">Simulation Strength <span class="value" id="simStrength-value">0.80</span></label>
+          <input type="range" id="simStrength" min="0" max="1" step="0.05" value="0.8" />
+          <label class="row" for="simSpeed">Sim Speed <span class="value" id="simSpeed-value">1.00</span></label>
+          <input type="range" id="simSpeed" min="0.1" max="3" step="0.1" value="1" />
+          <label class="row" for="simDensity">Particle Density <span class="value" id="simDensity-value">0.50</span></label>
+          <input type="range" id="simDensity" min="0" max="1" step="0.05" value="0.5" />
+          <label class="row" for="simSpawnRate">Spawn Rate <span class="value" id="simSpawnRate-value">0.60</span></label>
+          <input type="range" id="simSpawnRate" min="0" max="1" step="0.05" value="0.6" />
+          <label class="row" for="simDecay">Sim Decay <span class="value" id="simDecay-value">0.20</span></label>
+          <input type="range" id="simDecay" min="0" max="1" step="0.05" value="0.2" />
+          <pre id="simulation-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Source Debug</div>
-        <pre id="source-debug-panel">loading…</pre>
-      </div>
+      <!-- EFFECTS -->
+      <details class="demo-section">
+        <summary>Effects</summary>
+        <div class="section-body">
+          <div id="effect-plugins" class="grid-2"></div>
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Debug State</div>
-        <pre id="debug-panel">loading…</pre>
-      </div>
+      <!-- SOURCES -->
+      <details class="demo-section">
+        <summary>Sources</summary>
+        <div class="section-body">
+          <label class="row" for="source-mode">Source Mode</label>
+          <select id="source-mode">
+            <option value="procedural">Procedural</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+            <option value="webcam">Webcam</option>
+            <option value="canvas">Canvas</option>
+          </select>
+          <label class="row" for="source-fit">Fit Mode</label>
+          <select id="source-fit">
+            <option value="fit">Fit</option>
+            <option value="fill">Fill</option>
+            <option value="stretch">Stretch</option>
+            <option value="center">Center</option>
+          </select>
+          <label class="row" for="image-input" id="image-input-label" style="display:none">Image File</label>
+          <input type="file" id="image-input" accept="image/*" style="display:none" />
+          <label class="row" for="video-input" id="video-input-label" style="display:none">Video File</label>
+          <input type="file" id="video-input" accept="video/*" style="display:none" />
+          <button type="button" id="start-webcam" style="display:none">Start Webcam</button>
+          <label class="row" for="sourceContrast">Source Contrast <span class="value" id="sourceContrast-value">1.00</span></label>
+          <input type="range" id="sourceContrast" min="0.5" max="2" step="0.05" value="1" />
+          <label class="row" for="sourceEdge">Edge <span class="value" id="sourceEdge-value">0.30</span></label>
+          <input type="range" id="sourceEdge" min="0" max="1" step="0.05" value="0.3" />
+          <label class="row" for="sourceBlend">Blend <span class="value" id="sourceBlend-value">1.00</span></label>
+          <input type="range" id="sourceBlend" min="0" max="1" step="0.05" value="1" />
+          <pre id="source-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
 
-      <div class="control-group">
-        <div class="section-label">Motion Debug</div>
-        <pre id="motion-debug-panel">loading…</pre>
-      </div>
+      <!-- AUDIO -->
+      <details class="demo-section">
+        <summary>Audio</summary>
+        <div class="section-body">
+          <div class="buttons">
+            <button type="button" id="start-microphone" class="primary">Enable Microphone</button>
+            <button type="button" id="audio-play">Play Audio</button>
+            <button type="button" id="audio-pause">Pause Audio</button>
+            <button type="button" id="disconnect-audio">Disconnect</button>
+          </div>
+          <label class="row" for="audio-file-input">Audio File</label>
+          <input type="file" id="audio-file-input" accept="audio/*" />
+          <div id="audio-error" class="error-text"></div>
+
+          <div class="subsection-label">Live Meters</div>
+          <label class="row">Amplitude <span class="value" id="meter-amplitude">0.00</span></label>
+          <div class="meter-bar"><div id="bar-amplitude" class="meter-fill"></div></div>
+          <label class="row">Bass <span class="value" id="meter-bass">0.00</span></label>
+          <div class="meter-bar"><div id="bar-bass" class="meter-fill"></div></div>
+          <label class="row">Mid <span class="value" id="meter-mid">0.00</span></label>
+          <div class="meter-bar"><div id="bar-mid" class="meter-fill"></div></div>
+          <label class="row">Treble <span class="value" id="meter-treble">0.00</span></label>
+          <div class="meter-bar"><div id="bar-treble" class="meter-fill"></div></div>
+          <label class="row">Transient <span class="value" id="meter-transient">0.00</span></label>
+          <div class="meter-bar"><div id="bar-transient" class="meter-fill transient"></div></div>
+
+          <div class="subsection-label">Smoothing</div>
+          <label class="row" for="audioAttack">Attack <span class="value" id="audioAttack-value">0.08</span></label>
+          <input type="range" id="audioAttack" min="0.01" max="1" step="0.01" value="0.08" />
+          <label class="row" for="audioRelease">Release <span class="value" id="audioRelease-value">0.25</span></label>
+          <input type="range" id="audioRelease" min="0.01" max="1" step="0.01" value="0.25" />
+          <label class="row" for="audioSensitivity">Sensitivity <span class="value" id="audioSensitivity-value">1.00</span></label>
+          <input type="range" id="audioSensitivity" min="0.1" max="3" step="0.05" value="1" />
+          <label class="row" for="audioNoiseGate">Noise Gate <span class="value" id="audioNoiseGate-value">0.02</span></label>
+          <input type="range" id="audioNoiseGate" min="0" max="0.2" step="0.005" value="0.02" />
+          <label class="row" for="audioMinThreshold">Min Threshold <span class="value" id="audioMinThreshold-value">0.00</span></label>
+          <input type="range" id="audioMinThreshold" min="0" max="0.5" step="0.01" value="0" />
+          <label class="row" for="audioMaxClamp">Max Clamp <span class="value" id="audioMaxClamp-value">1.00</span></label>
+          <input type="range" id="audioMaxClamp" min="0.5" max="1" step="0.05" value="1" />
+
+          <div class="subsection-label">Reactive Mapping</div>
+          <label class="inline"><input type="checkbox" id="audio-mapping-enabled" checked /> Enable audio mapping</label>
+          <label class="row" for="audio-map-bass">Bass → Control</label>
+          <select id="audio-map-bass"></select>
+          <label class="row" for="audio-map-mid">Mid → Control</label>
+          <select id="audio-map-mid"></select>
+          <label class="row" for="audio-map-treble">Treble → Control</label>
+          <select id="audio-map-treble"></select>
+          <div class="buttons">
+            <button type="button" id="apply-audio-mapping">Apply Mapping</button>
+            <button type="button" id="reset-audio-mapping">Reset Mapping</button>
+          </div>
+          <pre id="audio-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
+
+      <!-- MIDI -->
+      <details class="demo-section">
+        <summary>MIDI</summary>
+        <div class="section-body">
+          <label class="row" for="midi-device">MIDI Device</label>
+          <select id="midi-device"><option value="">(scan devices)</option></select>
+          <div class="buttons">
+            <button type="button" id="connect-midi" class="primary">Connect MIDI</button>
+            <button type="button" id="disconnect-midi">Disconnect</button>
+          </div>
+          <label class="inline"><input type="checkbox" id="keyboard-input-toggle" /> Keyboard Input (A–L, −/+ octave)</label>
+          <button type="button" id="input-panic">Panic — All Notes Off</button>
+          <div id="midi-error" class="error-text"></div>
+
+          <label class="row" for="learn-control">MIDI Learn Target</label>
+          <select id="learn-control">
+            <option value="">(off)</option>
+            <option value="glitchAmount">Glitch Amount</option>
+            <option value="trailAmount">Trail Amount</option>
+            <option value="density">Density</option>
+            <option value="speed">Speed</option>
+            <option value="strength">Strength</option>
+            <option value="simSpawnRate">Particle Spawn</option>
+            <option value="postFeedback">Post Feedback</option>
+          </select>
+          <div class="buttons">
+            <button type="button" id="start-learn">Start Learn</button>
+            <button type="button" id="clear-learned">Clear Learned</button>
+            <button type="button" id="reset-input-mapping">Reset Mappings</button>
+          </div>
+          <pre id="mapping-table" class="debug-pre">mappings: —</pre>
+          <div class="subsection-label">Note Monitor</div>
+          <pre id="note-monitor" class="debug-pre">notes: —</pre>
+          <div class="subsection-label">Control Change Monitor</div>
+          <pre id="cc-monitor" class="debug-pre">cc: —</pre>
+          <pre id="input-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
+
+      <!-- DEBUG -->
+      <details class="demo-section" open>
+        <summary>Debug</summary>
+        <div class="section-body">
+          <pre id="debug-panel" class="debug-pre">loading…</pre>
+          <div class="subsection-label">Renderer</div>
+          <pre id="renderer-debug-panel" class="debug-pre">loading…</pre>
+          <div class="subsection-label">Compositing</div>
+          <pre id="compositing-debug-panel" class="debug-pre">loading…</pre>
+          <div class="subsection-label">Performance</div>
+          <label class="row" for="quality-preset">Quality Preset</label>
+          <select id="quality-preset">
+            <option value="ultra">Ultra</option>
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+            <option value="batterySaver">Battery Saver</option>
+          </select>
+          <label class="inline"><input type="checkbox" id="adaptive-quality" checked /> Adaptive Quality</label>
+          <label class="inline"><input type="checkbox" id="dirty-rendering" checked /> Dirty Region Rendering</label>
+          <label class="inline"><input type="checkbox" id="spatial-grid" /> Spatial Grid (Boids)</label>
+          <label class="row" for="fps-target">FPS Target <span id="fps-target-value">60</span></label>
+          <input type="range" id="fps-target" min="30" max="120" step="15" value="60" />
+          <canvas id="fps-graph" width="280" height="40" style="margin:6px 0;background:rgba(0,0,0,0.4);border-radius:4px;width:100%;"></canvas>
+          <pre id="performance-debug-panel" class="debug-pre">loading…</pre>
+
+          <div class="subsection-label">Export &amp; Recording</div>
+          <div id="recording-indicator" style="font-size:10px;margin-bottom:4px;color:#888;">● idle</div>
+          <div id="frame-counter" style="font-size:10px;margin-bottom:6px;">frames: 0</div>
+          <div class="buttons">
+            <button type="button" id="export-png">PNG</button>
+            <button type="button" id="export-svg">SVG</button>
+            <button type="button" id="export-ascii">ASCII</button>
+            <button type="button" id="export-json">JSON</button>
+            <button type="button" id="start-recording">Record</button>
+            <button type="button" id="stop-recording">Stop</button>
+            <button type="button" id="export-gif">GIF</button>
+            <button type="button" id="export-sequence">Sequence</button>
+            <button type="button" id="play-recording">Play</button>
+            <button type="button" id="stop-playback">Stop PB</button>
+            <button type="button" id="step-back">◀</button>
+            <button type="button" id="step-forward">▶</button>
+          </div>
+          <label class="row" for="import-json">Import JSON Scene</label>
+          <input type="file" id="import-json" accept="application/json,.json" />
+          <div id="export-error" class="error-text"></div>
+          <pre id="export-debug-panel" class="debug-pre">loading…</pre>
+
+          <div class="subsection-label">Script Console</div>
+          <label class="row" for="script-select">Example Script</label>
+          <select id="script-select"></select>
+          <div class="buttons">
+            <button type="button" id="run-script">Run</button>
+            <button type="button" id="stop-script">Stop</button>
+            <button type="button" id="reload-script">Reload</button>
+            <button type="button" id="restart-script">Restart</button>
+            <button type="button" id="enable-script">Enable</button>
+            <button type="button" id="disable-script">Disable</button>
+            <button type="button" id="clear-script-console">Clear</button>
+          </div>
+          <div id="script-status" style="font-size:10px;margin:6px 0;color:#888;">idle</div>
+          <pre id="script-console" class="debug-pre"></pre>
+          <pre id="script-vars" class="debug-pre"></pre>
+          <pre id="script-debug-panel" class="debug-pre">loading…</pre>
+        </div>
+      </details>
     </div>
 
     <script type="module" src="./main.ts"></script>

@@ -202,7 +202,24 @@ npm run test:all   # Build + full suite including dist consumer smoke test
 npm run dev
 ```
 
-Opens the vanilla example at `http://localhost:5173` with a fullscreen ASCII canvas, preset selector, control sliders, and burst buttons.
+Opens the **control surface demo** at `http://localhost:5173` — a fullscreen ASCII canvas with a collapsible panel for every wired engine parameter.
+
+**Demo features:**
+
+| Section | Controls |
+| --- | --- |
+| **Presets** | All 30 built-in presets, burst/note test triggers |
+| **Visuals** | Renderer, density/scale, speed, brightness, contrast, trails, glitch, layers, blend modes, post-processing |
+| **Glyphs** | Glyph language selector, custom glyph set |
+| **Patterns / Motion / Simulation / Effects** | Toggle plugins and tune sliders |
+| **Sources** | Procedural, image, video, webcam, canvas source pipeline |
+| **Audio** | Microphone, file upload, play/pause, live meters, reactive bass/mid/treble mapping |
+| **MIDI** | Device connect, keyboard input, learn, note/CC monitors, panic |
+| **Debug** | Live engine state, performance graph, export/recording, script console |
+
+**Quick actions:** Reset Demo · Randomize · Copy Preset JSON
+
+On mobile, tap **☰ Controls** to show/hide the panel. Spacebar triggers a center burst.
 
 ---
 
