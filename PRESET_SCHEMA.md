@@ -29,6 +29,119 @@ interface AsciiPreset {
   spiralAmount?: number;
   cellularAmount?: number;
   scanlineAmount?: number;
+  source?: SourcePresetConfig;
+  layers?: LayerPresetConfig[];
+  postProcessing?: PostProcessingPresetConfig[];
+  postFeedback?: number;
+  postSmear?: number;
+  postDisplacement?: number;
+  postThreshold?: number;
+  postInvert?: number;
+  postEdge?: number;
+  postPosterize?: number;
+  postScanline?: number;
+  postDither?: number;
+  audioMapping?: AudioMappingPresetConfig;
+  inputMapping?: InputMappingPresetConfig;
+  audioAttack?: number;
+  audioRelease?: number;
+  audioSensitivity?: number;
+  audioNoiseGate?: number;
+  audioMinThreshold?: number;
+  audioMaxClamp?: number;
+  glyphLanguage?: string | string[];
+  glyphCategories?: GlyphCategoryId[];
+  glyphRules?: GlyphRuleConfig[];
+  glyphMorphing?: GlyphMorphConfig;
+  glyphAnimation?: GlyphAnimationConfig;
+}
+
+interface AudioMappingPresetConfig {
+  enabled?: boolean;
+  smoothing?: {
+    attack?: number;
+    release?: number;
+    sensitivity?: number;
+    noiseGate?: number;
+    minThreshold?: number;
+    maxClamp?: number;
+  };
+  mappings: Array<{
+    feature: 'amplitude' | 'bass' | 'lowMid' | 'mid' | 'highMid' | 'treble' | 'spectralCentroid' | 'transient' | 'beat';
+    target:
+      | { type: 'control'; control: string; base?: number; amount?: number; min?: number; max?: number }
+      | { type: 'layerOpacity'; layerId: string; base?: number; amount?: number; min?: number; max?: number }
+      | { type: 'noteOn'; minIntensity?: number; maxIntensity?: number; cooldownMs?: number }
+      | { type: 'postPass'; passId: string; base?: number; amount?: number; min?: number; max?: number };
+  }>;
+}
+
+interface InputMappingPresetConfig {
+  enabled?: boolean;
+  devicePreset?: 'akaiMpkMini' | 'novationLaunchkey' | 'genericKeyboard' | 'qwertyKeyboard';
+  channelFilter?: number[];
+  defaultNoteOn?: boolean;
+  defaultNoteOff?: boolean;
+  ccMappings?: Array<{
+    controller: number;
+    channel?: number;
+    target:
+      | { type: 'control'; control: string; min?: number; max?: number; amount?: number }
+      | { type: 'noteOn' | 'noteOff'; mapPitchToX?: boolean; mapPitchToY?: boolean; mapVelocityToIntensity?: boolean; minIntensity?: number; maxIntensity?: number }
+      | { type: 'layerOpacity'; layerId: string; min?: number; max?: number }
+      | { type: 'postPass'; passId: string; min?: number; max?: number }
+      | { type: 'togglePlugin'; pluginId: string }
+      | { type: 'setPreset'; presetId: string };
+  }>;
+  noteMappings?: Array<{
+    note?: number;
+    minNote?: number;
+    maxNote?: number;
+    channel?: number;
+    target: /* same as ccMappings target */;
+  }>;
+  pitchBend?: { target: { type: 'control'; control: string; min?: number; max?: number } };
+  modWheel?: { type: 'control'; control: string; min?: number; max?: number; amount?: number };
+  aftertouch?: { target: { type: 'control'; control: string; min?: number; max?: number } };
+  learnedMappings?: Array<{
+    id: string;
+    controller: number;
+    channel?: number;
+    target: /* same as ccMappings target */;
+  }>;
+}
+
+interface LayerPresetConfig {
+  id: string;
+  name?: string;
+  enabled?: boolean;
+  opacity?: number;
+  blendMode?: 'normal' | 'add' | 'multiply' | 'screen' | 'difference' | 'max' | 'min' | 'overlay';
+  mask?: {
+    type: 'radial' | 'linear' | 'noise' | 'brightness';
+    amount?: number;
+    angle?: number;
+    centerX?: number;
+    centerY?: number;
+    invert?: boolean;
+  };
+  glyphSet?: string[];
+  source?: string;
+  pattern?: string;
+  simulation?: string;
+  effects?: string[];
+  fill?: number;
+}
+
+interface PostProcessingPresetConfig {
+  id: string;
+  enabled?: boolean;
+  amount?: number;
+}
+
+interface SourcePresetConfig {
+  type: 'image' | 'video' | 'webcam' | 'canvas';
+  options?: Record<string, unknown>;
 }
 
 type PatternId =
@@ -210,6 +323,41 @@ Optional top-level fields set initial pattern control values:
 | `spiralAmount` | `number` | 0–1 | Spiral pattern intensity |
 | `cellularAmount` | `number` | 0–1 | Cellular/decay intensity |
 | `scanlineAmount` | `number` | 0–1 | Scanline/broadcast intensity |
+
+---
+
+### `source` (optional)
+
+| | |
+| --- | --- |
+| **Type** | `SourcePresetConfig` |
+| **Required** | No |
+| **Description** | Optional external visual source. When present, `setPreset()` activates the source pipeline. |
+
+```typescript
+interface SourcePresetConfig {
+  type: 'image' | 'video' | 'webcam' | 'canvas';
+  options?: Record<string, unknown>;
+}
+```
+
+| `type` | Behavior |
+| --- | --- |
+| `'image'` | Load image from `options.src` or `options.file` |
+| `'video'` | Load video with `loop`, `muted`, `fitMode` options |
+| `'webcam'` | Request camera with `facingMode`, `fitMode` |
+| `'canvas'` | Bind to `options.canvas` element |
+
+Example:
+
+```json
+"source": {
+  "type": "image",
+  "options": { "fitMode": "fit" }
+}
+```
+
+When no `source` field is present, the engine runs in procedural mode (unchanged behavior).
 
 ---
 
@@ -428,6 +576,56 @@ Geometric symbols with wave motion, heavy glitch, and short trails. Designed for
 **Character:** Aggressive, rhythmic, geometric. Best for live performances, VJ sets, and interactive bursts.
 
 > **Note:** The `abstract` preset is a schema example. It is not included in the built-in preset library. Copy this JSON to create your own preset file.
+
+---
+
+## Input Mapping
+
+Optional `inputMapping` configures MIDI and keyboard performance controls. See [MIDI_AND_INPUT.md](./MIDI_AND_INPUT.md).
+
+```json
+{
+  "inputMapping": {
+    "enabled": true,
+    "devicePreset": "genericKeyboard",
+    "defaultNoteOn": true,
+    "ccMappings": [
+      { "controller": 1, "target": { "type": "control", "control": "glitchAmount", "min": 0, "max": 1 } },
+      { "controller": 74, "target": { "type": "control", "control": "speed", "min": 0.2, "max": 3 } }
+    ],
+    "pitchBend": { "target": { "type": "control", "control": "flowStrength", "min": 0, "max": 1 } }
+  }
+}
+```
+
+Device presets (`akaiMpkMini`, `novationLaunchkey`, `genericKeyboard`, `qwertyKeyboard`) provide default CC and note layouts. Preset-level `ccMappings` override device defaults when non-empty.
+
+---
+
+## Glyph Language
+
+Optional procedural glyph configuration. See [GLYPH_LANGUAGE.md](./GLYPH_LANGUAGE.md) and [GLYPH_AUTHORING.md](./GLYPH_AUTHORING.md).
+
+```json
+{
+  "glyphLanguage": "organicBloom",
+  "glyphCategories": ["organic", "unicodeDecorative"],
+  "glyphMorphing": {
+    "enabled": true,
+    "chains": [{ "id": "bloom", "steps": [".", "°", "*", "✦", "✿"], "duration": 2, "loop": true }],
+    "speed": 1,
+    "smooth": true
+  },
+  "glyphAnimation": {
+    "enabled": true,
+    "kinds": ["breathing", "bloom"],
+    "speed": 0.8,
+    "amount": 0.6
+  }
+}
+```
+
+Legacy `glyphSet` remains required for backward compatibility. When `glyphLanguage` is set, semantic role selection replaces brightness-only mapping.
 
 ---
 

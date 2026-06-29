@@ -395,6 +395,325 @@ Procedural motion engine — independent from rendering and effects. See [MOTION
 
 ---
 
+## SourceManager
+
+External visual source pipeline — images, video, webcam, canvas. See [SOURCE_PIPELINE.md](./SOURCE_PIPELINE.md).
+
+| Method | Description |
+| --- | --- |
+| `registerSource(source)` | Register a source implementation |
+| `unregisterSource(id)` | Remove and destroy source |
+| `setActiveSource(id)` | Activate source (switches to source mode) |
+| `getActiveSource()` | Currently active source |
+| `setMode('procedural' \| 'source')` | Pipeline mode |
+| `getMode()` | Current mode |
+| `loadSource(id, input)` | Load input into source |
+| `update(dt, context)` | Per-frame source update |
+| `applyToGrid(grid, glyphSet, getControl)` | Sample source into grid |
+| `getDebugState()` | Ready state, dimensions, errors |
+| `destroy()` | Destroy all sources |
+
+### Built-in sources
+
+| Class | Id | Type |
+| --- | --- | --- |
+| `ImageSource` | `image` | Static image file/URL |
+| `VideoSource` | `video` | Video file with frame sampling |
+| `WebcamSource` | `webcam` | Live camera feed |
+| `CanvasSource` | `canvas` | HTMLCanvasElement |
+
+### AsciiEngine source API
+
+| Method | Description |
+| --- | --- |
+| `getSourceManager()` | Direct manager access |
+| `setSourceMode(mode)` | `'procedural'` or `'source'` |
+| `getSourceMode()` | Current pipeline mode |
+| `setActiveSource(id)` | Activate registered source |
+| `loadSource(id, input)` | Load external input |
+
+### Source controls
+
+| Control | Default | Description |
+| --- | --- | --- |
+| `sourceContrast` | `1` | Brightness contrast multiplier |
+| `sourceEdge` | `0.3` | Edge emphasis blend |
+| `sourceBlend` | `1` | Source brightness blend strength |
+
+---
+
+## RendererManager
+
+Pluggable output backends — canvas, DOM text, offscreen canvas, WebGL stub. See [RENDERER_PIPELINE.md](./RENDERER_PIPELINE.md).
+
+| Method | Description |
+| --- | --- |
+| `registerRenderer(renderer)` | Register a renderer backend |
+| `unregisterRenderer(id)` | Remove and destroy renderer |
+| `setActiveRenderer(id)` | Switch active backend (returns `{ ok, warning, activeId }`) |
+| `getActiveRenderer()` | Currently active renderer |
+| `getGridState(time)` | Grid from active renderer |
+| `setDensity(density)` / `setGlyphSet(glyphs)` | Grid configuration |
+| `resize(width, height)` | Resize all registered renderers |
+| `render(frame, context)` | Draw current frame |
+| `getDebugState()` | Active renderer, warnings, offscreen support |
+| `destroy()` | Destroy all renderers |
+
+### Built-in renderers
+
+| Class | Id | Output |
+| --- | --- | --- |
+| `CanvasRenderer` | `canvas` | Canvas 2D (default) |
+| `DomRenderer` | `dom` | `<pre>` / `<div>` text |
+| `OffscreenCanvasRenderer` | `offscreen-canvas` | OffscreenCanvas → canvas blit |
+| `WebGLRendererStub` | `webgl` | Planned — not yet implemented |
+
+### AsciiEngine renderer API
+
+| Method | Description |
+| --- | --- |
+| `getRendererManager()` | Direct manager access |
+| `setActiveRenderer(id)` | Switch renderer at runtime |
+| `getActiveRendererId()` | Current renderer id |
+
+### Engine options
+
+```typescript
+new AsciiEngine({
+  canvas,
+  element,   // optional — DOM renderer target
+  renderer: 'canvas' | 'dom' | 'offscreen-canvas' | 'webgl',
+});
+```
+
+---
+
+## SimulationManager
+
+Emergent behavior engine — independent from rendering. See [SIMULATION_ENGINE.md](./SIMULATION_ENGINE.md).
+
+| Method | Description |
+| --- | --- |
+| `registerSimulation(sim)` | Register a simulation |
+| `unregisterSimulation(id)` | Remove and destroy simulation |
+| `enableSimulation(id)` / `disableSimulation(id)` | Toggle simulation |
+| `getSimulation(id)` | Lookup by id |
+| `getAll()` / `getEnabled()` | List simulations |
+| `setEnabledIds(configs)` | Enable simulations from preset config |
+| `update(dt, context)` | Run all enabled simulations |
+| `resetAll()` | Reset all simulation state |
+| `getDebugState()` | Particles, memory, update time, FPS |
+| `destroy()` | Destroy all simulations |
+
+### Built-in simulations
+
+| Class | Id |
+| --- | --- |
+| `ParticleSimulation` | `particle` |
+| `BoidsSimulation` | `boids` |
+| `CellularAutomataSimulation` | `cellularAutomata` |
+| `ReactionDiffusionSimulation` | `reactionDiffusion` |
+| `LSystemSimulation` | `lsystem` |
+| `GravitySimulation` | `gravity` |
+| `SpringSimulation` | `spring` |
+| `FluidSimulation` | `fluid` |
+
+### AsciiEngine simulation API
+
+| Method | Description |
+| --- | --- |
+| `getSimulationManager()` | Direct manager access |
+| `registerSimulation(sim)` | Register custom simulation |
+| `enableSimulation(id)` / `disableSimulation(id)` | Toggle simulation |
+| `getEnabledSimulations()` | List enabled simulations |
+
+### Simulation controls
+
+| Control | Default | Description |
+| --- | --- | --- |
+| `simStrength` | `0.8` | Output intensity |
+| `simSpeed` | `1` | Time scale |
+| `simDensity` | `0.5` | Density threshold |
+| `simDecay` | `0.2` | Decay/damping |
+| `simSpawnRate` | `0.6` | Emission rate |
+
+---
+
+## LayerManager
+
+Layer compositing — stack patterns, simulations, and fills with blend modes and masks. See [COMPOSITING.md](./COMPOSITING.md).
+
+| Method | Description |
+| --- | --- |
+| `addLayer(config)` | Add a layer |
+| `removeLayer(id)` | Remove layer by id |
+| `enableLayer(id)` / `disableLayer(id)` | Toggle layer |
+| `reorderLayer(id, newIndex)` | Change stack order |
+| `getLayer(id)` | Lookup layer |
+| `getAll()` / `getEnabled()` | List layers |
+| `clear()` | Remove all layers |
+| `setFromPreset(configs)` | Load layers from preset |
+| `renderLayers(context)` | Composite enabled layers onto grid |
+| `isCompositingActive()` | True when any layer enabled |
+| `getDebugState()` | Layer count, order, render time |
+
+### AsciiEngine compositing API
+
+| Method | Description |
+| --- | --- |
+| `getLayerManager()` | Direct manager access |
+| `getPostProcessor()` | Post processing manager |
+| `resetComposition()` | Clear and reload preset layers + post passes |
+
+### Blend modes
+
+`normal` · `add` · `multiply` · `screen` · `difference` · `max` · `min` · `overlay`
+
+### Mask types
+
+`radial` · `linear` · `noise` · `brightness`
+
+---
+
+## PostProcessor
+
+CPU post processing passes applied after compositing. See [POST_PROCESSING.md](./POST_PROCESSING.md).
+
+| Method | Description |
+| --- | --- |
+| `registerPass(pass)` | Register custom pass |
+| `enablePass(id)` / `disablePass(id)` | Toggle pass |
+| `setPassAmount(id, amount)` | Set pass amount |
+| `setFromPreset(configs)` | Load passes from preset |
+| `process(grid, glyphSet, time, dt, getControl)` | Run enabled passes |
+| `isActive()` | True when any pass enabled |
+| `reset()` | Clear temporal buffers |
+| `getDebugState()` | Enabled passes, process time |
+
+### Built-in passes
+
+| Id | Description |
+| --- | --- |
+| `feedback` | Previous-frame blend (trails) |
+| `smear` | Neighbor blur / motion drag |
+| `displacement` | Sine-wave spatial warp |
+| `threshold` | Binary threshold |
+| `invert` | Brightness invert |
+| `edge` | Edge detection |
+| `posterize` | Level reduction |
+| `scanline` | Row dimming |
+| `dither` | Bayer dither |
+
+### Post processing controls
+
+| Control | Default | Pass |
+| --- | --- | --- |
+| `postFeedback` | `0.7` | feedback |
+| `postSmear` | `0.5` | smear |
+| `postDisplacement` | `0.3` | displacement |
+| `postThreshold` | `0.5` | threshold |
+| `postInvert` | `1` | invert |
+| `postEdge` | `0.6` | edge |
+| `postPosterize` | `4` | posterize |
+| `postScanline` | `0.5` | scanline |
+| `postDither` | `0.5` | dither |
+
+---
+
+## Audio Reactivity
+
+Real-time Web Audio analysis mapped to visual parameters. See [AUDIO_REACTIVITY.md](./AUDIO_REACTIVITY.md).
+
+| Method | Description |
+| --- | --- |
+| `connectAudio(input)` | Connect mic, audio element, stream, or analyser |
+| `disconnectAudio()` | Disconnect and restore base values |
+| `setAudioMapping(config)` | Configure feature → target bindings |
+| `getAudioFeatures()` | Latest extracted features |
+| `isAudioConnected()` | Whether audio is active |
+
+### Audio features
+
+`amplitude` · `bass` · `lowMid` · `mid` · `highMid` · `treble` · `spectralCentroid` · `transient` · `beat`
+
+### Smoothing controls
+
+| Control | Default | Description |
+| --- | --- | --- |
+| `audioAttack` | `0.08` | Rise smoothing (seconds) |
+| `audioRelease` | `0.25` | Fall smoothing (seconds) |
+| `audioSensitivity` | `1` | Feature gain |
+| `audioNoiseGate` | `0.02` | Silence threshold |
+| `audioMinThreshold` | `0` | Output floor |
+| `audioMaxClamp` | `1` | Output ceiling |
+
+### Audio presets
+
+`audioAmbient` · `audioBass` · `audioGlitch` · `audioVoice` · `audioFullSpectrum`
+
+---
+
+## MIDI & Performance Controls
+
+Web MIDI and keyboard input mapped to visual parameters. See [MIDI_AND_INPUT.md](./MIDI_AND_INPUT.md).
+
+| Method | Description |
+| --- | --- |
+| `connectMidi(deviceId?)` | Connect Web MIDI input device |
+| `disconnectMidi()` | Disconnect active MIDI input |
+| `getMidiDevices()` | List available MIDI input devices |
+| `setInputMapping(config)` | Configure performance mappings |
+| `getInputMapping()` | Current mapping configuration |
+| `clearInputMapping()` | Clear learned CC bindings |
+| `resetInputMapping()` | Reset to preset device mapping |
+| `enableKeyboardInput()` | Enable QWERTY keyboard note input |
+| `disableKeyboardInput()` | Disable keyboard input |
+| `startInputLearn(target, callback?)` | Enter MIDI learn mode for a target |
+| `cancelInputLearn()` | Exit learn mode without binding |
+| `inputPanic()` | All notes off — clear stuck notes |
+| `getInputNoteMonitor()` | Recent note on/off events |
+| `getInputManager()` | Direct access to input subsystem |
+
+### Input events
+
+| Event | Payload |
+| --- | --- |
+| `input` | `InputDebugState` |
+
+### Device presets
+
+`akaiMpkMini` · `novationLaunchkey` · `genericKeyboard` · `qwertyKeyboard`
+
+### Performance presets
+
+`performanceGeneric` · `performanceAkai` · `performanceLaunchkey` · `performanceQwerty`
+
+---
+
+## Procedural Glyph Language
+
+Semantic glyph selection with categories, roles, morphing, and animation. See [GLYPH_LANGUAGE.md](./GLYPH_LANGUAGE.md).
+
+| Method | Description |
+| --- | --- |
+| `getGlyphRegistry()` | Access glyph subsystem |
+| `registerGlyphLanguage(config)` | Register a custom glyph language |
+| `getResolvedGlyphSet()` | Current character set for renderer |
+
+### Glyph debug state
+
+`engine.getDebugState().glyph` — enabled, languageId, categories, sampleCell, morphState, animationState
+
+### Glyph presets
+
+`glyphOrganicBloom` · `glyphDigitalForest` · `glyphCrtTerminal` · `glyphCorruptedBroadcast` · `glyphFlowField` · `glyphParticleNebula` · `glyphAbstractGeometry` · `glyphMinimalZen`
+
+### Glyph categories
+
+`organic` · `terminal` · `noise` · `geometric` · `technical` · `particle` · `fluid` · `architecture` · `minimal` · `abstract` · `unicodeDecorative`
+
+---
+
 ## PatternRegistry *(legacy)*
 
 Still exported. Engine uses `PluginManager` internally.
@@ -422,6 +741,82 @@ interface Pattern {
 | `GridPattern` | `grid` |
 | `CellularPattern` | `cellular` |
 | `ScanlinePattern` | `scanline` |
+
+`organic` · `terminal` · `noise` · `geometric` · `technical` · `particle` · `fluid` · `architecture` · `minimal` · `abstract` · `unicodeDecorative`
+
+---
+
+## Recording & Export
+
+Capture and export visuals. See [EXPORTING.md](./EXPORTING.md), [RECORDING.md](./RECORDING.md), [SCENE_FORMAT.md](./SCENE_FORMAT.md).
+
+| Method | Description |
+| --- | --- |
+| `exportPNG(options?)` | PNG screenshot (retina, transparent, clipboard) |
+| `exportSVG(options?)` | SVG vector download |
+| `exportGIF(options?)` | Animated GIF from recorded frames |
+| `exportJSON(name?)` | Download JSON scene snapshot |
+| `importJSON(json)` | Restore engine from JSON scene |
+| `exportASCII(options?)` | Plain ASCII text download |
+| `exportSequence(options?)` | Numbered PNG frame sequence |
+| `startRecording(fps?)` | Begin frame capture |
+| `stopRecording()` | Stop and return frames |
+| `pauseRecording()` / `resumeRecording()` / `cancelRecording()` | Recording control |
+| `playRecording(options?)` | Replay recorded frames |
+| `pausePlayback()` / `resumePlayback()` / `stopPlayback()` | Playback control |
+| `stepPlayback(delta)` | Step forward/back one frame |
+| `scrubPlayback(index)` | Jump to frame index |
+| `getExportManager()` | Direct access to export subsystem |
+| `getGridState()` | Current grid for custom export |
+| `getCanvas()` | Canvas element for custom capture |
+
+### Export debug state
+
+`engine.getDebugState().export` — recording state, playback state, last export format
+
+---
+
+## Scripting API
+
+Programmatic scene control via scripts. See [SCRIPTING.md](./SCRIPTING.md), [SCRIPT_API.md](./SCRIPT_API.md), [EXAMPLES.md](./EXAMPLES.md).
+
+| Method | Description |
+| --- | --- |
+| `registerScript(module)` | Register a script module |
+| `registerScripts(modules)` | Register multiple scripts |
+| `runScript(id)` | Start script (async) |
+| `stopScript()` | Stop active script |
+| `reloadScript(id?)` | Hot reload and restart |
+| `restartScript()` | Re-run init on active script |
+| `enableScript()` / `disableScript()` | Pause/resume script updates |
+| `clearScriptConsole()` | Clear script logs |
+| `getScriptEngine()` | Access script subsystem |
+| `applyGlyphLanguage(id)` | Apply glyph language by id |
+| `getEngineTime()` / `getEngineFps()` | Engine time and FPS |
+
+### Script debug state
+
+`engine.getDebugState().script` — active script id, state, logs, frame count, error
+
+---
+
+## Performance
+
+CPU profiling, quality presets, and optimization. See [PERFORMANCE.md](./PERFORMANCE.md), [OPTIMIZATION_GUIDE.md](./OPTIMIZATION_GUIDE.md).
+
+| Method | Description |
+| --- | --- |
+| `getPerformanceManager()` | Access performance subsystem |
+| `setQualityPreset(id)` | Apply Ultra/High/Medium/Low/Battery Saver |
+| `getQualityPreset()` | Current quality preset id |
+
+### Performance controls
+
+`perfQuality` · `fpsTarget` · `adaptiveQuality` · `dirtyRendering` · `spatialGrid` · `workerOffload`
+
+### Performance debug state
+
+`engine.getDebugState().performance` — FPS, frame timing, memory, draw calls, phase timings, worker status
 
 ---
 

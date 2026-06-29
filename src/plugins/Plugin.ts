@@ -13,6 +13,7 @@ export interface PluginContext {
   glitchAmount: number;
   trailAmount: number;
   getControl: (name: string, fallback?: number) => number;
+  glyphLanguageActive?: boolean;
 }
 
 export interface Plugin {

@@ -2,21 +2,134 @@ import {
   AsciiEngine,
   listPresets,
   motionCatalog,
+  simulationCatalog,
   pluginCatalog,
+  listPostPassIds,
+  DEVICE_PRESET_IDS,
   warnUnknownPreset,
   type AsciiPreset,
+  type BlendMode,
   type EngineDebugState,
   type Plugin,
   type PresetId,
+  type RendererId,
+  type QualityPresetId,
 } from 'ascii-visual-engine';
+import { galleryScripts } from '../scripts';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const domOutput = document.getElementById('dom-output') as HTMLPreElement;
 const presetSelect = document.getElementById('preset') as HTMLSelectElement;
 const effectPluginList = document.getElementById('effect-plugins') as HTMLDivElement;
 const patternPluginList = document.getElementById('pattern-plugins') as HTMLDivElement;
 const motionPluginList = document.getElementById('motion-plugins') as HTMLDivElement;
+const simulationPluginList = document.getElementById('simulation-plugins') as HTMLDivElement;
 const debugPanel = document.getElementById('debug-panel') as HTMLPreElement;
 const motionDebugPanel = document.getElementById('motion-debug-panel') as HTMLPreElement;
+const simulationDebugPanel = document.getElementById('simulation-debug-panel') as HTMLPreElement;
+const sourceDebugPanel = document.getElementById('source-debug-panel') as HTMLPreElement;
+const rendererDebugPanel = document.getElementById('renderer-debug-panel') as HTMLPreElement;
+const compositingDebugPanel = document.getElementById('compositing-debug-panel') as HTMLPreElement;
+const layerControls = document.getElementById('layer-controls') as HTMLDivElement;
+const postPassList = document.getElementById('post-passes') as HTMLDivElement;
+const layerBlendSelect = document.getElementById('layer-blend-mode') as HTMLSelectElement;
+const layerOpacitySlider = document.getElementById('layer-opacity') as HTMLInputElement;
+const layerOpacityValue = document.getElementById('layer-opacity-value') as HTMLSpanElement;
+const addLayerBtn = document.getElementById('add-layer') as HTMLButtonElement;
+const resetCompositionBtn = document.getElementById('reset-composition') as HTMLButtonElement;
+const audioDebugPanel = document.getElementById('audio-debug-panel') as HTMLPreElement;
+const startMicrophoneBtn = document.getElementById('start-microphone') as HTMLButtonElement;
+const audioFileInput = document.getElementById('audio-file-input') as HTMLInputElement;
+const disconnectAudioBtn = document.getElementById('disconnect-audio') as HTMLButtonElement;
+const audioErrorEl = document.getElementById('audio-error') as HTMLDivElement;
+const audioElement = document.createElement('audio');
+audioElement.style.display = 'none';
+document.body.appendChild(audioElement);
+
+const audioMeterIds = ['amplitude', 'bass', 'mid', 'treble'] as const;
+type AudioMeterId = (typeof audioMeterIds)[number];
+const audioMeterValues = Object.fromEntries(
+  audioMeterIds.map((id) => [id, document.getElementById(`meter-${id}`) as HTMLSpanElement]),
+) as Record<AudioMeterId, HTMLSpanElement>;
+const audioMeterBars = Object.fromEntries(
+  audioMeterIds.map((id) => [id, document.getElementById(`bar-${id}`) as HTMLDivElement]),
+) as Record<AudioMeterId, HTMLDivElement>;
+
+const audioSliderIds = ['audioAttack', 'audioRelease', 'audioSensitivity', 'audioNoiseGate'] as const;
+type AudioSliderId = (typeof audioSliderIds)[number];
+const audioSliders = Object.fromEntries(
+  audioSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
+) as Record<AudioSliderId, HTMLInputElement>;
+const audioSliderValues = Object.fromEntries(
+  audioSliderIds.map((id) => [id, document.getElementById(`${id}-value`) as HTMLSpanElement]),
+) as Record<AudioSliderId, HTMLSpanElement>;
+
+const inputDebugPanel = document.getElementById('input-debug-panel') as HTMLPreElement;
+const glyphDebugPanel = document.getElementById('glyph-debug-panel') as HTMLPreElement;
+const exportDebugPanel = document.getElementById('export-debug-panel') as HTMLPreElement;
+const scriptDebugPanel = document.getElementById('script-debug-panel') as HTMLPreElement;
+const scriptSelect = document.getElementById('script-select') as HTMLSelectElement;
+const scriptConsoleEl = document.getElementById('script-console') as HTMLPreElement;
+const scriptVarsEl = document.getElementById('script-vars') as HTMLPreElement;
+const scriptStatusEl = document.getElementById('script-status') as HTMLDivElement;
+const runScriptBtn = document.getElementById('run-script') as HTMLButtonElement;
+const stopScriptBtn = document.getElementById('stop-script') as HTMLButtonElement;
+const reloadScriptBtn = document.getElementById('reload-script') as HTMLButtonElement;
+const restartScriptBtn = document.getElementById('restart-script') as HTMLButtonElement;
+const enableScriptBtn = document.getElementById('enable-script') as HTMLButtonElement;
+const disableScriptBtn = document.getElementById('disable-script') as HTMLButtonElement;
+const clearScriptConsoleBtn = document.getElementById('clear-script-console') as HTMLButtonElement;
+const performanceDebugPanel = document.getElementById('performance-debug-panel') as HTMLPreElement;
+const qualityPresetSelect = document.getElementById('quality-preset') as HTMLSelectElement;
+const adaptiveQualityToggle = document.getElementById('adaptive-quality') as HTMLInputElement;
+const dirtyRenderingToggle = document.getElementById('dirty-rendering') as HTMLInputElement;
+const spatialGridToggle = document.getElementById('spatial-grid') as HTMLInputElement;
+const fpsTargetSlider = document.getElementById('fps-target') as HTMLInputElement;
+const fpsTargetValue = document.getElementById('fps-target-value') as HTMLSpanElement;
+const fpsGraphCanvas = document.getElementById('fps-graph') as HTMLCanvasElement;
+const fpsGraphCtx = fpsGraphCanvas.getContext('2d')!;
+const recordingIndicator = document.getElementById('recording-indicator') as HTMLDivElement;
+const frameCounter = document.getElementById('frame-counter') as HTMLDivElement;
+const exportErrorEl = document.getElementById('export-error') as HTMLDivElement;
+const midiDeviceSelect = document.getElementById('midi-device') as HTMLSelectElement;
+const connectMidiBtn = document.getElementById('connect-midi') as HTMLButtonElement;
+const disconnectMidiBtn = document.getElementById('disconnect-midi') as HTMLButtonElement;
+const keyboardInputToggle = document.getElementById('keyboard-input-toggle') as HTMLInputElement;
+const inputPanicBtn = document.getElementById('input-panic') as HTMLButtonElement;
+const midiErrorEl = document.getElementById('midi-error') as HTMLDivElement;
+const learnControlSelect = document.getElementById('learn-control') as HTMLSelectElement;
+const startLearnBtn = document.getElementById('start-learn') as HTMLButtonElement;
+const clearLearnedBtn = document.getElementById('clear-learned') as HTMLButtonElement;
+const resetInputMappingBtn = document.getElementById('reset-input-mapping') as HTMLButtonElement;
+const mappingTable = document.getElementById('mapping-table') as HTMLPreElement;
+const noteMonitor = document.getElementById('note-monitor') as HTMLPreElement;
+const rendererModeSelect = document.getElementById('renderer-mode') as HTMLSelectElement;
+const rendererWarning = document.getElementById('renderer-warning') as HTMLDivElement;
+const sourceModeSelect = document.getElementById('source-mode') as HTMLSelectElement;
+const sourceFitSelect = document.getElementById('source-fit') as HTMLSelectElement;
+const imageInput = document.getElementById('image-input') as HTMLInputElement;
+const videoInput = document.getElementById('video-input') as HTMLInputElement;
+const imageInputLabel = document.getElementById('image-input-label') as HTMLLabelElement;
+const videoInputLabel = document.getElementById('video-input-label') as HTMLLabelElement;
+const startWebcamBtn = document.getElementById('start-webcam') as HTMLButtonElement;
+
+const sourceSliderIds = ['sourceContrast', 'sourceEdge', 'sourceBlend'] as const;
+type SourceSliderId = (typeof sourceSliderIds)[number];
+const sourceSliders = Object.fromEntries(
+  sourceSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
+) as Record<SourceSliderId, HTMLInputElement>;
+const sourceValueDisplays = Object.fromEntries(
+  sourceSliderIds.map((id) => [
+    id,
+    document.getElementById(`${id}-value`) as HTMLSpanElement,
+  ]),
+) as Record<SourceSliderId, HTMLSpanElement>;
+
+const demoCanvas = document.createElement('canvas');
+demoCanvas.width = 320;
+demoCanvas.height = 240;
+const demoCtx = demoCanvas.getContext('2d')!;
+let canvasAnimAngle = 0;
 
 const sliderIds = [
   'density',
@@ -56,6 +169,23 @@ const allPresets = listPresets();
 const presetIds = allPresets.map((p) => p.id);
 const pluginCheckboxes = new Map<string, HTMLInputElement>();
 const motionCheckboxes = new Map<string, HTMLInputElement>();
+const simulationCheckboxes = new Map<string, HTMLInputElement>();
+const layerCheckboxes = new Map<string, HTMLInputElement>();
+const postPassCheckboxes = new Map<string, HTMLInputElement>();
+let activeLayerId: string | null = null;
+let layerCounter = 0;
+
+const postSliderIds = ['postFeedback', 'postSmear', 'postThreshold', 'postDither'] as const;
+type PostSliderId = (typeof postSliderIds)[number];
+const postSliders = Object.fromEntries(
+  postSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
+) as Record<PostSliderId, HTMLInputElement>;
+const postValueDisplays = Object.fromEntries(
+  postSliderIds.map((id) => [
+    id,
+    document.getElementById(`${id}-value`) as HTMLSpanElement,
+  ]),
+) as Record<PostSliderId, HTMLSpanElement>;
 
 const effectPluginIds = ['noise', 'wave', 'burst', 'glitch', 'trails'];
 const patternPluginIds = [
@@ -80,6 +210,25 @@ const motionPluginIds = [
   'spiral',
   'curlNoise',
 ];
+const simulationPluginIds = [
+  'particle',
+  'boids',
+  'cellularAutomata',
+  'reactionDiffusion',
+  'lsystem',
+  'gravity',
+  'spring',
+  'fluid',
+];
+
+const simSliderIds = ['simStrength', 'simSpeed', 'simDensity', 'simSpawnRate', 'simDecay'] as const;
+type SimSliderId = (typeof simSliderIds)[number];
+const simSliders = Object.fromEntries(
+  simSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
+) as Record<SimSliderId, HTMLInputElement>;
+const simValueDisplays = Object.fromEntries(
+  simSliderIds.map((id) => [id, document.getElementById(`${id}-value`) as HTMLSpanElement]),
+) as Record<SimSliderId, HTMLSpanElement>;
 
 for (const preset of allPresets) {
   const option = document.createElement('option');
@@ -96,10 +245,21 @@ const { width, height } = getViewportSize();
 
 const engine = new AsciiEngine({
   canvas,
+  element: domOutput,
   preset: allPresets.find((p) => p.id === 'ambient') ?? allPresets[0],
   width,
   height,
 });
+
+engine.registerScripts(galleryScripts);
+engine.getScriptEngine().setHotReload(import.meta.env.DEV);
+
+for (const script of galleryScripts) {
+  const opt = document.createElement('option');
+  opt.value = script.id;
+  opt.textContent = script.name ?? script.id;
+  scriptSelect.appendChild(opt);
+}
 
 function formatSliderValue(id: SliderId, value: number): string {
   if (id === 'symmetry' || id === 'petals') {
@@ -142,6 +302,76 @@ function syncMotionsFromEngine() {
   }
 }
 
+function syncSimulationsFromEngine() {
+  const enabled = new Set(engine.getEnabledSimulations().map((s) => s.id));
+  for (const [id, checkbox] of simulationCheckboxes) {
+    checkbox.checked = enabled.has(id);
+  }
+}
+
+function syncLayersFromEngine() {
+  const layers = engine.getLayerManager().getAll();
+  layerControls.innerHTML = '';
+  layerCheckboxes.clear();
+
+  for (const layer of layers) {
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = layer.enabled;
+    checkbox.id = `layer-${layer.id}`;
+
+    const text = document.createElement('span');
+    text.textContent = `${layer.name} (${layer.blendMode})`;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    layerControls.appendChild(label);
+    layerCheckboxes.set(layer.id, checkbox);
+
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) engine.getLayerManager().enableLayer(layer.id);
+      else engine.getLayerManager().disableLayer(layer.id);
+      updateDebugPanel();
+    });
+
+    label.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).tagName === 'INPUT') return;
+      activeLayerId = layer.id;
+      layerBlendSelect.value = layer.blendMode;
+      layerOpacitySlider.value = String(layer.opacity);
+      layerOpacityValue.textContent = layer.opacity.toFixed(2);
+    });
+  }
+
+  if (!activeLayerId && layers.length > 0) {
+    activeLayerId = layers[0].id;
+    layerBlendSelect.value = layers[0].blendMode;
+    layerOpacitySlider.value = String(layers[0].opacity);
+    layerOpacityValue.textContent = layers[0].opacity.toFixed(2);
+  }
+}
+
+function syncPostPassesFromEngine() {
+  const enabled = new Set(engine.getPostProcessor().getEnabled().map((p) => p.id));
+  for (const [id, checkbox] of postPassCheckboxes) {
+    checkbox.checked = enabled.has(id);
+  }
+}
+
+function updateCompositingDebugPanel() {
+  const cd = engine.getDebugState().compositing;
+  const pp = engine.getDebugState().postProcessing;
+  compositingDebugPanel.textContent = [
+    `layers:       ${cd.enabledCount}/${cd.layerCount}`,
+    `render:       ${cd.renderTimeMs.toFixed(2)} ms`,
+    ...cd.layers.map((l) => `  [${l.order}] ${l.id} ${l.blendMode} o=${l.opacity.toFixed(2)} ${l.enabled ? 'on' : 'off'}`),
+    `post passes:  ${pp.enabledPasses.join(', ') || '(none)'}`,
+    `post time:    ${pp.processTimeMs.toFixed(2)} ms`,
+    `feedback:     ${pp.feedbackActive ? 'active' : 'off'}`,
+  ].join('\n');
+}
+
 function formatNoteOn(note: EngineDebugState['lastNoteOn']): string {
   if (!note) return '—';
   const x = note.x?.toFixed(2) ?? '?';
@@ -150,10 +380,250 @@ function formatNoteOn(note: EngineDebugState['lastNoteOn']): string {
   return `x=${x} y=${y} i=${intensity}`;
 }
 
+function updateSourceDebugPanel() {
+  const state = engine.getDebugState().source;
+  sourceDebugPanel.textContent = [
+    `mode:         ${state.mode}`,
+    `active:       ${state.activeSourceId ?? '(none)'}`,
+    `type:         ${state.activeSourceType ?? '—'}`,
+    `ready:        ${state.ready}`,
+    `error:        ${state.error ?? '—'}`,
+    `size:         ${state.width}×${state.height}`,
+    `fit:          ${state.fitMode}`,
+  ].join('\n');
+}
+
+function updateRendererDebugPanel() {
+  const rd = engine.getDebugState().renderer;
+  rendererDebugPanel.textContent = [
+    `active:       ${rd.activeRendererId ?? '(none)'}`,
+    `name:         ${rd.activeRendererName ?? '—'}`,
+    `type:         ${rd.activeRendererType ?? '—'}`,
+    `available:    ${rd.available}`,
+    `live switch:  ${rd.supportsLiveSwitch}`,
+    `offscreen:    ${rd.offscreenSupported ? 'supported' : 'unsupported'}`,
+    `warning:      ${rd.switchWarning ?? '—'}`,
+  ].join('\n');
+}
+
+function updateOutputVisibility(rendererId: RendererId | null) {
+  const useDom = rendererId === 'dom';
+  canvas.style.display = useDom ? 'none' : 'block';
+  domOutput.style.display = useDom ? 'block' : 'none';
+}
+
+function updateAudioDebugPanel() {
+  const ad = engine.getDebugState().audio;
+  const f = ad.features;
+  audioDebugPanel.textContent = [
+    `connected:    ${ad.connected}`,
+    `input:        ${ad.inputType ?? '—'}`,
+    `ready:        ${ad.ready}`,
+    `error:        ${ad.error ?? '—'}`,
+    `mapping:      ${ad.mappingEnabled ? 'on' : 'off'}`,
+    `update:       ${ad.updateTimeMs.toFixed(2)} ms`,
+    f ? `amp:          ${f.amplitude.toFixed(3)}` : 'amp:          —',
+    f ? `bass:         ${f.bass.toFixed(3)}` : 'bass:         —',
+    f ? `mid:          ${f.mid.toFixed(3)}` : 'mid:          —',
+    f ? `treble:       ${f.treble.toFixed(3)}` : 'treble:       —',
+    f ? `transient:    ${f.transient.toFixed(3)}` : 'transient:    —',
+    f ? `beat:         ${f.beat.toFixed(3)}` : 'beat:         —',
+  ].join('\n');
+
+  if (f) {
+    updateAudioMeters(f);
+  }
+}
+
+function updateExportDebugPanel() {
+  const ex = engine.getDebugState().export;
+  const rec = ex.recording;
+  const pb = ex.playback;
+  exportDebugPanel.textContent = [
+    `recording:    ${rec.state} (${rec.frameCount} frames, ${rec.duration.toFixed(2)}s @ ${rec.frameRate}fps)`,
+    `playback:     ${pb.playing ? 'playing' : pb.paused ? 'paused' : 'stopped'} frame ${pb.frameIndex + 1}/${pb.frameCount}`,
+    `last export:  ${ex.lastExport ?? '—'}`,
+  ].join('\n');
+
+  recordingIndicator.textContent =
+    rec.state === 'recording'
+      ? '● REC'
+      : rec.state === 'paused'
+        ? '● paused'
+        : '● idle';
+  recordingIndicator.style.color =
+    rec.state === 'recording' ? '#ff4444' : rec.state === 'paused' ? '#ffaa00' : '#888';
+
+  frameCounter.textContent = `frames: ${rec.frameCount}`;
+}
+
+function updateScriptDebugPanel() {
+  const sd = engine.getDebugState().script;
+  scriptDebugPanel.textContent = [
+    `active:       ${sd.activeScriptId ?? '(none)'}`,
+    `state:        ${sd.state}`,
+    `error:        ${sd.error ?? '—'}`,
+    `frames:       ${sd.frameCount}`,
+    `logs:         ${sd.logs.length}`,
+  ].join('\n');
+
+  scriptStatusEl.textContent = sd.activeScriptId
+    ? `${sd.activeScriptId} — ${sd.state}${sd.error ? ` (${sd.error})` : ''}`
+    : 'idle';
+
+  scriptConsoleEl.textContent =
+    sd.logs.length > 0
+      ? sd.logs
+          .slice(-30)
+          .map((l) => `[${l.level}] ${l.message}`)
+          .join('\n')
+      : '(empty)';
+
+  const vars = engine.getScriptEngine().getContextVars();
+  scriptVarsEl.textContent =
+    Object.keys(vars).length > 0 ? JSON.stringify(vars, null, 2) : '(no vars)';
+}
+
+function drawFpsGraph(history: number[]): void {
+  const w = fpsGraphCanvas.width;
+  const h = fpsGraphCanvas.height;
+  fpsGraphCtx.fillStyle = 'rgba(0,0,0,0.6)';
+  fpsGraphCtx.fillRect(0, 0, w, h);
+  if (history.length < 2) return;
+  fpsGraphCtx.strokeStyle = '#00ff88';
+  fpsGraphCtx.lineWidth = 1;
+  fpsGraphCtx.beginPath();
+  const maxFps = 120;
+  for (let i = 0; i < history.length; i++) {
+    const x = (i / (history.length - 1)) * w;
+    const y = h - (Math.min(history[i], maxFps) / maxFps) * h;
+    if (i === 0) fpsGraphCtx.moveTo(x, y);
+    else fpsGraphCtx.lineTo(x, y);
+  }
+  fpsGraphCtx.stroke();
+  fpsGraphCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+  fpsGraphCtx.beginPath();
+  const targetY = h - (parseFloat(fpsTargetSlider.value) / maxFps) * h;
+  fpsGraphCtx.moveTo(0, targetY);
+  fpsGraphCtx.lineTo(w, targetY);
+  fpsGraphCtx.stroke();
+}
+
+function updatePerformanceDebugPanel() {
+  const p = engine.getDebugState().performance;
+  const rd = engine.getDebugState().renderer;
+  const ad = engine.getDebugState().audio;
+
+  performanceDebugPanel.textContent = [
+    `fps:          ${p.fps} (target ${p.fpsTarget})`,
+    `frame:        ${p.frameTimeMs.toFixed(2)} ms`,
+    `update:       ${p.updateTimeMs.toFixed(2)} ms`,
+    `render:       ${p.renderTimeMs.toFixed(2)} ms`,
+    `simulation:   ${p.simulationTimeMs.toFixed(2)} ms`,
+    `plugins:      ${p.pluginTimeMs.toFixed(2)} ms`,
+    `slowest:      ${p.slowestPhase ?? '—'} (${p.slowestPhaseMs.toFixed(2)} ms)`,
+    `quality:      ${p.quality}${p.adaptiveQuality ? ' (adaptive)' : ''}`,
+    `glyphs:       ${p.glyphCount}`,
+    `particles:    ${p.particleCount}`,
+    `layers:       ${p.layerCount}`,
+    `draw calls:   ${p.drawCalls}`,
+    `dirty cells:  ${p.render.dirtyCells}${p.render.partialUpdate ? ' (partial)' : ''}`,
+    `memory est:   ${(p.memory.estimatedBytes / 1024).toFixed(1)} KB`,
+    `pool avail:   ${p.memory.poolAvailable}`,
+    `glyph cache:  ${p.glyphAtlasHits} hits / ${p.glyphAtlasMisses} miss`,
+    `workers:      ${p.workers.enabled ? `${p.workers.workerCount} active, ${p.workers.pendingTasks} pending` : 'off'}`,
+    `renderer:     ${rd.activeRendererId ?? '—'} (${rd.renderTimeMs.toFixed(2)} ms)`,
+    `source:       ${p.sourceMode ?? '—'}`,
+    `audio latency:${p.audioLatencyMs.toFixed(2)} ms (connected: ${ad.connected})`,
+  ].join('\n');
+
+  drawFpsGraph(p.fpsHistory);
+}
+
+function updateGlyphDebugPanel() {
+  const gd = engine.getDebugState().glyph;
+  const sample = gd.sampleCell;
+  glyphDebugPanel.textContent = [
+    `enabled:      ${gd.enabled}`,
+    `language:     ${gd.languageName ?? gd.languageId ?? '—'}`,
+    `categories:   ${gd.categories.join(', ') || '—'}`,
+    `glyph count:  ${gd.glyphCount}`,
+    `atlas hits:   ${gd.atlasHits}`,
+    `morph:        ${gd.morphState}`,
+    `animation:    ${gd.animationState}`,
+    sample ? `sample char:  ${sample.character}` : 'sample char:  —',
+    sample ? `category:     ${sample.category}` : '',
+    sample ? `role:         ${sample.role}` : '',
+    sample ? `morph:        ${(sample.morphProgress * 100).toFixed(0)}% [${sample.morphIndex}]` : '',
+    sample ? `anim:         ${sample.animKind ?? '—'} phase=${sample.animPhase.toFixed(2)}` : '',
+    sample ? `weight:       ${sample.weight.toFixed(2)}` : '',
+    sample ? `density:      ${sample.density.toFixed(2)}` : '',
+    sample ? `unicode:      U+${sample.unicode.toString(16).toUpperCase().padStart(4, '0')}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function updateInputDebugPanel() {
+  const id = engine.getDebugState().input;
+  inputDebugPanel.textContent = [
+    `midi:         ${id.midiConnected ? id.deviceName ?? 'connected' : 'off'}`,
+    `keyboard:     ${id.keyboardEnabled ? 'on' : 'off'}`,
+    `learn:        ${id.learnMode ? id.learnTarget ?? 'active' : 'off'}`,
+    `active notes: ${id.activeNotes.join(', ') || '(none)'}`,
+    `mappings:     ${id.mappingCount} (+ ${id.learnedCount} learned)`,
+    `error:        ${id.error ?? '—'}`,
+  ].join('\n');
+
+  const mapping = engine.getInputMapping();
+  const ccLines = (mapping.ccMappings ?? []).map((m) => `  CC${m.controller} → ${m.target.type}`);
+  const learnedLines = (mapping.learnedMappings ?? []).map(
+    (m) => `  CC${m.controller} → ${m.target.type}${m.target.type === 'control' ? ` (${m.target.control})` : ''}`,
+  );
+  mappingTable.textContent = ['cc:', ...ccLines, 'learned:', ...learnedLines].join('\n') || 'mappings: —';
+
+  const notes = engine.getInputNoteMonitor().slice(0, 8);
+  noteMonitor.textContent = notes.length
+    ? notes.map((n) => `${n.type === 'on' ? 'ON' : 'OFF'} ${n.note} v=${n.velocity} [${n.source}]`).join('\n')
+    : 'notes: —';
+}
+
+function updateAudioMeters(features: NonNullable<ReturnType<typeof engine.getAudioFeatures>>) {
+  const values: Record<AudioMeterId, number> = {
+    amplitude: features.amplitude,
+    bass: features.bass,
+    mid: features.mid,
+    treble: features.treble,
+  };
+  for (const id of audioMeterIds) {
+    const v = values[id];
+    audioMeterValues[id].textContent = v.toFixed(2);
+    audioMeterBars[id].style.width = `${Math.round(v * 100)}%`;
+  }
+}
+
+function updateSimulationDebugPanel() {
+  const sd = engine.getDebugState().simulation;
+  const lines = sd.activeSimulations.map(
+    (s) => `  ${s.id} p=${s.particleCount} mem=${s.memoryBytes}B ${s.updateTimeMs.toFixed(2)}ms`,
+  );
+  simulationDebugPanel.textContent = [
+    `active:       ${sd.activeSimulations.length}`,
+    `particles:    ${sd.totalParticles}`,
+    `memory:       ${sd.totalMemoryBytes} bytes`,
+    `update time:  ${sd.updateTimeMs.toFixed(2)} ms`,
+    `fps:          ${sd.fps}`,
+    ...lines,
+  ].join('\n');
+}
+
 function updateDebugPanel() {
   const state = engine.getDebugState();
   debugPanel.textContent = [
     `preset:       ${state.preset}`,
+    `renderer:     ${state.renderer.activeRendererId ?? 'canvas'} (${state.renderer.activeRendererName ?? 'Canvas 2D'})`,
+    `simulations:  ${state.simulation.activeSimulations.map((s) => s.id).join(', ') || '(none)'}`,
+    `source:       ${state.source.mode}${state.source.activeSourceId ? ` (${state.source.activeSourceId})` : ''}`,
     `effects:      ${state.effects.join(', ') || '(none)'}`,
     `patterns:     ${state.patterns.join(', ') || '(none)'}`,
     `motions:      ${state.motions.join(', ') || '(none)'}`,
@@ -166,6 +636,17 @@ function updateDebugPanel() {
     `fps:          ${state.fps}`,
     `time:         ${state.time.toFixed(1)}s`,
   ].join('\n');
+
+  updateSourceDebugPanel();
+  updateRendererDebugPanel();
+  updateSimulationDebugPanel();
+  updateCompositingDebugPanel();
+  updateAudioDebugPanel();
+  updateInputDebugPanel();
+  updateGlyphDebugPanel();
+  updateExportDebugPanel();
+  updateScriptDebugPanel();
+  updatePerformanceDebugPanel();
 
   const md = state.motion;
   const motionLines = md.activeMotions.map(
@@ -214,6 +695,36 @@ function createPluginCheckbox(id: string, container: HTMLElement) {
   });
 }
 
+function createSimulationCheckbox(id: string, container: HTMLElement) {
+  const entry = simulationCatalog[id as keyof typeof simulationCatalog];
+  if (!entry) return;
+
+  const label = document.createElement('label');
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.value = id;
+  checkbox.id = `simulation-${id}`;
+
+  const text = document.createElement('span');
+  text.textContent = entry.name;
+
+  label.appendChild(checkbox);
+  label.appendChild(text);
+  container.appendChild(label);
+  simulationCheckboxes.set(id, checkbox);
+
+  checkbox.addEventListener('change', () => {
+    try {
+      if (checkbox.checked) engine.enableSimulation(id);
+      else engine.disableSimulation(id);
+      updateDebugPanel();
+    } catch (error) {
+      checkbox.checked = !checkbox.checked;
+      console.error(`Simulation "${id}" toggle failed:`, error);
+    }
+  });
+}
+
 function createMotionCheckbox(id: string, container: HTMLElement) {
   const entry = motionCatalog[id as keyof typeof motionCatalog];
   if (!entry) {
@@ -250,13 +761,50 @@ function createMotionCheckbox(id: string, container: HTMLElement) {
 for (const id of effectPluginIds) createPluginCheckbox(id, effectPluginList);
 for (const id of patternPluginIds) createPluginCheckbox(id, patternPluginList);
 for (const id of motionPluginIds) createMotionCheckbox(id, motionPluginList);
+for (const id of simulationPluginIds) createSimulationCheckbox(id, simulationPluginList);
+
+for (const id of listPostPassIds()) {
+  const label = document.createElement('label');
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.id = `post-${id}`;
+
+  const text = document.createElement('span');
+  text.textContent = id;
+
+  label.appendChild(checkbox);
+  label.appendChild(text);
+  postPassList.appendChild(label);
+  postPassCheckboxes.set(id, checkbox);
+
+  checkbox.addEventListener('change', () => {
+    if (checkbox.checked) engine.getPostProcessor().enablePass(id);
+    else engine.getPostProcessor().disablePass(id);
+    updateDebugPanel();
+  });
+}
 
 const initialPreset = engine.getPreset();
 syncSlidersFromPreset(initialPreset);
 syncPluginsFromEngine();
 syncMotionsFromEngine();
+syncSimulationsFromEngine();
+syncLayersFromEngine();
+syncPostPassesFromEngine();
 presetSelect.value = initialPreset.id;
 updateDebugPanel();
+
+for (const id of simSliderIds) {
+  const slider = simSliders[id];
+  if (!slider) continue;
+  engine.setControl(id, parseFloat(slider.value));
+  slider.addEventListener('input', () => {
+    const value = parseFloat(slider.value);
+    simValueDisplays[id].textContent = value.toFixed(2);
+    engine.setControl(id, value);
+    updateDebugPanel();
+  });
+}
 
 presetSelect.addEventListener('change', () => {
   const id = presetSelect.value as PresetId;
@@ -270,6 +818,9 @@ presetSelect.addEventListener('change', () => {
   syncSlidersFromPreset(preset);
   syncPluginsFromEngine();
   syncMotionsFromEngine();
+  syncSimulationsFromEngine();
+  syncLayersFromEngine();
+  syncPostPassesFromEngine();
   updateDebugPanel();
 });
 
@@ -315,7 +866,68 @@ function resetControls() {
   syncSlidersFromPreset(engine.getPreset());
   syncPluginsFromEngine();
   syncMotionsFromEngine();
+  syncSimulationsFromEngine();
+  syncLayersFromEngine();
+  syncPostPassesFromEngine();
   updateDebugPanel();
+}
+
+layerBlendSelect.addEventListener('change', () => {
+  if (!activeLayerId) return;
+  const layer = engine.getLayerManager().getLayer(activeLayerId);
+  if (layer) {
+    layer.blendMode = layerBlendSelect.value as BlendMode;
+    syncLayersFromEngine();
+    updateDebugPanel();
+  }
+});
+
+layerOpacitySlider.addEventListener('input', () => {
+  const value = parseFloat(layerOpacitySlider.value);
+  layerOpacityValue.textContent = value.toFixed(2);
+  if (!activeLayerId) return;
+  const layer = engine.getLayerManager().getLayer(activeLayerId);
+  if (layer) {
+    layer.opacity = value;
+    updateDebugPanel();
+  }
+});
+
+addLayerBtn.addEventListener('click', () => {
+  layerCounter += 1;
+  const id = `layer-${layerCounter}`;
+  const patterns = ['radialSymmetry', 'spiral', 'wavePattern', 'grid'];
+  const pattern = patterns[layerCounter % patterns.length];
+  engine.getLayerManager().addLayer({
+    id,
+    name: `Layer ${layerCounter}`,
+    opacity: 0.6,
+    blendMode: 'add',
+    pattern,
+    mask: { type: 'radial', amount: 0.9 },
+  });
+  activeLayerId = id;
+  syncLayersFromEngine();
+  updateDebugPanel();
+});
+
+resetCompositionBtn.addEventListener('click', () => {
+  engine.resetComposition();
+  syncLayersFromEngine();
+  syncPostPassesFromEngine();
+  updateDebugPanel();
+});
+
+for (const id of postSliderIds) {
+  const slider = postSliders[id];
+  if (!slider) continue;
+  engine.setControl(id, parseFloat(slider.value));
+  slider.addEventListener('input', () => {
+    const value = parseFloat(slider.value);
+    postValueDisplays[id].textContent = value.toFixed(2);
+    engine.setControl(id, value);
+    updateDebugPanel();
+  });
 }
 
 document.getElementById('burst-center')!.addEventListener('click', triggerBurst);
@@ -340,6 +952,342 @@ engine.on('control', () => updateDebugPanel());
 engine.on('preset', () => updateDebugPanel());
 engine.on('plugin', () => updateDebugPanel());
 engine.on('motion', () => updateDebugPanel());
+engine.on('source', () => updateDebugPanel());
+engine.on('simulation', () => updateDebugPanel());
+engine.on('renderer', () => updateDebugPanel());
+engine.on('audio', () => updateAudioDebugPanel());
+engine.on('input', () => updateInputDebugPanel());
+
+async function refreshMidiDevices() {
+  const devices = await engine.getMidiDevices();
+  midiDeviceSelect.innerHTML = '';
+  if (devices.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '(no devices)';
+    midiDeviceSelect.appendChild(opt);
+    return;
+  }
+  for (const device of devices) {
+    const opt = document.createElement('option');
+    opt.value = device.id;
+    opt.textContent = device.name;
+    midiDeviceSelect.appendChild(opt);
+  }
+}
+
+void refreshMidiDevices();
+
+connectMidiBtn.addEventListener('click', async () => {
+  midiErrorEl.textContent = '';
+  const deviceId = midiDeviceSelect.value || undefined;
+  const result = await engine.connectMidi(deviceId);
+  if (!result.ok) {
+    midiErrorEl.textContent = result.error ?? 'MIDI connection failed';
+  }
+  updateDebugPanel();
+});
+
+disconnectMidiBtn.addEventListener('click', () => {
+  engine.disconnectMidi();
+  midiErrorEl.textContent = '';
+  updateDebugPanel();
+});
+
+keyboardInputToggle.addEventListener('change', () => {
+  if (keyboardInputToggle.checked) engine.enableKeyboardInput();
+  else engine.disableKeyboardInput();
+  updateDebugPanel();
+});
+
+inputPanicBtn.addEventListener('click', () => {
+  engine.inputPanic();
+  updateDebugPanel();
+});
+
+startLearnBtn.addEventListener('click', () => {
+  const control = learnControlSelect.value;
+  if (!control) {
+    engine.cancelInputLearn();
+    updateDebugPanel();
+    return;
+  }
+  engine.startInputLearn(
+    { type: 'control', control, min: 0, max: 1 },
+    () => updateDebugPanel(),
+  );
+  updateDebugPanel();
+});
+
+clearLearnedBtn.addEventListener('click', () => {
+  engine.clearInputMapping();
+  updateDebugPanel();
+});
+
+resetInputMappingBtn.addEventListener('click', () => {
+  engine.resetInputMapping();
+  updateDebugPanel();
+});
+
+document.getElementById('export-png')!.addEventListener('click', async () => {
+  exportErrorEl.textContent = '';
+  const result = await engine.exportPNG({ pixelRatio: 2 });
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'PNG export failed';
+  updateDebugPanel();
+});
+
+document.getElementById('export-svg')!.addEventListener('click', () => {
+  exportErrorEl.textContent = '';
+  const result = engine.exportSVG({ transparent: true });
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'SVG export failed';
+  updateDebugPanel();
+});
+
+document.getElementById('export-ascii')!.addEventListener('click', () => {
+  exportErrorEl.textContent = '';
+  const result = engine.exportASCII({ format: 'plain' });
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'ASCII export failed';
+  updateDebugPanel();
+});
+
+document.getElementById('export-json')!.addEventListener('click', () => {
+  exportErrorEl.textContent = '';
+  const result = engine.exportJSON();
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'JSON export failed';
+  updateDebugPanel();
+});
+
+document.getElementById('import-json')!.addEventListener('change', async (e) => {
+  exportErrorEl.textContent = '';
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const result = engine.importJSON(text);
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'JSON import failed';
+  syncPluginsFromEngine();
+  syncSlidersFromPreset(engine.getPreset());
+  updateDebugPanel();
+  (e.target as HTMLInputElement).value = '';
+});
+
+document.getElementById('start-recording')!.addEventListener('click', () => {
+  exportErrorEl.textContent = '';
+  const result = engine.startRecording(30);
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'Recording failed';
+  updateDebugPanel();
+});
+
+document.getElementById('stop-recording')!.addEventListener('click', () => {
+  engine.stopRecording();
+  updateDebugPanel();
+});
+
+document.getElementById('export-gif')!.addEventListener('click', async () => {
+  exportErrorEl.textContent = '';
+  const result = await engine.exportGIF({ frameRate: 15, loop: true });
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'GIF export failed';
+  updateDebugPanel();
+});
+
+document.getElementById('export-sequence')!.addEventListener('click', async () => {
+  exportErrorEl.textContent = '';
+  const result = await engine.exportSequence({ prefix: 'ascii-frame' });
+  if (!result.ok) exportErrorEl.textContent = result.error ?? 'Sequence export failed';
+  updateDebugPanel();
+});
+
+document.getElementById('play-recording')!.addEventListener('click', () => {
+  engine.playRecording({ loop: true, speed: 1, frameRate: 30 });
+  updateDebugPanel();
+});
+
+document.getElementById('stop-playback')!.addEventListener('click', () => {
+  engine.stopPlayback();
+  updateDebugPanel();
+});
+
+document.getElementById('step-back')!.addEventListener('click', () => {
+  engine.stepPlayback(-1);
+  updateDebugPanel();
+});
+
+document.getElementById('step-forward')!.addEventListener('click', () => {
+  engine.stepPlayback(1);
+  updateDebugPanel();
+});
+
+function applyRendererMode(id: RendererId) {
+  const previous = engine.getActiveRendererId();
+  const result = engine.setActiveRenderer(id);
+  if (!result.ok) {
+    rendererWarning.textContent = result.warning ?? 'Renderer switch failed.';
+    if (previous) rendererModeSelect.value = previous;
+  } else {
+    rendererWarning.textContent = result.warning ?? '';
+    updateOutputVisibility(engine.getActiveRendererId());
+  }
+  updateDebugPanel();
+}
+
+rendererModeSelect.addEventListener('change', () => {
+  applyRendererMode(rendererModeSelect.value as RendererId);
+});
+
+updateOutputVisibility(engine.getActiveRendererId());
+rendererModeSelect.value = engine.getActiveRendererId() ?? 'canvas';
+
+function drawDemoCanvas() {
+  canvasAnimAngle += 0.03;
+  const { width, height } = demoCanvas;
+  demoCtx.fillStyle = '#001a0d';
+  demoCtx.fillRect(0, 0, width, height);
+  demoCtx.save();
+  demoCtx.translate(width / 2, height / 2);
+  demoCtx.rotate(canvasAnimAngle);
+  demoCtx.fillStyle = '#00ff88';
+  demoCtx.fillRect(-60, -30, 120, 60);
+  demoCtx.fillStyle = '#004422';
+  demoCtx.beginPath();
+  demoCtx.arc(0, 0, 40, 0, Math.PI * 2);
+  demoCtx.fill();
+  demoCtx.restore();
+  demoCtx.fillStyle = '#ffffff';
+  demoCtx.font = '16px monospace';
+  demoCtx.fillText('CANVAS SOURCE', 16, 28);
+}
+
+async function setSourceMode(mode: string) {
+  if (mode === 'procedural') {
+    engine.setSourceMode('procedural');
+    updateSourceInputs('procedural');
+    updateDebugPanel();
+    return;
+  }
+
+  engine.setActiveSource(mode);
+  updateSourceInputs(mode);
+
+  if (mode === 'canvas') {
+    drawDemoCanvas();
+    await engine.loadSource('canvas', { canvas: demoCanvas });
+  }
+
+  updateDebugPanel();
+}
+
+function updateSourceInputs(mode: string) {
+  imageInputLabel.style.display = mode === 'image' ? 'block' : 'none';
+  imageInput.style.display = mode === 'image' ? 'block' : 'none';
+  videoInputLabel.style.display = mode === 'video' ? 'block' : 'none';
+  videoInput.style.display = mode === 'video' ? 'block' : 'none';
+  startWebcamBtn.style.display = mode === 'webcam' ? 'block' : 'none';
+}
+
+sourceModeSelect.addEventListener('change', () => {
+  void setSourceMode(sourceModeSelect.value);
+});
+
+sourceFitSelect.addEventListener('change', () => {
+  const source = engine.getSourceManager().getActiveSource();
+  if (source) {
+    source.setFitMode(sourceFitSelect.value as 'fit' | 'fill' | 'stretch' | 'center');
+    updateDebugPanel();
+  }
+});
+
+imageInput.addEventListener('change', async () => {
+  const file = imageInput.files?.[0];
+  if (!file) return;
+  engine.setActiveSource('image');
+  await engine.loadSource('image', file);
+  updateDebugPanel();
+});
+
+videoInput.addEventListener('change', async () => {
+  const file = videoInput.files?.[0];
+  if (!file) return;
+  engine.setActiveSource('video');
+  await engine.loadSource('video', { file, loop: true, muted: true });
+  updateDebugPanel();
+});
+
+startWebcamBtn.addEventListener('click', async () => {
+  engine.setActiveSource('webcam');
+  await engine.loadSource('webcam', { facingMode: 'user' });
+  updateDebugPanel();
+});
+
+for (const id of sourceSliderIds) {
+  const slider = sourceSliders[id];
+  if (!slider) continue;
+  engine.setControl(id, parseFloat(slider.value));
+  slider.addEventListener('input', () => {
+    const value = parseFloat(slider.value);
+    sourceValueDisplays[id].textContent = value.toFixed(2);
+    engine.setControl(id, value);
+    updateDebugPanel();
+  });
+}
+
+for (const id of audioSliderIds) {
+  const slider = audioSliders[id];
+  if (!slider) continue;
+  engine.setControl(id, parseFloat(slider.value));
+  slider.addEventListener('input', () => {
+    const value = parseFloat(slider.value);
+    audioSliderValues[id].textContent = value.toFixed(2);
+    engine.setControl(id, value);
+    updateDebugPanel();
+  });
+}
+
+async function connectMicrophone() {
+  audioErrorEl.textContent = '';
+  engine.disconnectAudio();
+  audioElement.pause();
+  const result = await engine.connectAudio({ type: 'microphone' });
+  if (!result.ok) {
+    audioErrorEl.textContent = result.error ?? 'Microphone connection failed';
+  }
+  updateDebugPanel();
+}
+
+async function connectAudioFile(file: File) {
+  audioErrorEl.textContent = '';
+  engine.disconnectAudio();
+  const url = URL.createObjectURL(file);
+  audioElement.src = url;
+  audioElement.loop = true;
+  await audioElement.play();
+  const result = await engine.connectAudio({ type: 'audioElement', audioElement });
+  if (!result.ok) {
+    audioErrorEl.textContent = result.error ?? 'Audio file connection failed';
+  }
+  updateDebugPanel();
+}
+
+startMicrophoneBtn.addEventListener('click', () => {
+  void connectMicrophone();
+});
+
+audioFileInput.addEventListener('change', () => {
+  const file = audioFileInput.files?.[0];
+  if (!file) return;
+  void connectAudioFile(file);
+});
+
+disconnectAudioBtn.addEventListener('click', () => {
+  engine.disconnectAudio();
+  audioElement.pause();
+  audioErrorEl.textContent = '';
+  updateDebugPanel();
+});
+
+engine.on('frame', () => {
+  if (sourceModeSelect.value === 'canvas') {
+    drawDemoCanvas();
+  }
+});
 
 window.addEventListener('resize', () => {
   engine.resize(getViewportSize().width, getViewportSize().height);
@@ -350,4 +1298,75 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     triggerBurst();
   }
+});
+
+runScriptBtn.addEventListener('click', () => {
+  const id = scriptSelect.value;
+  if (!id) return;
+  void engine.runScript(id).then(() => {
+    syncPluginsFromEngine();
+    syncMotionsFromEngine();
+    syncSimulationsFromEngine();
+    updateDebugPanel();
+  }).catch((err) => {
+    scriptStatusEl.textContent = `error: ${err instanceof Error ? err.message : String(err)}`;
+    updateDebugPanel();
+  });
+});
+
+stopScriptBtn.addEventListener('click', () => {
+  void engine.stopScript().then(() => updateDebugPanel());
+});
+
+reloadScriptBtn.addEventListener('click', () => {
+  void engine.reloadScript(scriptSelect.value || undefined).then(() => updateDebugPanel());
+});
+
+restartScriptBtn.addEventListener('click', () => {
+  void engine.restartScript().then(() => updateDebugPanel());
+});
+
+enableScriptBtn.addEventListener('click', () => {
+  engine.enableScript();
+  updateDebugPanel();
+});
+
+disableScriptBtn.addEventListener('click', () => {
+  engine.disableScript();
+  updateDebugPanel();
+});
+
+clearScriptConsoleBtn.addEventListener('click', () => {
+  engine.clearScriptConsole();
+  updateDebugPanel();
+});
+
+qualityPresetSelect.addEventListener('change', () => {
+  engine.setQualityPreset(qualityPresetSelect.value as QualityPresetId);
+  syncSlidersFromPreset(engine.getPreset());
+  updateDebugPanel();
+});
+
+adaptiveQualityToggle.addEventListener('change', () => {
+  engine.setControl('adaptiveQuality', adaptiveQualityToggle.checked ? 1 : 0);
+  engine.getPerformanceManager().setAdaptiveQuality(adaptiveQualityToggle.checked);
+  updateDebugPanel();
+});
+
+dirtyRenderingToggle.addEventListener('change', () => {
+  engine.setControl('dirtyRendering', dirtyRenderingToggle.checked ? 1 : 0);
+  engine.getPerformanceManager().getDirtyTracker().setEnabled(dirtyRenderingToggle.checked);
+  updateDebugPanel();
+});
+
+spatialGridToggle.addEventListener('change', () => {
+  engine.setControl('spatialGrid', spatialGridToggle.checked ? 1 : 0);
+  updateDebugPanel();
+});
+
+fpsTargetSlider.addEventListener('input', () => {
+  const val = parseInt(fpsTargetSlider.value, 10);
+  fpsTargetValue.textContent = String(val);
+  engine.setControl('fpsTarget', val);
+  engine.getPerformanceManager().setFpsTarget(val);
 });

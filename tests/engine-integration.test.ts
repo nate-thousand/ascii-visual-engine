@@ -87,7 +87,7 @@ describe('AsciiEngine plugin integration', () => {
 
     advanceFrames(3);
 
-    const renderer = (engine as unknown as { renderer: { getGridState: (t: number) => { cells: { char: string }[] } } }).renderer;
+    const renderer = engine.getRendererManager();
     const cells = renderer.getGridState(0).cells;
     const chars = cells.map((c) => c.char);
     const allSame = chars.every((c) => c === chars[0]);
@@ -112,7 +112,7 @@ describe('AsciiEngine plugin integration', () => {
     engine.disableMotion('wave');
 
     advanceFrames(2);
-    const renderer = (engine as unknown as { renderer: { getGridState: (t: number) => { cells: { char: string; brightness: number }[] } } }).renderer;
+    const renderer = engine.getRendererManager();
     const snapshot1 = renderer.getGridState(0).cells.map((c) => `${c.char}:${c.brightness.toFixed(3)}`);
 
     advanceFrames(5);
@@ -190,10 +190,7 @@ describe('AsciiEngine plugin integration', () => {
     engine.disablePlugin('wavePattern');
     advanceFrames(3);
 
-    const renderer = (engine as unknown as {
-      renderer: { getGridState: (t: number) => { cells: { char: string }[] } };
-    }).renderer;
-
+    const renderer = engine.getRendererManager();
     const withWave = renderer.getGridState(0).cells.map((c) => c.char).join('');
     engine.disablePlugin('wave');
     advanceFrames(3);

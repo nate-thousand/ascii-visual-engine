@@ -147,8 +147,10 @@ export class PluginManager {
       const value = sum / weight;
       cell.brightness = clamp01(cell.brightness * 0.1 + value * 0.9);
 
-      const index = Math.floor(cell.brightness * (glyphSet.length - 1));
-      cell.char = glyphSet[Math.max(0, Math.min(glyphSet.length - 1, index))];
+      if (!context.glyphLanguageActive) {
+        const index = Math.floor(cell.brightness * (glyphSet.length - 1));
+        cell.char = glyphSet[Math.max(0, Math.min(glyphSet.length - 1, index))];
+      }
     }
   }
 

@@ -5,60 +5,100 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] — Unreleased
+## Version 0.1.0 — 2026-06-28
 
-### Added
+Initial MVP Release.
 
-- Plugin architecture with `PluginManager` and unified `Plugin` interface
-- Plugin types: pattern, effect, input, renderer, utility
-- `EffectPlugin` and `PatternPlugin` typed wrappers
-- Engine API: `registerPlugin`, `unregisterPlugin`, `enablePlugin`, `disablePlugin`, `getPlugin`
-- Preset `plugins` array for declarative plugin configuration
-- `resolvePresetPlugins()` for legacy preset migration
-- `plugin` event on enable/disable
-- Vanilla example: separate effect and pattern plugin toggles
+### Foundation
 
-### Changed
+- `AsciiEngine` lifecycle: start, stop, destroy, resize
+- Typed `EventBus` and core type system (`AsciiPreset`, `GridState`, `NoteEvent`)
+- ESM + CJS library build with TypeScript declarations
+- Vanilla browser demo with fullscreen canvas rendering
 
-- AsciiEngine orchestrates frame loop through PluginManager
-- Built-in effects and patterns registered as plugins at startup
-- Wave pattern plugin id is `wavePattern` (distinct from `wave` effect)
+### Pattern System
 
-## [0.2.0] — Unreleased
+- Built-in patterns: radial symmetry, spiral, wave, grid, cellular, scanline
+- Pattern plugin registration and preset configuration
 
-### Added
+### Plugin Architecture
 
-- Pattern system with `Pattern` interface and `PatternRegistry`
-- Built-in patterns: `RadialSymmetry`, `Spiral`, `Wave`, `Grid`, `Cellular`, `Scanline`
-- Engine pattern API: `registerPattern`, `unregisterPattern`, `enablePattern`, `disablePattern`, `getPattern`
-- Preset `patterns` array for declarative pattern configuration
-- Pattern controls: symmetry, petals, spiralAmount, cellularAmount, scanlineAmount
-- Pattern selector and controls in vanilla example
-- `pattern` event on enable/disable
+- `PluginManager` with effect, pattern, input, and renderer plugin types
+- Built-in effects: wave, burst, glitch, trails, noise
 
-## [0.1.0] — 2026-06-28
+### Motion System
 
-### Added
+- Blendable motion behaviors: flow field, organic growth, orbital, breathing, curl noise, and more
+- Motion weights, priorities, and preset configuration
 
-- Initial framework release
-- `AsciiEngine` with lifecycle methods: `start`, `stop`, `destroy`, `resize`
-- `CanvasAsciiRenderer` for grid-based ASCII canvas rendering
-- Built-in effects: `NoiseField`, `WaveField`, `GlyphBurst`, `Glitch`, `Trails`
-- Preset system with `basic`, `terminal`, and `organic` presets
-- Runtime controls: density, speed, trail amount, glitch amount
-- `EventBus` with typed events: start, stop, preset, control, noteOn, noteOff, resize, frame, custom
-- Note API: `noteOn`, `noteOff` for burst and future sustained effects
-- Custom event API: `emit` with `custom` event subscription
-- ESM + CJS library build via Vite with TypeScript declarations
-- Vanilla example with preset selector, sliders, and burst buttons
-- Documentation foundation: README, ROADMAP, ARCHITECTURE, API, PLUGIN_API, PRESET_SCHEMA, CONTRIBUTING
+### Simulation Engine
 
-### Planned
+- Particle, boids, cellular automata, reaction diffusion, L-system, gravity, spring, fluid simulations
+- Simulation controls and debug introspection
 
-- Plugin registration API and plugin manager
-- Formal renderer abstraction interface
-- Input layer (MIDI, touch, keyboard, OSC)
-- Audio-reactive utilities
-- Test suite and npm publishing
+### Source Pipeline
 
-[0.1.0]: https://github.com/example/ascii-visual-engine/releases/tag/v0.1.0
+- Procedural, image, video, webcam, and canvas sources
+- Brightness, edge, and contrast mapping to glyphs
+
+### Renderer Pipeline
+
+- Canvas 2D, DOM, and offscreen canvas renderers
+- Live renderer switching with grid state preservation
+- WebGL renderer stub (planned implementation in a future milestone)
+
+### Visual Compositing
+
+- Multi-layer compositing with blend modes and masks
+- Post-processing passes: feedback, smear, threshold, dither, and more
+
+### Audio Reactivity
+
+- Web Audio input, FFT analysis, feature extraction
+- Audio-reactive control and note mapping
+
+### MIDI Support
+
+- Web MIDI input, keyboard performance mapping, MIDI learn
+- Device presets and performance control routing
+
+### Procedural Glyph Language
+
+- Glyph categories, semantic roles, morphing, and animation
+- Eleven built-in glyph libraries and eight glyph presets
+
+### Recording & Export
+
+- PNG, SVG, GIF, ASCII, and JSON scene export
+- Frame recording and playback with scrub/step controls
+
+### Scripting API
+
+- Safe public `ScriptAPI` for presets, controls, simulations, layers, and events
+- Example script gallery and script console in the demo
+
+### Performance Optimization
+
+- Frame profiler, quality presets, object pooling, glyph cache
+- Dirty region rendering and spatial grid for boids
+
+### Bug Fixes
+
+- Preset control reset on `setPreset()` fully reinitializes controls
+- Trails fade gated on trails plugin enabled state
+- Glyph preset input mapping preserved through preset load
+- Export and scripting debug state integrated into `getDebugState()`
+
+### Documentation
+
+- README, ARCHITECTURE, API, PLUGIN_API, PRESET_SCHEMA
+- Subsystem guides: motion, source, renderer, simulation, compositing, audio, MIDI, glyphs, export, scripting, performance
+- ROADMAP with milestone tracking
+
+### Plantasonic Ready
+
+- Importable as `ascii-visual-engine` with full TypeScript definitions
+- Vercel-deployable static demo
+- Integration examples for external projects
+
+[0.1.0]: https://github.com/nate-thousand/ascii-visual-engine/releases/tag/v0.1.0

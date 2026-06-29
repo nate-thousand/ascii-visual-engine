@@ -1,0 +1,9 @@
+export { FeedbackPass } from './FeedbackPass';
+export { SmearPass } from './SmearPass';
+export { DisplacementPass } from './DisplacementPass';
+export { ThresholdPass } from './ThresholdPass';
+export { InvertPass } from './InvertPass';
+export { EdgePass } from './EdgePass';
+export { PosterizePass } from './PosterizePass';
+export { ScanlinePass } from './ScanlinePass';
+export { DitherPass } from './DitherPass';

@@ -1,6 +1,13 @@
 # ASCII Visual Engine
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/nate-thousand/ascii-visual-engine/releases/tag/v0.1.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen.svg)](#development)
+
 A reusable TypeScript framework for building expressive, real-time ASCII visual systems.
+
+**v0.1.0 MVP** — ready for integration into [Plantasonic](https://github.com/nate-thousand) and future prototypes.
 
 ---
 
@@ -40,71 +47,80 @@ The engine handles grid management, frame timing, effect composition, preset loa
 
 ---
 
-## Features
+## Features (v0.1.0 MVP)
 
-### Stabilization Pass (in progress)
+| System | Highlights |
+| --- | --- |
+| **Core** | `AsciiEngine`, presets, controls, typed events, `getDebugState()` |
+| **Plugins** | Effects (wave, burst, glitch, trails) and patterns (radial, spiral, grid, …) |
+| **Motion** | Blendable motion fields — flow, organic growth, orbital, breathing, curl noise |
+| **Simulation** | Particles, boids, CA, reaction diffusion, L-systems, gravity, spring, fluid |
+| **Sources** | Image, video, webcam, canvas, procedural |
+| **Renderers** | Canvas 2D, DOM, offscreen canvas (WebGL stub for future work) |
+| **Compositing** | Multi-layer blend modes, masks, post-processing passes |
+| **Audio** | Web Audio FFT analysis and reactive control mapping |
+| **MIDI** | Web MIDI, keyboard input, performance mapping, MIDI learn |
+| **Glyphs** | Procedural glyph languages, categories, morphing, animation |
+| **Export** | PNG, SVG, GIF, ASCII, JSON scene; recording and playback |
+| **Scripting** | Safe `ScriptAPI`, example gallery, hot reload in dev |
+| **Performance** | Frame profiler, quality presets, pooling, dirty region rendering |
 
-Before adding new architecture, the current engine is being hardened so presets, sliders, effects, and patterns work together reliably:
+**29 built-in presets** · **162 tests** · **Full TypeScript definitions**
 
-- Audited UI → engine → renderer control flow
-- Fixed preset control reset on `setPreset()` (controls fully reinitialize from preset)
-- Console warnings for unknown controls, plugins, and presets
-- `getDebugState()` API for live engine introspection
-- Vanilla demo debug panel (preset, effects, patterns, controls, FPS, last noteOn)
-- Manual test buttons: Trigger Burst, Max Glitch, Max Trails, Reset Controls
-- Exaggerated effect strengths for visible verification (glitch, trails, burst)
-- Stronger pattern blending so each pattern looks distinct when enabled
-- Trails fade gated on trails plugin enabled state
+Run the demo locally:
 
-Run `npm run dev` and use the debug panel + test buttons to verify behavior.
+```bash
+npm install
+npm run dev
+```
 
-### Current (v0.4.0)
+Build the library for integration:
 
-- **Motion system** — `MotionManager` with 12 blendable motion behaviors
-- Motions: flowField, organicGrowth, orbital, wave, gravity, brownian, flocking, wind, pulse, breathing, spiral, curlNoise
-- Weighted motion blending with priorities — multiple motions run simultaneously
-- Motion controls: strength, randomness, frequency, amplitude, decay, drag, gravity, noiseScale, flowStrength, blendWeight
-- Six motion presets: Ambient, Organic, Mechanical, Terminal, Chaotic, Minimal
-- Motion debug panel in vanilla example (frame time, velocities, active motions)
-- Per-cell motion properties: offset, velocity, scale, rotation, deformation
+```bash
+npm run build
+```
 
-### Previous (v0.3.0)
+See [ARCHITECTURE.md](./ARCHITECTURE.md) and [API.md](./API.md) for full reference.
 
-- `AsciiEngine` with full lifecycle (`start`, `stop`, `destroy`, `resize`)
-- **Plugin architecture** — unified `PluginManager` for patterns, effects, inputs, renderers
-- `registerPlugin`, `enablePlugin`, `disablePlugin`, `getPlugin` public API
-- Built-in effect plugins: `noise`, `wave`, `burst`, `glitch`, `trails`
-- Built-in pattern plugins: `radialSymmetry`, `spiral`, `wavePattern`, `grid`, `cellular`, `scanline`
-- Preset-driven plugin configuration via `plugins` array
-- `CanvasAsciiRenderer` — grid-based ASCII rendering to HTML canvas
-- Runtime controls: density, speed, symmetry, petals, spiral/cellular/scanline amount
-- Event bus with typed events including `plugin`, `noteOn`, `control`, `preset`, `frame`
-- Vanilla example with effect and pattern plugin toggles, debug panel, and manual test buttons
+---
 
-### Planned (v0.4 – v0.5)
+## Integration (Plantasonic & external projects)
 
-- Input plugin adapters (MIDI, keyboard, touch)
-- Renderer plugins (WebGL, terminal)
-- Image/video sampling patterns for ASCII translation
-- Preset validation, loading from JSON, and interpolation
-- Color palette support and per-cell color gradients
-- React hook (`useAsciiEngine`)
-- Audio-reactive helper utilities
-- MIDI and OSC input adapters
-- OffscreenCanvas / Worker rendering
-- Adaptive density and performance monitoring
+Install from the built package or link locally:
 
-### Future (v1.0+)
+```bash
+# In ascii-visual-engine/
+npm run build
+npm link
 
-- WebGL / GPU renderer
-- Shader pipeline and post-processing
-- Multi-layer compositing
-- Image-to-ASCII import
-- Recording and export (video, GIF)
-- Published npm package with semver guarantees
-- Comprehensive test suite and CI
+# In your project (e.g. Plantasonic)
+npm link ascii-visual-engine
+```
 
-See [ROADMAP.md](./ROADMAP.md) for the full milestone plan.
+Minimal usage:
+
+```typescript
+import { AsciiEngine, getPreset } from 'ascii-visual-engine';
+
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+
+const engine = new AsciiEngine({
+  canvas,
+  preset: getPreset('ambient'),
+  width: window.innerWidth,
+  height: window.innerHeight,
+});
+
+engine.on('frame', ({ fps }) => {
+  console.log('FPS:', fps);
+});
+
+window.addEventListener('resize', () => {
+  engine.resize(window.innerWidth, window.innerHeight);
+});
+```
+
+TypeScript types are included — no `@types` package required.
 
 ---
 
@@ -131,7 +147,7 @@ The engine is organized into distinct systems:
 | **Patterns** | Procedural forms — flowers, spirals, waves, grids, decay, scanlines |
 | **Effects** | Per-frame visual modifiers (motion, glitch, trails, burst) |
 | **Motion** | Field generators (`NoiseField`, `WaveField`) that drive glyph selection |
-| **Input** | *(planned)* Unified input layer for MIDI, touch, keyboard, OSC |
+| **Input** | Web MIDI, keyboard, performance mapping, MIDI learn |
 | **Presets** | Declarative visual configurations (glyphs, effects, defaults) |
 | **Events** | Typed pub/sub for notes, controls, frames, and custom payloads |
 | **Examples** | Reference integrations (vanilla demo; more planned) |
@@ -273,6 +289,20 @@ ascii-visual-engine/
 ├── API.md              Public class and interface reference
 ├── PLUGIN_API.md       Plugin development guide
 ├── PRESET_SCHEMA.md    Preset format specification
+├── MIDI_AND_INPUT.md   MIDI, keyboard, and performance mapping guide
+├── GLYPH_LANGUAGE.md   Procedural glyph system overview
+├── GLYPH_LIBRARY.md    Built-in glyph category reference
+├── GLYPH_AUTHORING.md  Custom glyph language authoring guide
+├── EXPORTING.md        PNG, SVG, GIF, ASCII, and sequence export
+├── RECORDING.md        Recording and playback guide
+├── SCENE_FORMAT.md     JSON scene import/export schema
+├── SCRIPTING.md        Scripting API overview
+├── SCRIPT_API.md       Script API reference
+├── EXAMPLES.md         Example script gallery
+├── PERFORMANCE.md      Performance system overview
+├── BENCHMARKS.md       Automated benchmark suite
+├── OPTIMIZATION_GUIDE.md Tuning guide for 60/120 FPS
+├── AUDIO_REACTIVITY.md Web Audio analysis and mapping guide
 ├── CONTRIBUTING.md     Contribution guidelines
 ├── CHANGELOG.md        Version history
 ├── LICENSE             MIT license
@@ -307,7 +337,7 @@ Development follows nineteen milestones from foundation through version 1.0:
 18. NPM Publishing
 19. Version 1.0
 
-Current overall progress: **~18%**
+Current overall progress: **MVP shipped (v0.1.0)** — future milestones tracked below.
 
 See [ROADMAP.md](./ROADMAP.md) for task-level detail and completion status.
 
@@ -335,6 +365,10 @@ The goal is a mature, documented, npm-published framework that any developer can
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Engine design, pipelines, and extension points |
 | [API.md](./API.md) | Public class and method reference |
 | [PLUGIN_API.md](./PLUGIN_API.md) | How to build custom plugins and effects |
+| [MOTION_SYSTEM.md](./MOTION_SYSTEM.md) | Motion engine and blending |
+| [SOURCE_PIPELINE.md](./SOURCE_PIPELINE.md) | Image/video/webcam/canvas → ASCII |
+| [RENDERER_PIPELINE.md](./RENDERER_PIPELINE.md) | Canvas, DOM, offscreen, WebGL stub backends |
+| [SIMULATION_ENGINE.md](./SIMULATION_ENGINE.md) | Particle, boids, CA, reaction-diffusion, L-systems |
 | [PRESET_SCHEMA.md](./PRESET_SCHEMA.md) | Preset format specification with examples |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Coding standards and pull request guidelines |
 | [CHANGELOG.md](./CHANGELOG.md) | Version history |

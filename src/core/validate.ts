@@ -1,6 +1,12 @@
 import { listPluginIds } from '../plugins/builtins';
 import { listMotionIds } from '../motion/builtins';
 import { MOTION_CONTROLS } from '../motion/Motion';
+import { SOURCE_CONTROLS } from '../sources/Source';
+import { SIMULATION_CONTROLS } from '../simulation/Simulation';
+import { POST_CONTROLS } from '../compositing/builtins';
+import { AUDIO_SMOOTHING_CONTROLS } from '../audio/AudioTypes';
+import { PERFORMANCE_CONTROLS } from '../performance/PerformanceTypes';
+import { listSimulationIds } from '../simulation/builtins';
 
 /** Control names wired through AsciiEngine.setControl / getControl. */
 export const KNOWN_CONTROLS = new Set([
@@ -14,6 +20,11 @@ export const KNOWN_CONTROLS = new Set([
   'cellularAmount',
   'scanlineAmount',
   ...MOTION_CONTROLS,
+  ...SOURCE_CONTROLS,
+  ...SIMULATION_CONTROLS,
+  ...POST_CONTROLS,
+  ...AUDIO_SMOOTHING_CONTROLS,
+  ...PERFORMANCE_CONTROLS,
 ]);
 
 const warnedControls = new Set<string>();
@@ -44,6 +55,19 @@ export function warnUnknownPreset(id: string, knownIds: string[]): void {
   console.warn(
     `[AsciiEngine] Unknown preset "${id}". Available presets: ${knownIds.join(', ')}`,
   );
+}
+
+const warnedSimulations = new Set<string>();
+
+export function warnUnknownSimulationIds(ids: string[]): void {
+  const known = new Set(listSimulationIds());
+  for (const id of ids) {
+    if (known.has(id) || warnedSimulations.has(id)) continue;
+    warnedSimulations.add(id);
+    console.warn(
+      `[AsciiEngine] Unknown simulation "${id}" in preset. Registered simulations: ${listSimulationIds().join(', ')}`,
+    );
+  }
 }
 
 export function warnUnknownMotionIds(ids: string[]): void {

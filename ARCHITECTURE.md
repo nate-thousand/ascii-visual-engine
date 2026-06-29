@@ -1,6 +1,6 @@
 # Architecture
 
-System design for ASCII Visual Engine. This document describes how the engine is structured, how data flows through each frame, and where future extension points will live.
+System design for ASCII Visual Engine **v0.1.0 MVP**. This document describes how the engine is structured, how data flows through each frame, and where extension points live.
 
 ---
 
@@ -127,6 +127,17 @@ Each frame follows a fixed sequence:
        │
        ▼
 ┌─────────────┐
+│SourceManager│──► applyToGrid (when source mode active)
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Simulation   │──► update all enabled simulations → grid
+│Manager      │
+└──────┬──────┘
+       │ (when no source/sim: procedural motion path)
+       ▼
+┌─────────────┐
 │ MotionManager│──► combineMotions → ox, oy, vx, vy, brightness, phase
 └──────┬──────┘
        │
@@ -153,8 +164,38 @@ Each frame follows a fixed sequence:
        │
        ▼
 ┌─────────────┐
-│ renderer.   │────► clear (with trail fade) → draw glyphs
-│ render()    │
+│LayerManager │──► composite enabled layers (blend + mask)
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│PostProcessor│──► feedback, smear, threshold, dither, etc.
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ AudioSystem │──► feature extract → map to controls / noteOn
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ InputSystem │──► MIDI / keyboard → PerformanceMapper → controls / noteOn
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ GlyphSystem │──► classify role → pick glyph → morph → animate → cell.char
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ExportSystem │──► record frames → PNG / GIF / SVG / ASCII / JSON
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│RendererManager│──► Canvas · DOM · Offscreen · WebGL (stub)
+│  .render()  │
 └──────┬──────┘
        │
        ▼
@@ -471,10 +512,15 @@ interface AsciiRenderer {
 | **Plugin registration** | Add custom effects, patterns, inputs, renderers | Implemented |
 | **Pattern registration** | Add custom procedural patterns | Implemented |
 | **Renderer swap** | Switch between canvas, WebGL, terminal | Planned |
-| **Input adapters** | Route MIDI, touch, keyboard to engine | Planned |
+| **Input adapters** | Route MIDI, keyboard to engine controls and notes | Implemented |
+| **Glyph system** | Semantic glyph languages, categories, morphing, animation | Implemented |
+| **Export system** | PNG, SVG, GIF, ASCII, JSON scene, recording, playback | Implemented |
+| **Scripting API** | Safe script facade, preset authoring, events, hot reload | Implemented |
+| **Performance system** | Profiling, pooling, dirty render, quality presets, spatial grid | Implemented |
+| **GPU rendering** | WebGL renderer, shader pipeline | Planned |
 | **Preset loader** | Load/validate/morph presets at runtime | Planned |
 | **Shader pipeline** | Post-processing effects on render output | Planned |
-| **Audio mappers** | Map FFT/amplitude to controls and notes | Planned |
+| **Audio mappers** | Map FFT/amplitude to controls and notes | Implemented |
 | **Custom controls** | Extend control schema beyond four defaults | Partial (schema supports it) |
 
 ---

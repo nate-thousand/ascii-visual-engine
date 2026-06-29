@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ASCII Visual Engine v0.1.0 — real-time generative ASCII visuals with motion, simulation, audio, MIDI, and compositing." />
+    <meta name="theme-color" content="#000000" />
     <title>ASCII Visual Engine — Demo</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='4' y='24' font-family='monospace' font-size='20' fill='%2300ff88'>#</text></svg>" />
     <style>
       * {
         box-sizing: border-box;
@@ -28,6 +31,23 @@
         inset: 0;
         width: 100vw;
         height: 100vh;
+      }
+
+      #dom-output {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        z-index: 1;
+      }
+
+      #renderer-warning {
+        margin-top: 6px;
+        font-size: 11px;
+        color: #ffaa00;
+        line-height: 1.4;
       }
 
       #ui {
@@ -173,10 +193,26 @@
         font-size: 11px;
         padding: 6px 8px;
       }
+
+      .meter-bar {
+        height: 8px;
+        background: rgba(0, 255, 136, 0.12);
+        border-radius: 4px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+
+      .meter-fill {
+        height: 100%;
+        width: 0%;
+        background: #00ff88;
+        transition: width 0.05s linear;
+      }
     </style>
   </head>
   <body>
     <canvas id="canvas"></canvas>
+    <pre id="dom-output" aria-label="ASCII DOM output"></pre>
 
     <div id="ui">
       <h1>ASCII Visual Engine</h1>
@@ -186,8 +222,172 @@
       </p>
 
       <div class="control-group">
+        <div class="section-label">Renderer Pipeline</div>
+        <label for="renderer-mode">Renderer</label>
+        <select id="renderer-mode">
+          <option value="canvas">Canvas 2D</option>
+          <option value="dom">DOM Text</option>
+          <option value="offscreen-canvas">Offscreen Canvas</option>
+          <option value="webgl">WebGL (Planned)</option>
+        </select>
+        <div id="renderer-warning"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Source Pipeline</div>
+        <label for="source-mode">Source Mode</label>
+        <select id="source-mode">
+          <option value="procedural">Procedural</option>
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+          <option value="webcam">Webcam</option>
+          <option value="canvas">Canvas</option>
+        </select>
+        <label for="source-fit">Fit Mode</label>
+        <select id="source-fit">
+          <option value="fit">Fit</option>
+          <option value="fill">Fill</option>
+          <option value="stretch">Stretch</option>
+          <option value="center">Center</option>
+        </select>
+        <label for="image-input" id="image-input-label" style="display:none">Image File</label>
+        <input type="file" id="image-input" accept="image/*" style="display:none" />
+        <label for="video-input" id="video-input-label" style="display:none">Video File</label>
+        <input type="file" id="video-input" accept="video/*" style="display:none" />
+        <button id="start-webcam" style="display:none">Start Webcam</button>
+        <label for="sourceContrast">
+          Contrast <span class="value" id="sourceContrast-value">1.00</span>
+        </label>
+        <input type="range" id="sourceContrast" min="0.5" max="2" step="0.05" value="1" />
+        <label for="sourceEdge">
+          Edge <span class="value" id="sourceEdge-value">0.30</span>
+        </label>
+        <input type="range" id="sourceEdge" min="0" max="1" step="0.05" value="0.3" />
+        <label for="sourceBlend">
+          Blend <span class="value" id="sourceBlend-value">1.00</span>
+        </label>
+        <input type="range" id="sourceBlend" min="0" max="1" step="0.05" value="1" />
+      </div>
+
+      <div class="control-group">
         <label for="preset">Preset</label>
         <select id="preset"></select>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Audio Reactivity</div>
+        <button id="start-microphone">Enable Microphone</button>
+        <label for="audio-file-input">Audio File</label>
+        <input type="file" id="audio-file-input" accept="audio/*" />
+        <button id="disconnect-audio">Disconnect Audio</button>
+        <div id="audio-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
+        <div class="section-label" style="margin-top:10px">Live Meters</div>
+        <label>Amplitude <span class="value" id="meter-amplitude">0.00</span></label>
+        <div class="meter-bar"><div id="bar-amplitude" class="meter-fill"></div></div>
+        <label>Bass <span class="value" id="meter-bass">0.00</span></label>
+        <div class="meter-bar"><div id="bar-bass" class="meter-fill"></div></div>
+        <label>Mid <span class="value" id="meter-mid">0.00</span></label>
+        <div class="meter-bar"><div id="bar-mid" class="meter-fill"></div></div>
+        <label>Treble <span class="value" id="meter-treble">0.00</span></label>
+        <div class="meter-bar"><div id="bar-treble" class="meter-fill"></div></div>
+        <label for="audioAttack">Attack <span class="value" id="audioAttack-value">0.08</span></label>
+        <input type="range" id="audioAttack" min="0.01" max="1" step="0.01" value="0.08" />
+        <label for="audioRelease">Release <span class="value" id="audioRelease-value">0.25</span></label>
+        <input type="range" id="audioRelease" min="0.01" max="1" step="0.01" value="0.25" />
+        <label for="audioSensitivity">Sensitivity <span class="value" id="audioSensitivity-value">1.00</span></label>
+        <input type="range" id="audioSensitivity" min="0.1" max="3" step="0.05" value="1" />
+        <label for="audioNoiseGate">Noise Gate <span class="value" id="audioNoiseGate-value">0.02</span></label>
+        <input type="range" id="audioNoiseGate" min="0" max="0.2" step="0.005" value="0.02" />
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Export &amp; Recording</div>
+        <div id="recording-indicator" style="font-size:11px;margin-bottom:6px;color:#888;">● idle</div>
+        <div id="frame-counter" style="font-size:11px;margin-bottom:8px;">frames: 0</div>
+        <button id="export-png">Screenshot PNG</button>
+        <button id="export-svg">Download SVG</button>
+        <button id="export-ascii">Download ASCII</button>
+        <button id="export-json">Export JSON Scene</button>
+        <label for="import-json" style="margin-top:8px;display:block;">Import JSON Scene</label>
+        <input type="file" id="import-json" accept="application/json,.json" />
+        <button id="start-recording">Start Recording</button>
+        <button id="stop-recording">Stop Recording</button>
+        <button id="export-gif">Export GIF</button>
+        <button id="export-sequence">Export Frame Sequence</button>
+        <button id="play-recording">Play Recording</button>
+        <button id="stop-playback">Stop Playback</button>
+        <button id="step-back">◀ Step</button>
+        <button id="step-forward">Step ▶</button>
+        <div id="export-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Performance</div>
+        <label for="quality-preset">Quality Preset</label>
+        <select id="quality-preset">
+          <option value="ultra">Ultra</option>
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+          <option value="batterySaver">Battery Saver</option>
+        </select>
+        <label>
+          <input type="checkbox" id="adaptive-quality" checked /> Adaptive Quality
+        </label>
+        <label>
+          <input type="checkbox" id="dirty-rendering" checked /> Dirty Region Rendering
+        </label>
+        <label>
+          <input type="checkbox" id="spatial-grid" /> Spatial Grid (Boids)
+        </label>
+        <label for="fps-target">FPS Target</label>
+        <input type="range" id="fps-target" min="30" max="120" step="15" value="60" />
+        <span id="fps-target-value">60</span>
+        <canvas id="fps-graph" width="280" height="40" style="margin-top:8px;background:rgba(0,0,0,0.4);border-radius:4px;"></canvas>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Script Console</div>
+        <label for="script-select">Example Script</label>
+        <select id="script-select"></select>
+        <button id="run-script">Run Script</button>
+        <button id="stop-script">Stop Script</button>
+        <button id="reload-script">Reload</button>
+        <button id="restart-script">Restart</button>
+        <button id="enable-script">Enable</button>
+        <button id="disable-script">Disable</button>
+        <button id="clear-script-console">Clear Console</button>
+        <div id="script-status" style="font-size:11px;margin:8px 0;color:#888;">idle</div>
+        <pre id="script-console" style="font-size:10px;max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.4);padding:8px;border-radius:4px;margin-top:6px;"></pre>
+        <pre id="script-vars" style="font-size:10px;max-height:80px;overflow-y:auto;background:rgba(0,0,0,0.4);padding:8px;border-radius:4px;margin-top:6px;"></pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">MIDI &amp; Performance</div>
+        <label for="midi-device">MIDI Device</label>
+        <select id="midi-device"><option value="">(scan devices)</option></select>
+        <button id="connect-midi">Connect MIDI</button>
+        <button id="disconnect-midi">Disconnect MIDI</button>
+        <label>
+          <input type="checkbox" id="keyboard-input-toggle" /> Keyboard Input (A-L keys, -/+ octave)
+        </label>
+        <button id="input-panic">Panic — All Notes Off</button>
+        <div id="midi-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
+        <label for="learn-control">MIDI Learn Target</label>
+        <select id="learn-control">
+          <option value="">(off)</option>
+          <option value="glitchAmount">Glitch Amount</option>
+          <option value="trailAmount">Trail Amount</option>
+          <option value="density">Density</option>
+          <option value="speed">Speed</option>
+          <option value="strength">Strength</option>
+          <option value="simSpawnRate">Particle Spawn</option>
+        </select>
+        <button id="start-learn">Start Learn</button>
+        <button id="clear-learned">Clear Learned</button>
+        <button id="reset-input-mapping">Reset Mappings</button>
+        <pre id="mapping-table" style="font-size:10px;margin-top:8px;">mappings: —</pre>
+        <pre id="note-monitor" style="font-size:10px;max-height:80px;overflow-y:auto;">notes: —</pre>
       </div>
 
       <div class="control-group">
@@ -203,6 +403,70 @@
       <div class="control-group">
         <div class="section-label">Motion Systems</div>
         <div id="motion-plugins" class="pattern-list"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Simulations</div>
+        <div id="simulation-plugins" class="pattern-list"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Compositing</div>
+        <div id="layer-controls" class="pattern-list"></div>
+        <label for="layer-blend-mode">Layer Blend Mode</label>
+        <select id="layer-blend-mode">
+          <option value="normal">Normal</option>
+          <option value="add">Add</option>
+          <option value="multiply">Multiply</option>
+          <option value="screen">Screen</option>
+          <option value="difference">Difference</option>
+          <option value="max">Max</option>
+          <option value="min">Min</option>
+          <option value="overlay">Overlay</option>
+        </select>
+        <label for="layer-opacity">
+          Layer Opacity <span class="value" id="layer-opacity-value">1.00</span>
+        </label>
+        <input type="range" id="layer-opacity" min="0" max="1" step="0.05" value="1" />
+        <div class="buttons">
+          <button id="add-layer">Add Layer</button>
+          <button id="reset-composition">Reset Composition</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Post Processing</div>
+        <div id="post-passes" class="pattern-list"></div>
+        <label for="postFeedback">
+          Feedback <span class="value" id="postFeedback-value">0.70</span>
+        </label>
+        <input type="range" id="postFeedback" min="0" max="1" step="0.05" value="0.7" />
+        <label for="postSmear">
+          Smear <span class="value" id="postSmear-value">0.50</span>
+        </label>
+        <input type="range" id="postSmear" min="0" max="1" step="0.05" value="0.5" />
+        <label for="postThreshold">
+          Threshold <span class="value" id="postThreshold-value">0.50</span>
+        </label>
+        <input type="range" id="postThreshold" min="0" max="1" step="0.05" value="0.5" />
+        <label for="postDither">
+          Dither <span class="value" id="postDither-value">0.50</span>
+        </label>
+        <input type="range" id="postDither" min="0" max="1" step="0.05" value="0.5" />
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Simulation Controls</div>
+        <label for="simStrength">Strength <span class="value" id="simStrength-value">0.80</span></label>
+        <input type="range" id="simStrength" min="0" max="1" step="0.05" value="0.8" />
+        <label for="simSpeed">Speed <span class="value" id="simSpeed-value">1.00</span></label>
+        <input type="range" id="simSpeed" min="0.1" max="3" step="0.1" value="1" />
+        <label for="simDensity">Density <span class="value" id="simDensity-value">0.50</span></label>
+        <input type="range" id="simDensity" min="0" max="1" step="0.05" value="0.5" />
+        <label for="simSpawnRate">Spawn <span class="value" id="simSpawnRate-value">0.60</span></label>
+        <input type="range" id="simSpawnRate" min="0" max="1" step="0.05" value="0.6" />
+        <label for="simDecay">Decay <span class="value" id="simDecay-value">0.20</span></label>
+        <input type="range" id="simDecay" min="0" max="1" step="0.05" value="0.2" />
       </div>
 
       <div class="control-group">
@@ -304,6 +568,56 @@
           <button id="test-trails">Max Trails</button>
           <button id="test-reset">Reset Controls</button>
         </div>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Input Debug</div>
+        <pre id="input-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Glyph Inspector</div>
+        <pre id="glyph-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Export Debug</div>
+        <pre id="export-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Performance Debug</div>
+        <pre id="performance-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Script Debug</div>
+        <pre id="script-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Audio Debug</div>
+        <pre id="audio-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Compositing Debug</div>
+        <pre id="compositing-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Simulation Debug</div>
+        <pre id="simulation-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Renderer Debug</div>
+        <pre id="renderer-debug-panel">loading…</pre>
+      </div>
+
+      <div class="control-group">
+        <div class="section-label">Source Debug</div>
+        <pre id="source-debug-panel">loading…</pre>
       </div>
 
       <div class="control-group">

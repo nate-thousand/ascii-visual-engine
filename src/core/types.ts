@@ -1,5 +1,7 @@
 export interface AsciiEngineOptions {
   canvas: HTMLCanvasElement;
+  element?: HTMLElement;
+  renderer?: 'canvas' | 'dom' | 'offscreen-canvas' | 'webgl';
   preset?: AsciiPreset;
   width?: number;
   height?: number;
@@ -62,6 +64,71 @@ export interface MotionConfig {
   priority?: number;
 }
 
+export interface SimulationConfig {
+  id: string;
+  enabled?: boolean;
+  options?: Record<string, unknown>;
+}
+
+export interface SourcePresetConfig {
+  type: 'image' | 'video' | 'webcam' | 'canvas';
+  options?: Record<string, unknown>;
+}
+
+export type BlendMode =
+  | 'normal'
+  | 'add'
+  | 'multiply'
+  | 'screen'
+  | 'difference'
+  | 'max'
+  | 'min'
+  | 'overlay';
+
+export type MaskType = 'radial' | 'linear' | 'noise' | 'brightness';
+
+export interface LayerMaskConfig {
+  type: MaskType;
+  amount?: number;
+  angle?: number;
+  centerX?: number;
+  centerY?: number;
+  invert?: boolean;
+}
+
+export interface LayerPresetConfig {
+  id: string;
+  name?: string;
+  enabled?: boolean;
+  opacity?: number;
+  blendMode?: BlendMode;
+  mask?: LayerMaskConfig;
+  glyphSet?: string[];
+  source?: string;
+  pattern?: string;
+  simulation?: string;
+  effects?: string[];
+  fill?: number;
+}
+
+export interface PostProcessingPresetConfig {
+  id: string;
+  enabled?: boolean;
+  amount?: number;
+}
+
+import type { AudioMappingPresetConfig } from '../audio/AudioTypes';
+import type { InputMappingPresetConfig } from '../input/InputTypes';
+import type {
+  GlyphAnimationConfig,
+  GlyphCategoryId,
+  GlyphMorphConfig,
+  GlyphRuleConfig,
+} from '../glyphs/Glyph';
+
+export type { AudioMappingPresetConfig };
+export type { InputMappingPresetConfig };
+
 export interface AsciiPreset {
   id: string;
   name: string;
@@ -69,6 +136,10 @@ export interface AsciiPreset {
   motionField: MotionFieldType;
   plugins: PluginConfig[];
   motions?: MotionConfig[];
+  simulations?: SimulationConfig[];
+  source?: SourcePresetConfig;
+  layers?: LayerPresetConfig[];
+  postProcessing?: PostProcessingPresetConfig[];
   /** @deprecated Use `plugins` array instead */
   effects?: EffectConfig[];
   /** @deprecated Use `plugins` array instead */
@@ -93,6 +164,33 @@ export interface AsciiPreset {
   noiseScale?: number;
   flowStrength?: number;
   blendWeight?: number;
+  simStrength?: number;
+  simSpeed?: number;
+  simDensity?: number;
+  simDecay?: number;
+  simSpawnRate?: number;
+  postFeedback?: number;
+  postSmear?: number;
+  postDisplacement?: number;
+  postThreshold?: number;
+  postInvert?: number;
+  postEdge?: number;
+  postPosterize?: number;
+  postScanline?: number;
+  postDither?: number;
+  audioMapping?: AudioMappingPresetConfig;
+  audioAttack?: number;
+  audioRelease?: number;
+  audioSensitivity?: number;
+  audioNoiseGate?: number;
+  audioMinThreshold?: number;
+  audioMaxClamp?: number;
+  inputMapping?: InputMappingPresetConfig;
+  glyphLanguage?: string | string[];
+  glyphCategories?: GlyphCategoryId[];
+  glyphRules?: GlyphRuleConfig[];
+  glyphMorphing?: GlyphMorphConfig;
+  glyphAnimation?: GlyphAnimationConfig;
 }
 
 export interface GridDimensions {
@@ -165,10 +263,15 @@ export type EngineEventMap = {
   pattern: { id: PatternId; enabled: boolean };
   plugin: { id: string; type: PluginType; enabled: boolean };
   motion: { id: string; enabled: boolean };
+  simulation: { id: string; enabled: boolean };
+  source: { mode: 'procedural' | 'source'; id: string | null };
+  renderer: { id: string | null; ok: boolean; warning: string | null };
   noteOn: NoteEvent;
   noteOff: NoteEvent;
   resize: { width: number; height: number };
   frame: { time: number; fps: number };
+  audio: import('../audio/AudioTypes').AudioFeatures;
+  input: import('../input/InputTypes').InputDebugState;
   custom: EngineEventPayload;
 };
 
