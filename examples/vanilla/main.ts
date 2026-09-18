@@ -1,14 +1,15 @@
 import {
   AsciiEngine,
   listPresets,
+  listLiveControls,
+  CONTROL_CATALOG,
   motionCatalog,
   simulationCatalog,
   pluginCatalog,
   listPostPassIds,
-  DEVICE_PRESET_IDS,
   warnUnknownPreset,
   type AsciiPreset,
-  type BlendMode,
+  type ControlDef,
   type EngineDebugState,
   type Plugin,
   type RendererId,
@@ -16,155 +17,99 @@ import {
 } from 'ascii-visual-engine';
 import { galleryScripts } from '../scripts';
 
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-const domOutput = document.getElementById('dom-output') as HTMLPreElement;
-const presetSelect = document.getElementById('preset') as HTMLSelectElement;
-const presetAllSelect = document.getElementById('preset-all') as HTMLSelectElement;
-const labToggle = document.getElementById('lab-toggle') as HTMLButtonElement;
-const fpsEl = document.getElementById('fps') as HTMLDivElement;
-const effectPluginList = document.getElementById('effect-plugins') as HTMLDivElement;
-const patternPluginList = document.getElementById('pattern-plugins') as HTMLDivElement;
-const motionPluginList = document.getElementById('motion-plugins') as HTMLDivElement;
-const simulationPluginList = document.getElementById('simulation-plugins') as HTMLDivElement;
-const debugPanel = document.getElementById('debug-panel') as HTMLPreElement;
-const motionDebugPanel = document.getElementById('motion-debug-panel') as HTMLPreElement;
-const simulationDebugPanel = document.getElementById('simulation-debug-panel') as HTMLPreElement;
-const sourceDebugPanel = document.getElementById('source-debug-panel') as HTMLPreElement;
-const rendererDebugPanel = document.getElementById('renderer-debug-panel') as HTMLPreElement;
-const compositingDebugPanel = document.getElementById('compositing-debug-panel') as HTMLPreElement;
-const layerControls = document.getElementById('layer-controls') as HTMLDivElement;
-const postPassList = document.getElementById('post-passes') as HTMLDivElement;
-const layerBlendSelect = document.getElementById('layer-blend-mode') as HTMLSelectElement;
-const layerOpacitySlider = document.getElementById('layer-opacity') as HTMLInputElement;
-const layerOpacityValue = document.getElementById('layer-opacity-value') as HTMLSpanElement;
-const addLayerBtn = document.getElementById('add-layer') as HTMLButtonElement;
-const resetCompositionBtn = document.getElementById('reset-composition') as HTMLButtonElement;
-const audioDebugPanel = document.getElementById('audio-debug-panel') as HTMLPreElement;
-const startMicrophoneBtn = document.getElementById('start-microphone') as HTMLButtonElement;
-const audioFileInput = document.getElementById('audio-file-input') as HTMLInputElement;
-const disconnectAudioBtn = document.getElementById('disconnect-audio') as HTMLButtonElement;
-const audioErrorEl = document.getElementById('audio-error') as HTMLDivElement;
-const audioElement = document.createElement('audio');
-audioElement.style.display = 'none';
-document.body.appendChild(audioElement);
+// ---------------------------------------------------------------------------
+// Elements. Every id here exists in index.html; tests/harness-ids.test.ts
+// checks both directions.
+// ---------------------------------------------------------------------------
+
+function $<T extends HTMLElement>(id: string): T {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`[Harness] Missing element #${id}`);
+  return el as T;
+}
+
+const canvas = $<HTMLCanvasElement>('canvas');
+const domOutput = $<HTMLPreElement>('dom-output');
+const fpsEl = $<HTMLSpanElement>('fps');
+
+const presetSelect = $<HTMLSelectElement>('preset');
+const presetControlsEl = $<HTMLDivElement>('preset-controls');
+const engineReadout = $<HTMLPreElement>('engine-readout');
+const effectPluginList = $<HTMLDivElement>('effect-plugins');
+const patternPluginList = $<HTMLDivElement>('pattern-plugins');
+const motionPluginList = $<HTMLDivElement>('motion-plugins');
+const simulationPluginList = $<HTMLDivElement>('simulation-plugins');
+const postPassList = $<HTMLDivElement>('post-passes');
+
+const sourceModeSelect = $<HTMLSelectElement>('source-mode');
+const sourceFitSelect = $<HTMLSelectElement>('source-fit');
+const imageInput = $<HTMLInputElement>('image-input');
+const videoInput = $<HTMLInputElement>('video-input');
+const webcamRow = $<HTMLDivElement>('webcam-row');
+const startWebcamBtn = $<HTMLButtonElement>('start-webcam');
+const sourceControlsEl = $<HTMLDivElement>('source-controls');
+const sourceErrorEl = $<HTMLDivElement>('source-error');
+const sourceReadout = $<HTMLPreElement>('source-readout');
+
+const rendererModeSelect = $<HTMLSelectElement>('renderer-mode');
+const rendererWarning = $<HTMLDivElement>('renderer-warning');
+const rendererReadout = $<HTMLPreElement>('renderer-readout');
+
+const startMicrophoneBtn = $<HTMLButtonElement>('start-microphone');
+const disconnectAudioBtn = $<HTMLButtonElement>('disconnect-audio');
+const audioFileInput = $<HTMLInputElement>('audio-file-input');
+const audioErrorEl = $<HTMLDivElement>('audio-error');
+const audioControlsEl = $<HTMLDivElement>('audio-controls');
+const audioReadout = $<HTMLPreElement>('audio-readout');
+
+const midiDeviceSelect = $<HTMLSelectElement>('midi-device');
+const connectMidiBtn = $<HTMLButtonElement>('connect-midi');
+const disconnectMidiBtn = $<HTMLButtonElement>('disconnect-midi');
+const inputPanicBtn = $<HTMLButtonElement>('input-panic');
+const midiErrorEl = $<HTMLDivElement>('midi-error');
+const keyboardInputToggle = $<HTMLInputElement>('keyboard-input-toggle');
+const learnControlSelect = $<HTMLSelectElement>('learn-control');
+const startLearnBtn = $<HTMLButtonElement>('start-learn');
+const clearLearnedBtn = $<HTMLButtonElement>('clear-learned');
+const resetInputMappingBtn = $<HTMLButtonElement>('reset-input-mapping');
+const inputReadout = $<HTMLPreElement>('input-readout');
+
+const importJsonInput = $<HTMLInputElement>('import-json');
+const recordingStatus = $<HTMLDivElement>('recording-status');
+const exportErrorEl = $<HTMLDivElement>('export-error');
+const exportReadout = $<HTMLPreElement>('export-readout');
+
+const qualityPresetSelect = $<HTMLSelectElement>('quality-preset');
+const adaptiveQualityToggle = $<HTMLInputElement>('adaptive-quality');
+const dirtyRenderingToggle = $<HTMLInputElement>('dirty-rendering');
+const spatialGridToggle = $<HTMLInputElement>('spatial-grid');
+const fpsTargetSlider = $<HTMLInputElement>('fps-target');
+const fpsTargetValue = $<HTMLSpanElement>('fps-target-value');
+const fpsGraphCanvas = $<HTMLCanvasElement>('fps-graph');
+const fpsGraphCtx = fpsGraphCanvas.getContext('2d')!;
+const performanceReadout = $<HTMLPreElement>('performance-readout');
+
+const scriptSelect = $<HTMLSelectElement>('script-select');
+const scriptStatusEl = $<HTMLDivElement>('script-status');
+const scriptConsoleEl = $<HTMLPreElement>('script-console');
+const scriptVarsEl = $<HTMLPreElement>('script-vars');
 
 const audioMeterIds = ['amplitude', 'bass', 'mid', 'treble'] as const;
 type AudioMeterId = (typeof audioMeterIds)[number];
 const audioMeterValues = Object.fromEntries(
-  audioMeterIds.map((id) => [id, document.getElementById(`meter-${id}`) as HTMLSpanElement]),
+  audioMeterIds.map((id) => [id, $<HTMLSpanElement>(`meter-${id}`)]),
 ) as Record<AudioMeterId, HTMLSpanElement>;
 const audioMeterBars = Object.fromEntries(
-  audioMeterIds.map((id) => [id, document.getElementById(`bar-${id}`) as HTMLDivElement]),
+  audioMeterIds.map((id) => [id, $<HTMLDivElement>(`bar-${id}`)]),
 ) as Record<AudioMeterId, HTMLDivElement>;
 
-const audioSliderIds = ['audioAttack', 'audioRelease', 'audioSensitivity', 'audioNoiseGate'] as const;
-type AudioSliderId = (typeof audioSliderIds)[number];
-const audioSliders = Object.fromEntries(
-  audioSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
-) as Record<AudioSliderId, HTMLInputElement>;
-const audioSliderValues = Object.fromEntries(
-  audioSliderIds.map((id) => [id, document.getElementById(`${id}-value`) as HTMLSpanElement]),
-) as Record<AudioSliderId, HTMLSpanElement>;
+const audioElement = document.createElement('audio');
+audioElement.style.display = 'none';
+document.body.appendChild(audioElement);
 
-const inputDebugPanel = document.getElementById('input-debug-panel') as HTMLPreElement;
-const glyphDebugPanel = document.getElementById('glyph-debug-panel') as HTMLPreElement;
-const exportDebugPanel = document.getElementById('export-debug-panel') as HTMLPreElement;
-const scriptDebugPanel = document.getElementById('script-debug-panel') as HTMLPreElement;
-const scriptSelect = document.getElementById('script-select') as HTMLSelectElement;
-const scriptConsoleEl = document.getElementById('script-console') as HTMLPreElement;
-const scriptVarsEl = document.getElementById('script-vars') as HTMLPreElement;
-const scriptStatusEl = document.getElementById('script-status') as HTMLDivElement;
-const runScriptBtn = document.getElementById('run-script') as HTMLButtonElement;
-const stopScriptBtn = document.getElementById('stop-script') as HTMLButtonElement;
-const reloadScriptBtn = document.getElementById('reload-script') as HTMLButtonElement;
-const restartScriptBtn = document.getElementById('restart-script') as HTMLButtonElement;
-const enableScriptBtn = document.getElementById('enable-script') as HTMLButtonElement;
-const disableScriptBtn = document.getElementById('disable-script') as HTMLButtonElement;
-const clearScriptConsoleBtn = document.getElementById('clear-script-console') as HTMLButtonElement;
-const performanceDebugPanel = document.getElementById('performance-debug-panel') as HTMLPreElement;
-const qualityPresetSelect = document.getElementById('quality-preset') as HTMLSelectElement;
-const adaptiveQualityToggle = document.getElementById('adaptive-quality') as HTMLInputElement;
-const dirtyRenderingToggle = document.getElementById('dirty-rendering') as HTMLInputElement;
-const spatialGridToggle = document.getElementById('spatial-grid') as HTMLInputElement;
-const fpsTargetSlider = document.getElementById('fps-target') as HTMLInputElement;
-const fpsTargetValue = document.getElementById('fps-target-value') as HTMLSpanElement;
-const fpsGraphCanvas = document.getElementById('fps-graph') as HTMLCanvasElement;
-const fpsGraphCtx = fpsGraphCanvas.getContext('2d')!;
-const recordingIndicator = document.getElementById('recording-indicator') as HTMLDivElement;
-const frameCounter = document.getElementById('frame-counter') as HTMLDivElement;
-const exportErrorEl = document.getElementById('export-error') as HTMLDivElement;
-const midiDeviceSelect = document.getElementById('midi-device') as HTMLSelectElement;
-const connectMidiBtn = document.getElementById('connect-midi') as HTMLButtonElement;
-const disconnectMidiBtn = document.getElementById('disconnect-midi') as HTMLButtonElement;
-const keyboardInputToggle = document.getElementById('keyboard-input-toggle') as HTMLInputElement;
-const inputPanicBtn = document.getElementById('input-panic') as HTMLButtonElement;
-const midiErrorEl = document.getElementById('midi-error') as HTMLDivElement;
-const learnControlSelect = document.getElementById('learn-control') as HTMLSelectElement;
-const startLearnBtn = document.getElementById('start-learn') as HTMLButtonElement;
-const clearLearnedBtn = document.getElementById('clear-learned') as HTMLButtonElement;
-const resetInputMappingBtn = document.getElementById('reset-input-mapping') as HTMLButtonElement;
-const mappingTable = document.getElementById('mapping-table') as HTMLPreElement;
-const noteMonitor = document.getElementById('note-monitor') as HTMLPreElement;
-const rendererModeSelect = document.getElementById('renderer-mode') as HTMLSelectElement;
-const rendererWarning = document.getElementById('renderer-warning') as HTMLDivElement;
-const sourceModeSelect = document.getElementById('source-mode') as HTMLSelectElement;
-const sourceFitSelect = document.getElementById('source-fit') as HTMLSelectElement;
-const imageInput = document.getElementById('image-input') as HTMLInputElement;
-const videoInput = document.getElementById('video-input') as HTMLInputElement;
-const imageInputLabel = document.getElementById('image-input-label') as HTMLLabelElement;
-const videoInputLabel = document.getElementById('video-input-label') as HTMLLabelElement;
-const startWebcamBtn = document.getElementById('start-webcam') as HTMLButtonElement;
-
-const sourceSliderIds = ['sourceContrast', 'sourceEdge', 'sourceBlend'] as const;
-type SourceSliderId = (typeof sourceSliderIds)[number];
-const sourceSliders = Object.fromEntries(
-  sourceSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
-) as Record<SourceSliderId, HTMLInputElement>;
-const sourceValueDisplays = Object.fromEntries(
-  sourceSliderIds.map((id) => [
-    id,
-    document.getElementById(`${id}-value`) as HTMLSpanElement,
-  ]),
-) as Record<SourceSliderId, HTMLSpanElement>;
-
-const demoCanvas = document.createElement('canvas');
-demoCanvas.width = 320;
-demoCanvas.height = 240;
-const demoCtx = demoCanvas.getContext('2d')!;
-let canvasAnimAngle = 0;
-
-const sliderIds = [
-  'density',
-  'speed',
-  'strength',
-  'randomness',
-  'frequency',
-  'amplitude',
-  'decay',
-  'drag',
-  'gravity',
-  'noiseScale',
-  'flowStrength',
-  'symmetry',
-  'petals',
-  'spiralAmount',
-  'cellularAmount',
-  'scanlineAmount',
-  'trailAmount',
-  'glitchAmount',
-] as const;
-type SliderId = (typeof sliderIds)[number];
-
-const sliders = Object.fromEntries(
-  sliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
-) as Record<SliderId, HTMLInputElement>;
-
-const valueDisplays = Object.fromEntries(
-  sliderIds.map((id) => [
-    id,
-    document.getElementById(`${id}-value`) as HTMLSpanElement,
-  ]),
-) as Record<SliderId, HTMLSpanElement>;
+// ---------------------------------------------------------------------------
+// Presets
+// ---------------------------------------------------------------------------
 
 const allPresets = listPresets();
 const presetIds = allPresets.map((p) => p.id);
@@ -176,1050 +121,307 @@ const HERO_PRESET_IDS = [
   'glyphFlowField',
   'glyphMinimalZen',
 ] as const;
-const BOOT_PRESET_ID = 'glyphOrganicBloom';
-const heroPresetIdSet = new Set<string>(HERO_PRESET_IDS);
+const heroSet = new Set<string>(HERO_PRESET_IDS);
 
-function isLabOpen(): boolean {
-  return document.body.classList.contains('lab-open');
+function presetFamily(preset: AsciiPreset): string {
+  if (heroSet.has(preset.id)) return 'Hero';
+  if (preset.id.startsWith('glyph')) return 'Glyph';
+  if (preset.id.startsWith('audio')) return 'Audio';
+  if (preset.id.startsWith('performance')) return 'Performance';
+  if (preset.id.endsWith('Sim')) return 'Simulation';
+  if (preset.id === 'compositing') return 'Compositing';
+  if (['basic', 'terminal', 'organic'].includes(preset.id)) return 'Classic';
+  return 'Motion';
 }
 
-function setLabOpen(open: boolean, refreshDebug = true): void {
-  document.body.classList.toggle('lab-open', open);
-  labToggle.textContent = open ? 'Hide Lab' : 'Lab';
-  const url = new URL(window.location.href);
-  if (open) url.searchParams.set('debug', '1');
-  else url.searchParams.delete('debug');
-  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-  if (open && refreshDebug) updateDebugPanel();
+function presetLabel(preset: AsciiPreset): string {
+  return preset.name.replace(/^(Glyph|Audio|Performance) — /, '');
 }
 
-const debugParam = new URLSearchParams(window.location.search).get('debug');
-setLabOpen(debugParam === '1' || debugParam === 'true', false);
-
-labToggle.addEventListener('click', () => setLabOpen(!isLabOpen()));
-
-window.addEventListener('keydown', (event) => {
-  if (event.key !== 'd' && event.key !== 'D') return;
-  const target = event.target;
-  if (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement
-  ) {
-    return;
+{
+  const order = ['Hero', 'Glyph', 'Motion', 'Classic', 'Simulation', 'Compositing', 'Audio', 'Performance'];
+  const groups = new Map<string, HTMLOptGroupElement>();
+  for (const family of order) {
+    const group = document.createElement('optgroup');
+    group.label = family;
+    groups.set(family, group);
   }
-  event.preventDefault();
-  setLabOpen(!isLabOpen());
-});
-const pluginCheckboxes = new Map<string, HTMLInputElement>();
-const motionCheckboxes = new Map<string, HTMLInputElement>();
-const simulationCheckboxes = new Map<string, HTMLInputElement>();
-const layerCheckboxes = new Map<string, HTMLInputElement>();
-const postPassCheckboxes = new Map<string, HTMLInputElement>();
-let activeLayerId: string | null = null;
-let layerCounter = 0;
-
-const postSliderIds = ['postFeedback', 'postSmear', 'postThreshold', 'postDither'] as const;
-type PostSliderId = (typeof postSliderIds)[number];
-const postSliders = Object.fromEntries(
-  postSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
-) as Record<PostSliderId, HTMLInputElement>;
-const postValueDisplays = Object.fromEntries(
-  postSliderIds.map((id) => [
-    id,
-    document.getElementById(`${id}-value`) as HTMLSpanElement,
-  ]),
-) as Record<PostSliderId, HTMLSpanElement>;
-
-const effectPluginIds = ['noise', 'wave', 'burst', 'glitch', 'trails'];
-const patternPluginIds = [
-  'radialSymmetry',
-  'spiral',
-  'wavePattern',
-  'grid',
-  'cellular',
-  'scanline',
-];
-const motionPluginIds = [
-  'flowField',
-  'organicGrowth',
-  'orbital',
-  'wave',
-  'gravity',
-  'brownian',
-  'flocking',
-  'wind',
-  'pulse',
-  'breathing',
-  'spiral',
-  'curlNoise',
-];
-const simulationPluginIds = [
-  'particle',
-  'boids',
-  'cellularAutomata',
-  'reactionDiffusion',
-  'lsystem',
-  'gravity',
-  'spring',
-  'fluid',
-];
-
-const simSliderIds = ['simStrength', 'simSpeed', 'simDensity', 'simSpawnRate', 'simDecay'] as const;
-type SimSliderId = (typeof simSliderIds)[number];
-const simSliders = Object.fromEntries(
-  simSliderIds.map((id) => [id, document.getElementById(id) as HTMLInputElement]),
-) as Record<SimSliderId, HTMLInputElement>;
-const simValueDisplays = Object.fromEntries(
-  simSliderIds.map((id) => [id, document.getElementById(`${id}-value`) as HTMLSpanElement]),
-) as Record<SimSliderId, HTMLSpanElement>;
-
-for (const id of HERO_PRESET_IDS) {
-  const preset = allPresets.find((p) => p.id === id);
-  if (!preset) continue;
-  const option = document.createElement('option');
-  option.value = preset.id;
-  option.textContent = preset.name.replace(/^Glyph — /, '');
-  presetSelect.appendChild(option);
+  const heroFirst = [
+    ...HERO_PRESET_IDS.map((id) => allPresets.find((p) => p.id === id)).filter((p): p is AsciiPreset => !!p),
+    ...allPresets.filter((p) => !heroSet.has(p.id)),
+  ];
+  for (const preset of heroFirst) {
+    const option = document.createElement('option');
+    option.value = preset.id;
+    option.textContent = presetLabel(preset);
+    groups.get(presetFamily(preset))?.appendChild(option);
+  }
+  for (const group of groups.values()) {
+    if (group.childElementCount > 0) presetSelect.appendChild(group);
+  }
 }
 
-for (const preset of allPresets) {
-  const option = document.createElement('option');
-  option.value = preset.id;
-  option.textContent = preset.name;
-  presetAllSelect.appendChild(option);
+const requestedPreset = new URLSearchParams(window.location.search).get('preset');
+const bootPreset =
+  (requestedPreset && allPresets.find((p) => p.id === requestedPreset)) ||
+  allPresets.find((p) => p.id === HERO_PRESET_IDS[0]) ||
+  allPresets[0];
+if (requestedPreset && bootPreset.id !== requestedPreset) {
+  console.warn(`[Harness] Unknown ?preset=${requestedPreset}, booting ${bootPreset.id}`);
 }
 
-function getViewportSize() {
-  return { width: window.innerWidth, height: window.innerHeight };
-}
-
-const { width, height } = getViewportSize();
+// ---------------------------------------------------------------------------
+// Engine
+// ---------------------------------------------------------------------------
 
 const engine = new AsciiEngine({
   canvas,
   element: domOutput,
-  preset: allPresets.find((p) => p.id === BOOT_PRESET_ID) ?? allPresets[0],
-  width,
-  height,
+  preset: bootPreset,
+  width: window.innerWidth,
+  height: window.innerHeight,
 });
 
 engine.registerScripts(galleryScripts);
 engine.getScriptEngine().setHotReload(import.meta.env.DEV);
+// Dev only: poke the engine from the browser console.
+if (import.meta.env.DEV) (window as unknown as { engine: AsciiEngine }).engine = engine;
 
-for (const script of galleryScripts) {
-  const opt = document.createElement('option');
-  opt.value = script.id;
-  opt.textContent = script.name ?? script.id;
-  scriptSelect.appendChild(opt);
+// ---------------------------------------------------------------------------
+// Sliders. One factory for every numeric control in the panel.
+// ---------------------------------------------------------------------------
+
+interface SliderHandle {
+  input: HTMLInputElement;
+  value: HTMLSpanElement;
+  def: ControlDef;
 }
 
-function formatSliderValue(id: SliderId, value: number): string {
-  if (id === 'symmetry' || id === 'petals') {
-    return String(Math.round(value));
+const sliders = new Map<string, SliderHandle>();
+
+function formatValue(def: ControlDef, value: number): string {
+  return def.step !== undefined && def.step >= 1 ? String(Math.round(value)) : value.toFixed(2);
+}
+
+function mountSlider(container: HTMLElement, def: ControlDef, initial: number): SliderHandle {
+  const label = document.createElement('label');
+  label.htmlFor = `ctl-${def.name}`;
+  label.append(def.label ?? def.name);
+  const value = document.createElement('span');
+  value.className = 'value';
+  label.appendChild(value);
+
+  const input = document.createElement('input');
+  input.type = 'range';
+  input.id = `ctl-${def.name}`;
+  input.min = String(def.min);
+  input.max = String(def.max);
+  input.step = String(def.step ?? 0.01);
+  input.value = String(initial);
+  value.textContent = formatValue(def, initial);
+
+  input.addEventListener('input', () => {
+    const v = parseFloat(input.value);
+    value.textContent = formatValue(def, v);
+    engine.setControl(def.name, v);
+  });
+
+  container.append(label, input);
+  const handle = { input, value, def };
+  sliders.set(def.name, handle);
+  return handle;
+}
+
+/** Reflect engine control values in every mounted slider without writing back. */
+function syncSlidersFromEngine(): void {
+  for (const [name, handle] of sliders) {
+    const v = engine.getControl(name, parseFloat(handle.input.value));
+    handle.input.value = String(v);
+    handle.value.textContent = formatValue(handle.def, v);
   }
-  return value.toFixed(2);
 }
 
-function syncSlidersFromPreset(preset: AsciiPreset) {
-  for (const id of sliderIds) {
-    const control = preset.controls.find((c) => c.name === id);
-    const presetValue = preset[id as keyof AsciiPreset];
-    const slider = sliders[id];
-    if (!slider) continue;
-    const value =
-      typeof presetValue === 'number'
-        ? presetValue
-        : (control?.default ?? parseFloat(slider.min));
-    slider.value = String(value);
-    if (valueDisplays[id]) {
-      valueDisplays[id].textContent = formatSliderValue(id, value);
+const AUDIO_PANEL_CONTROLS = ['audioAttack', 'audioRelease', 'audioSensitivity', 'audioNoiseGate'];
+const SOURCE_PANEL_CONTROLS: ControlDef[] = [
+  { name: 'sourceContrast', label: 'Contrast', min: 0.5, max: 2, default: 1, step: 0.05 },
+  { name: 'sourceEdge', label: 'Edge', min: 0, max: 1, default: 0.3, step: 0.05 },
+  { name: 'sourceBlend', label: 'Blend', min: 0, max: 1, default: 1, step: 0.05 },
+];
+
+/**
+ * Rebuild the Preset and Audio slider blocks for the active preset. Globals
+ * (density, speed) always show; the rest is `preset.controls` filtered to
+ * what the composition actually reads. Audio controls render in the Audio
+ * section only when the preset maps audio.
+ */
+function buildPresetControls(preset: AsciiPreset): void {
+  for (const name of Array.from(sliders.keys())) {
+    if (!SOURCE_PANEL_CONTROLS.some((d) => d.name === name)) sliders.delete(name);
+  }
+  presetControlsEl.innerHTML = '';
+  audioControlsEl.innerHTML = '';
+
+  const live = new Set(listLiveControls(preset));
+  const declared = new Map(preset.controls.map((c) => [c.name, c]));
+
+  const globals: ControlDef[] = ['density', 'speed'].map(
+    (name) => declared.get(name) ?? { name, ...CONTROL_CATALOG[name] },
+  );
+  const rest = preset.controls.filter(
+    (c) => !['density', 'speed'].includes(c.name) && live.has(c.name) && !AUDIO_PANEL_CONTROLS.includes(c.name),
+  );
+  for (const def of [...globals, ...rest]) {
+    mountSlider(presetControlsEl, def, engine.getControl(def.name, def.default));
+  }
+
+  const dropped = preset.controls.filter((c) => !live.has(c.name)).map((c) => c.name);
+  if (dropped.length > 0) {
+    const note = document.createElement('div');
+    note.className = 'status';
+    note.textContent = `declared but unread by this composition: ${dropped.join(', ')}`;
+    presetControlsEl.appendChild(note);
+  }
+
+  if (live.has('audioAttack')) {
+    for (const name of AUDIO_PANEL_CONTROLS) {
+      const def = declared.get(name) ?? { name, ...CONTROL_CATALOG[name] };
+      mountSlider(audioControlsEl, def, engine.getControl(name, def.default));
     }
-    engine.setControl(id, value);
+  } else {
+    const note = document.createElement('div');
+    note.className = 'status';
+    note.textContent = 'This preset has no audio mapping. Meters still run; pick an Audio preset to drive controls.';
+    audioControlsEl.appendChild(note);
+  }
+
+  learnControlSelect.innerHTML = '<option value="">(pick a control)</option>';
+  for (const def of [...globals, ...rest]) {
+    const opt = document.createElement('option');
+    opt.value = def.name;
+    opt.textContent = def.label ?? def.name;
+    learnControlSelect.appendChild(opt);
   }
 }
 
-/** Reflect the engine's current control values without writing them back. */
-function syncSlidersFromEngine() {
-  for (const id of sliderIds) {
-    const slider = sliders[id];
-    if (!slider) continue;
-    const value = engine.getControl(id, parseFloat(slider.value));
-    slider.value = String(value);
-    if (valueDisplays[id]) {
-      valueDisplays[id].textContent = formatSliderValue(id, value);
-    }
-  }
+for (const def of SOURCE_PANEL_CONTROLS) {
+  mountSlider(sourceControlsEl, def, def.default);
+  engine.setControl(def.name, def.default);
 }
 
-function syncPluginsFromEngine() {
-  const enabled = new Set(
-    engine.getEnabledPlugins().map((plugin: Plugin) => plugin.id),
-  );
-  for (const [id, checkbox] of pluginCheckboxes) {
-    checkbox.checked = enabled.has(id);
-  }
-}
+// ---------------------------------------------------------------------------
+// Composition checkboxes
+// ---------------------------------------------------------------------------
 
-function syncMotionsFromEngine() {
-  const enabled = new Set(engine.getEnabledMotions().map((m) => m.id));
-  for (const [id, checkbox] of motionCheckboxes) {
-    checkbox.checked = enabled.has(id);
-  }
-}
+const pluginCheckboxes = new Map<string, HTMLInputElement>();
+const motionCheckboxes = new Map<string, HTMLInputElement>();
+const simulationCheckboxes = new Map<string, HTMLInputElement>();
+const postPassCheckboxes = new Map<string, HTMLInputElement>();
 
-function syncSimulationsFromEngine() {
-  const enabled = new Set(engine.getEnabledSimulations().map((s) => s.id));
-  for (const [id, checkbox] of simulationCheckboxes) {
-    checkbox.checked = enabled.has(id);
-  }
-}
-
-function syncLayersFromEngine() {
-  const layers = engine.getLayerManager().getAll();
-  layerControls.innerHTML = '';
-  layerCheckboxes.clear();
-
-  for (const layer of layers) {
-    const label = document.createElement('label');
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = layer.enabled;
-    checkbox.id = `layer-${layer.id}`;
-
-    const text = document.createElement('span');
-    text.textContent = `${layer.name} (${layer.blendMode})`;
-
-    label.appendChild(checkbox);
-    label.appendChild(text);
-    layerControls.appendChild(label);
-    layerCheckboxes.set(layer.id, checkbox);
-
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked) engine.getLayerManager().enableLayer(layer.id);
-      else engine.getLayerManager().disableLayer(layer.id);
-      updateDebugPanel();
-    });
-
-    label.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).tagName === 'INPUT') return;
-      activeLayerId = layer.id;
-      layerBlendSelect.value = layer.blendMode;
-      layerOpacitySlider.value = String(layer.opacity);
-      layerOpacityValue.textContent = layer.opacity.toFixed(2);
-    });
-  }
-
-  if (!activeLayerId && layers.length > 0) {
-    activeLayerId = layers[0].id;
-    layerBlendSelect.value = layers[0].blendMode;
-    layerOpacitySlider.value = String(layers[0].opacity);
-    layerOpacityValue.textContent = layers[0].opacity.toFixed(2);
-  }
-}
-
-function syncPostPassesFromEngine() {
-  const enabled = new Set(engine.getPostProcessor().getEnabled().map((p) => p.id));
-  for (const [id, checkbox] of postPassCheckboxes) {
-    checkbox.checked = enabled.has(id);
-  }
-}
-
-function updateCompositingDebugPanel() {
-  const cd = engine.getDebugState().compositing;
-  const pp = engine.getDebugState().postProcessing;
-  compositingDebugPanel.textContent = [
-    `layers:       ${cd.enabledCount}/${cd.layerCount}`,
-    `render:       ${cd.renderTimeMs.toFixed(2)} ms`,
-    ...cd.layers.map((l) => `  [${l.order}] ${l.id} ${l.blendMode} o=${l.opacity.toFixed(2)} ${l.enabled ? 'on' : 'off'}`),
-    `post passes:  ${pp.enabledPasses.join(', ') || '(none)'}`,
-    `post time:    ${pp.processTimeMs.toFixed(2)} ms`,
-    `feedback:     ${pp.feedbackActive ? 'active' : 'off'}`,
-  ].join('\n');
-}
-
-function formatNoteOn(note: EngineDebugState['lastNoteOn']): string {
-  if (!note) return '—';
-  const x = note.x?.toFixed(2) ?? '?';
-  const y = note.y?.toFixed(2) ?? '?';
-  const intensity = note.intensity?.toFixed(2) ?? '?';
-  return `x=${x} y=${y} i=${intensity}`;
-}
-
-function updateSourceDebugPanel() {
-  const state = engine.getDebugState().source;
-  sourceDebugPanel.textContent = [
-    `mode:         ${state.mode}`,
-    `active:       ${state.activeSourceId ?? '(none)'}`,
-    `type:         ${state.activeSourceType ?? '—'}`,
-    `ready:        ${state.ready}`,
-    `error:        ${state.error ?? '—'}`,
-    `size:         ${state.width}×${state.height}`,
-    `fit:          ${state.fitMode}`,
-  ].join('\n');
-}
-
-function updateRendererDebugPanel() {
-  const rd = engine.getDebugState().renderer;
-  rendererDebugPanel.textContent = [
-    `active:       ${rd.activeRendererId ?? '(none)'}`,
-    `name:         ${rd.activeRendererName ?? '—'}`,
-    `type:         ${rd.activeRendererType ?? '—'}`,
-    `available:    ${rd.available}`,
-    `live switch:  ${rd.supportsLiveSwitch}`,
-    `offscreen:    ${rd.offscreenSupported ? 'supported' : 'unsupported'}`,
-    `warning:      ${rd.switchWarning ?? '—'}`,
-  ].join('\n');
-}
-
-function updateOutputVisibility(rendererId: RendererId | null) {
-  const useDom = rendererId === 'dom';
-  canvas.style.display = useDom ? 'none' : 'block';
-  domOutput.style.display = useDom ? 'block' : 'none';
-}
-
-function updateAudioDebugPanel() {
-  const ad = engine.getDebugState().audio;
-  const f = ad.features;
-  audioDebugPanel.textContent = [
-    `connected:    ${ad.connected}`,
-    `input:        ${ad.inputType ?? '—'}`,
-    `ready:        ${ad.ready}`,
-    `error:        ${ad.error ?? '—'}`,
-    `mapping:      ${ad.mappingEnabled ? 'on' : 'off'}`,
-    `update:       ${ad.updateTimeMs.toFixed(2)} ms`,
-    f ? `amp:          ${f.amplitude.toFixed(3)}` : 'amp:          —',
-    f ? `bass:         ${f.bass.toFixed(3)}` : 'bass:         —',
-    f ? `mid:          ${f.mid.toFixed(3)}` : 'mid:          —',
-    f ? `treble:       ${f.treble.toFixed(3)}` : 'treble:       —',
-    f ? `transient:    ${f.transient.toFixed(3)}` : 'transient:    —',
-    f ? `beat:         ${f.beat.toFixed(3)}` : 'beat:         —',
-  ].join('\n');
-
-  if (f) {
-    updateAudioMeters(f);
-  }
-}
-
-function updateExportDebugPanel() {
-  const ex = engine.getDebugState().export;
-  const rec = ex.recording;
-  const pb = ex.playback;
-  exportDebugPanel.textContent = [
-    `recording:    ${rec.state} (${rec.frameCount} frames, ${rec.duration.toFixed(2)}s @ ${rec.frameRate}fps)`,
-    `playback:     ${pb.playing ? 'playing' : pb.paused ? 'paused' : 'stopped'} frame ${pb.frameIndex + 1}/${pb.frameCount}`,
-    `last export:  ${ex.lastExport ?? '—'}`,
-  ].join('\n');
-
-  recordingIndicator.textContent =
-    rec.state === 'recording'
-      ? '● REC'
-      : rec.state === 'paused'
-        ? '● paused'
-        : '● idle';
-  recordingIndicator.style.color =
-    rec.state === 'recording' ? '#ff4444' : rec.state === 'paused' ? '#ffaa00' : '#888';
-
-  frameCounter.textContent = `frames: ${rec.frameCount}`;
-}
-
-function updateScriptDebugPanel() {
-  const sd = engine.getDebugState().script;
-  scriptDebugPanel.textContent = [
-    `active:       ${sd.activeScriptId ?? '(none)'}`,
-    `state:        ${sd.state}`,
-    `error:        ${sd.error ?? '—'}`,
-    `frames:       ${sd.frameCount}`,
-    `logs:         ${sd.logs.length}`,
-  ].join('\n');
-
-  scriptStatusEl.textContent = sd.activeScriptId
-    ? `${sd.activeScriptId} — ${sd.state}${sd.error ? ` (${sd.error})` : ''}`
-    : 'idle';
-
-  scriptConsoleEl.textContent =
-    sd.logs.length > 0
-      ? sd.logs
-          .slice(-30)
-          .map((l) => `[${l.level}] ${l.message}`)
-          .join('\n')
-      : '(empty)';
-
-  const vars = engine.getScriptEngine().getContextVars();
-  scriptVarsEl.textContent =
-    Object.keys(vars).length > 0 ? JSON.stringify(vars, null, 2) : '(no vars)';
-}
-
-function drawFpsGraph(history: number[]): void {
-  const w = fpsGraphCanvas.width;
-  const h = fpsGraphCanvas.height;
-  fpsGraphCtx.fillStyle = 'rgba(0,0,0,0.6)';
-  fpsGraphCtx.fillRect(0, 0, w, h);
-  if (history.length < 2) return;
-  fpsGraphCtx.strokeStyle = '#00ff88';
-  fpsGraphCtx.lineWidth = 1;
-  fpsGraphCtx.beginPath();
-  const maxFps = 120;
-  for (let i = 0; i < history.length; i++) {
-    const x = (i / (history.length - 1)) * w;
-    const y = h - (Math.min(history[i], maxFps) / maxFps) * h;
-    if (i === 0) fpsGraphCtx.moveTo(x, y);
-    else fpsGraphCtx.lineTo(x, y);
-  }
-  fpsGraphCtx.stroke();
-  fpsGraphCtx.strokeStyle = 'rgba(255,255,255,0.2)';
-  fpsGraphCtx.beginPath();
-  const targetY = h - (parseFloat(fpsTargetSlider.value) / maxFps) * h;
-  fpsGraphCtx.moveTo(0, targetY);
-  fpsGraphCtx.lineTo(w, targetY);
-  fpsGraphCtx.stroke();
-}
-
-function updatePerformanceDebugPanel() {
-  const p = engine.getDebugState().performance;
-  const rd = engine.getDebugState().renderer;
-  const ad = engine.getDebugState().audio;
-
-  performanceDebugPanel.textContent = [
-    `fps:          ${p.fps} (target ${p.fpsTarget})`,
-    `frame:        ${p.frameTimeMs.toFixed(2)} ms`,
-    `update:       ${p.updateTimeMs.toFixed(2)} ms`,
-    `render:       ${p.renderTimeMs.toFixed(2)} ms`,
-    `simulation:   ${p.simulationTimeMs.toFixed(2)} ms`,
-    `plugins:      ${p.pluginTimeMs.toFixed(2)} ms`,
-    `slowest:      ${p.slowestPhase ?? '—'} (${p.slowestPhaseMs.toFixed(2)} ms)`,
-    `quality:      ${p.quality}${p.adaptiveQuality ? ' (adaptive)' : ''}`,
-    `glyphs:       ${p.glyphCount}`,
-    `particles:    ${p.particleCount}`,
-    `layers:       ${p.layerCount}`,
-    `draw calls:   ${p.drawCalls}`,
-    `dirty cells:  ${p.render.dirtyCells}${p.render.partialUpdate ? ' (partial)' : ''}`,
-    `memory est:   ${(p.memory.estimatedBytes / 1024).toFixed(1)} KB`,
-    `pool avail:   ${p.memory.poolAvailable}`,
-    `glyph cache:  ${p.glyphAtlasHits} hits / ${p.glyphAtlasMisses} miss`,
-    `workers:      ${p.workers.enabled ? `${p.workers.workerCount} active, ${p.workers.pendingTasks} pending` : 'off'}`,
-    `renderer:     ${rd.activeRendererId ?? '—'} (${rd.renderTimeMs.toFixed(2)} ms)`,
-    `source:       ${p.sourceMode ?? '—'}`,
-    `audio latency:${p.audioLatencyMs.toFixed(2)} ms (connected: ${ad.connected})`,
-  ].join('\n');
-
-  drawFpsGraph(p.fpsHistory);
-}
-
-function updateGlyphDebugPanel() {
-  const gd = engine.getDebugState().glyph;
-  const sample = gd.sampleCell;
-  glyphDebugPanel.textContent = [
-    `enabled:      ${gd.enabled}`,
-    `language:     ${gd.languageName ?? gd.languageId ?? '—'}`,
-    `categories:   ${gd.categories.join(', ') || '—'}`,
-    `glyph count:  ${gd.glyphCount}`,
-    `atlas hits:   ${gd.atlasHits}`,
-    `morph:        ${gd.morphState}`,
-    `animation:    ${gd.animationState}`,
-    sample ? `sample char:  ${sample.character}` : 'sample char:  —',
-    sample ? `category:     ${sample.category}` : '',
-    sample ? `role:         ${sample.role}` : '',
-    sample ? `morph:        ${(sample.morphProgress * 100).toFixed(0)}% [${sample.morphIndex}]` : '',
-    sample ? `anim:         ${sample.animKind ?? '—'} phase=${sample.animPhase.toFixed(2)}` : '',
-    sample ? `weight:       ${sample.weight.toFixed(2)}` : '',
-    sample ? `density:      ${sample.density.toFixed(2)}` : '',
-    sample ? `unicode:      U+${sample.unicode.toString(16).toUpperCase().padStart(4, '0')}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n');
-}
-
-function updateInputDebugPanel() {
-  const id = engine.getDebugState().input;
-  inputDebugPanel.textContent = [
-    `midi:         ${id.midiConnected ? id.deviceName ?? 'connected' : 'off'}`,
-    `keyboard:     ${id.keyboardEnabled ? 'on' : 'off'}`,
-    `learn:        ${id.learnMode ? id.learnTarget ?? 'active' : 'off'}`,
-    `active notes: ${id.activeNotes.join(', ') || '(none)'}`,
-    `mappings:     ${id.mappingCount} (+ ${id.learnedCount} learned)`,
-    `error:        ${id.error ?? '—'}`,
-  ].join('\n');
-
-  const mapping = engine.getInputMapping();
-  const ccLines = (mapping.ccMappings ?? []).map((m) => `  CC${m.controller} → ${m.target.type}`);
-  const learnedLines = (mapping.learnedMappings ?? []).map(
-    (m) => `  CC${m.controller} → ${m.target.type}${m.target.type === 'control' ? ` (${m.target.control})` : ''}`,
-  );
-  mappingTable.textContent = ['cc:', ...ccLines, 'learned:', ...learnedLines].join('\n') || 'mappings: —';
-
-  const notes = engine.getInputNoteMonitor().slice(0, 8);
-  noteMonitor.textContent = notes.length
-    ? notes.map((n) => `${n.type === 'on' ? 'ON' : 'OFF'} ${n.note} v=${n.velocity} [${n.source}]`).join('\n')
-    : 'notes: —';
-}
-
-function updateAudioMeters(features: NonNullable<ReturnType<typeof engine.getAudioFeatures>>) {
-  const values: Record<AudioMeterId, number> = {
-    amplitude: features.amplitude,
-    bass: features.bass,
-    mid: features.mid,
-    treble: features.treble,
-  };
-  for (const id of audioMeterIds) {
-    const v = values[id];
-    audioMeterValues[id].textContent = v.toFixed(2);
-    audioMeterBars[id].style.width = `${Math.round(v * 100)}%`;
-  }
-}
-
-function updateSimulationDebugPanel() {
-  const sd = engine.getDebugState().simulation;
-  const lines = sd.activeSimulations.map(
-    (s) => `  ${s.id} p=${s.particleCount} mem=${s.memoryBytes}B ${s.updateTimeMs.toFixed(2)}ms`,
-  );
-  simulationDebugPanel.textContent = [
-    `active:       ${sd.activeSimulations.length}`,
-    `particles:    ${sd.totalParticles}`,
-    `memory:       ${sd.totalMemoryBytes} bytes`,
-    `update time:  ${sd.updateTimeMs.toFixed(2)} ms`,
-    `fps:          ${sd.fps}`,
-    ...lines,
-  ].join('\n');
-}
-
-function updateDebugPanel() {
-  const state = engine.getDebugState();
-  fpsEl.textContent = `fps: ${Math.round(state.fps)}`;
-  if (!isLabOpen()) return;
-
-  debugPanel.textContent = [
-    `preset:       ${state.preset}`,
-    `renderer:     ${state.renderer.activeRendererId ?? 'canvas'} (${state.renderer.activeRendererName ?? 'Canvas 2D'})`,
-    `simulations:  ${state.simulation.activeSimulations.map((s) => s.id).join(', ') || '(none)'}`,
-    `source:       ${state.source.mode}${state.source.activeSourceId ? ` (${state.source.activeSourceId})` : ''}`,
-    `effects:      ${state.effects.join(', ') || '(none)'}`,
-    `patterns:     ${state.patterns.join(', ') || '(none)'}`,
-    `motions:      ${state.motions.join(', ') || '(none)'}`,
-    `density:      ${state.density.toFixed(2)}`,
-    `speed:        ${state.speed.toFixed(2)}`,
-    `strength:     ${state.strength.toFixed(2)}`,
-    `glitch:       ${state.glitchAmount.toFixed(2)}`,
-    `trails:       ${state.trailAmount.toFixed(2)}`,
-    `last noteOn:  ${formatNoteOn(state.lastNoteOn)}`,
-    `fps:          ${state.fps}`,
-    `time:         ${state.time.toFixed(1)}s`,
-  ].join('\n');
-
-  updateSourceDebugPanel();
-  updateRendererDebugPanel();
-  updateSimulationDebugPanel();
-  updateCompositingDebugPanel();
-  updateAudioDebugPanel();
-  updateInputDebugPanel();
-  updateGlyphDebugPanel();
-  updateExportDebugPanel();
-  updateScriptDebugPanel();
-  updatePerformanceDebugPanel();
-
-  const md = state.motion;
-  const motionLines = md.activeMotions.map(
-    (m) => `  ${m.id} w=${m.weight.toFixed(2)} p=${m.priority}`,
-  );
-  motionDebugPanel.textContent = [
-    `active:       ${md.activeMotions.length}`,
-    ...motionLines,
-    `frame time:   ${md.frameTimeMs.toFixed(2)} ms`,
-    `avg velocity: ${md.avgVelocity.toFixed(3)}`,
-    `particles:    ${md.particleCount}`,
-    `fps:          ${md.fps}`,
-  ].join('\n');
-}
-
-function createPluginCheckbox(id: string, container: HTMLElement) {
-  const entry = pluginCatalog[id as keyof typeof pluginCatalog];
-  if (!entry) {
-    console.warn(`[Demo] Unknown plugin id "${id}" — checkbox skipped`);
-    return;
-  }
-
+function mountCheckbox(
+  container: HTMLElement,
+  id: string,
+  name: string,
+  registry: Map<string, HTMLInputElement>,
+  onChange: (checked: boolean) => void,
+): void {
   const label = document.createElement('label');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
-  checkbox.value = id;
-  checkbox.id = `plugin-${id}`;
-
+  checkbox.id = `${container.id}-${id}`;
   const text = document.createElement('span');
-  text.textContent = entry.name;
-
-  label.appendChild(checkbox);
-  label.appendChild(text);
+  text.textContent = name;
+  label.append(checkbox, text);
   container.appendChild(label);
-  pluginCheckboxes.set(id, checkbox);
-
+  registry.set(id, checkbox);
   checkbox.addEventListener('change', () => {
     try {
-      if (checkbox.checked) engine.enablePlugin(id);
-      else engine.disablePlugin(id);
-      updateDebugPanel();
+      onChange(checkbox.checked);
     } catch (error) {
       checkbox.checked = !checkbox.checked;
-      console.error(`Plugin "${id}" toggle failed:`, error);
+      console.error(`[Harness] toggle "${id}" failed:`, error);
     }
+    refreshReadouts();
   });
 }
 
-function createSimulationCheckbox(id: string, container: HTMLElement) {
-  const entry = simulationCatalog[id as keyof typeof simulationCatalog];
-  if (!entry) return;
-
-  const label = document.createElement('label');
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.value = id;
-  checkbox.id = `simulation-${id}`;
-
-  const text = document.createElement('span');
-  text.textContent = entry.name;
-
-  label.appendChild(checkbox);
-  label.appendChild(text);
-  container.appendChild(label);
-  simulationCheckboxes.set(id, checkbox);
-
-  checkbox.addEventListener('change', () => {
-    try {
-      if (checkbox.checked) engine.enableSimulation(id);
-      else engine.disableSimulation(id);
-      updateDebugPanel();
-    } catch (error) {
-      checkbox.checked = !checkbox.checked;
-      console.error(`Simulation "${id}" toggle failed:`, error);
-    }
-  });
+for (const [id, entry] of Object.entries(pluginCatalog)) {
+  const target = entry.type === 'pattern' ? patternPluginList : effectPluginList;
+  mountCheckbox(target, id, entry.name, pluginCheckboxes, (on) =>
+    on ? engine.enablePlugin(id) : engine.disablePlugin(id),
+  );
 }
-
-function createMotionCheckbox(id: string, container: HTMLElement) {
-  const entry = motionCatalog[id as keyof typeof motionCatalog];
-  if (!entry) {
-    console.warn(`[Demo] Unknown motion id "${id}" — checkbox skipped`);
-    return;
-  }
-
-  const label = document.createElement('label');
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.value = id;
-  checkbox.id = `motion-${id}`;
-
-  const text = document.createElement('span');
-  text.textContent = entry.name;
-
-  label.appendChild(checkbox);
-  label.appendChild(text);
-  container.appendChild(label);
-  motionCheckboxes.set(id, checkbox);
-
-  checkbox.addEventListener('change', () => {
-    try {
-      if (checkbox.checked) engine.enableMotion(id);
-      else engine.disableMotion(id);
-      updateDebugPanel();
-    } catch (error) {
-      checkbox.checked = !checkbox.checked;
-      console.error(`Motion "${id}" toggle failed:`, error);
-    }
-  });
+for (const [id, entry] of Object.entries(motionCatalog)) {
+  mountCheckbox(motionPluginList, id, entry.name, motionCheckboxes, (on) =>
+    on ? engine.enableMotion(id) : engine.disableMotion(id),
+  );
 }
-
-for (const id of effectPluginIds) createPluginCheckbox(id, effectPluginList);
-for (const id of patternPluginIds) createPluginCheckbox(id, patternPluginList);
-for (const id of motionPluginIds) createMotionCheckbox(id, motionPluginList);
-for (const id of simulationPluginIds) createSimulationCheckbox(id, simulationPluginList);
-
+for (const [id, entry] of Object.entries(simulationCatalog)) {
+  mountCheckbox(simulationPluginList, id, entry.name, simulationCheckboxes, (on) =>
+    on ? engine.enableSimulation(id) : engine.disableSimulation(id),
+  );
+}
 for (const id of listPostPassIds()) {
-  const label = document.createElement('label');
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.id = `post-${id}`;
-
-  const text = document.createElement('span');
-  text.textContent = id;
-
-  label.appendChild(checkbox);
-  label.appendChild(text);
-  postPassList.appendChild(label);
-  postPassCheckboxes.set(id, checkbox);
-
-  checkbox.addEventListener('change', () => {
-    if (checkbox.checked) engine.getPostProcessor().enablePass(id);
-    else engine.getPostProcessor().disablePass(id);
-    updateDebugPanel();
-  });
+  mountCheckbox(postPassList, id, id, postPassCheckboxes, (on) =>
+    on ? engine.getPostProcessor().enablePass(id) : engine.getPostProcessor().disablePass(id),
+  );
 }
 
-const initialPreset = engine.getPreset();
-syncSlidersFromPreset(initialPreset);
-syncPluginsFromEngine();
-syncMotionsFromEngine();
-syncSimulationsFromEngine();
-syncLayersFromEngine();
-syncPostPassesFromEngine();
-presetSelect.value = initialPreset.id;
-presetAllSelect.value = initialPreset.id;
-updateDebugPanel();
-
-for (const id of simSliderIds) {
-  const slider = simSliders[id];
-  if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    simValueDisplays[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
+function syncCompositionFromEngine(): void {
+  const plugins = new Set(engine.getEnabledPlugins().map((p: Plugin) => p.id));
+  for (const [id, box] of pluginCheckboxes) box.checked = plugins.has(id);
+  const motions = new Set(engine.getEnabledMotions().map((m) => m.id));
+  for (const [id, box] of motionCheckboxes) box.checked = motions.has(id);
+  const sims = new Set(engine.getEnabledSimulations().map((s) => s.id));
+  for (const [id, box] of simulationCheckboxes) box.checked = sims.has(id);
+  const passes = new Set(engine.getPostProcessor().getEnabled().map((p) => p.id));
+  for (const [id, box] of postPassCheckboxes) box.checked = passes.has(id);
 }
+
+// ---------------------------------------------------------------------------
+// Preset switching
+// ---------------------------------------------------------------------------
 
 function applyPresetById(id: string): void {
   warnUnknownPreset(id, presetIds);
   const preset = allPresets.find((p) => p.id === id);
-  if (!preset) {
-    console.warn(`[Demo] Preset "${id}" not found`);
-    return;
-  }
+  if (!preset) return;
   engine.setPreset(preset);
+  presetSelect.value = preset.id;
+  buildPresetControls(preset);
   syncSlidersFromEngine();
-  syncPluginsFromEngine();
-  syncMotionsFromEngine();
-  syncSimulationsFromEngine();
-  syncLayersFromEngine();
-  syncPostPassesFromEngine();
-  presetAllSelect.value = preset.id;
-  if (heroPresetIdSet.has(preset.id)) {
-    presetSelect.value = preset.id;
-  } else {
-    presetSelect.selectedIndex = -1;
-  }
-  updateDebugPanel();
+  syncCompositionFromEngine();
+  const url = new URL(window.location.href);
+  url.searchParams.set('preset', preset.id);
+  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  refreshReadouts();
 }
 
-presetSelect.addEventListener('change', () => {
-  applyPresetById(presetSelect.value);
-});
+presetSelect.addEventListener('change', () => applyPresetById(presetSelect.value));
 
-presetAllSelect.addEventListener('change', () => {
-  applyPresetById(presetAllSelect.value);
-});
+$('trigger-burst').addEventListener('click', () => triggerBurst(0.5, 0.5, 1.8));
+$('trigger-burst-random').addEventListener('click', () =>
+  triggerBurst(Math.random(), Math.random(), 1.2 + Math.random()),
+);
+$('trigger-reset').addEventListener('click', () => applyPresetById(engine.getPreset().id));
 
-for (const id of sliderIds) {
-  const slider = sliders[id];
-  if (!slider) continue;
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    if (valueDisplays[id]) {
-      valueDisplays[id].textContent = formatSliderValue(id, value);
-    }
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
-}
-
-function triggerBurst() {
+function triggerBurst(x: number, y: number, intensity: number): void {
   engine.enablePlugin('burst');
-  syncPluginsFromEngine();
-  engine.noteOn({ x: 0.5, y: 0.5, intensity: 1.8 });
-  updateDebugPanel();
+  syncCompositionFromEngine();
+  engine.noteOn({ x, y, intensity });
+  refreshReadouts();
 }
 
-function maxGlitch() {
-  engine.enablePlugin('glitch');
-  syncPluginsFromEngine();
-  engine.setControl('glitchAmount', 1);
-  sliders.glitchAmount.value = '1';
-  valueDisplays.glitchAmount.textContent = '1.00';
-  updateDebugPanel();
-}
+// ---------------------------------------------------------------------------
+// Source
+// ---------------------------------------------------------------------------
 
-function maxTrails() {
-  engine.enablePlugin('trails');
-  syncPluginsFromEngine();
-  engine.setControl('trailAmount', 1);
-  sliders.trailAmount.value = '1';
-  valueDisplays.trailAmount.textContent = '1.00';
-  updateDebugPanel();
-}
+const demoCanvas = document.createElement('canvas');
+demoCanvas.width = 320;
+demoCanvas.height = 240;
+const demoCtx = demoCanvas.getContext('2d')!;
+let canvasAnimAngle = 0;
 
-function resetControls() {
-  syncSlidersFromPreset(engine.getPreset());
-  syncPluginsFromEngine();
-  syncMotionsFromEngine();
-  syncSimulationsFromEngine();
-  syncLayersFromEngine();
-  syncPostPassesFromEngine();
-  updateDebugPanel();
-}
-
-layerBlendSelect.addEventListener('change', () => {
-  if (!activeLayerId) return;
-  const layer = engine.getLayerManager().getLayer(activeLayerId);
-  if (layer) {
-    layer.blendMode = layerBlendSelect.value as BlendMode;
-    syncLayersFromEngine();
-    updateDebugPanel();
-  }
-});
-
-layerOpacitySlider.addEventListener('input', () => {
-  const value = parseFloat(layerOpacitySlider.value);
-  layerOpacityValue.textContent = value.toFixed(2);
-  if (!activeLayerId) return;
-  const layer = engine.getLayerManager().getLayer(activeLayerId);
-  if (layer) {
-    layer.opacity = value;
-    updateDebugPanel();
-  }
-});
-
-addLayerBtn.addEventListener('click', () => {
-  layerCounter += 1;
-  const id = `layer-${layerCounter}`;
-  const patterns = ['radialSymmetry', 'spiral', 'wavePattern', 'grid'];
-  const pattern = patterns[layerCounter % patterns.length];
-  engine.getLayerManager().addLayer({
-    id,
-    name: `Layer ${layerCounter}`,
-    opacity: 0.6,
-    blendMode: 'add',
-    pattern,
-    mask: { type: 'radial', amount: 0.9 },
-  });
-  activeLayerId = id;
-  syncLayersFromEngine();
-  updateDebugPanel();
-});
-
-resetCompositionBtn.addEventListener('click', () => {
-  engine.resetComposition();
-  syncLayersFromEngine();
-  syncPostPassesFromEngine();
-  updateDebugPanel();
-});
-
-for (const id of postSliderIds) {
-  const slider = postSliders[id];
-  if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    postValueDisplays[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
-}
-
-document.getElementById('burst-center')!.addEventListener('click', triggerBurst);
-document.getElementById('burst-random')!.addEventListener('click', () => {
-  engine.enablePlugin('burst');
-  syncPluginsFromEngine();
-  engine.noteOn({
-    x: Math.random(),
-    y: Math.random(),
-    intensity: 1.2 + Math.random(),
-  });
-  updateDebugPanel();
-});
-document.getElementById('test-burst')!.addEventListener('click', triggerBurst);
-document.getElementById('test-glitch')!.addEventListener('click', maxGlitch);
-document.getElementById('test-trails')!.addEventListener('click', maxTrails);
-document.getElementById('test-reset')!.addEventListener('click', resetControls);
-
-engine.on('frame', () => updateDebugPanel());
-engine.on('noteOn', () => updateDebugPanel());
-engine.on('control', () => updateDebugPanel());
-engine.on('preset', () => updateDebugPanel());
-engine.on('plugin', () => updateDebugPanel());
-engine.on('motion', () => updateDebugPanel());
-engine.on('source', () => updateDebugPanel());
-engine.on('simulation', () => updateDebugPanel());
-engine.on('renderer', () => updateDebugPanel());
-engine.on('audio', () => updateAudioDebugPanel());
-engine.on('input', () => updateInputDebugPanel());
-
-async function refreshMidiDevices() {
-  const devices = await engine.getMidiDevices();
-  midiDeviceSelect.innerHTML = '';
-  if (devices.length === 0) {
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = '(no devices)';
-    midiDeviceSelect.appendChild(opt);
-    return;
-  }
-  for (const device of devices) {
-    const opt = document.createElement('option');
-    opt.value = device.id;
-    opt.textContent = device.name;
-    midiDeviceSelect.appendChild(opt);
-  }
-}
-
-void refreshMidiDevices();
-
-connectMidiBtn.addEventListener('click', async () => {
-  midiErrorEl.textContent = '';
-  const deviceId = midiDeviceSelect.value || undefined;
-  const result = await engine.connectMidi(deviceId);
-  if (!result.ok) {
-    midiErrorEl.textContent = result.error ?? 'MIDI connection failed';
-  }
-  updateDebugPanel();
-});
-
-disconnectMidiBtn.addEventListener('click', () => {
-  engine.disconnectMidi();
-  midiErrorEl.textContent = '';
-  updateDebugPanel();
-});
-
-keyboardInputToggle.addEventListener('change', () => {
-  if (keyboardInputToggle.checked) engine.enableKeyboardInput();
-  else engine.disableKeyboardInput();
-  updateDebugPanel();
-});
-
-inputPanicBtn.addEventListener('click', () => {
-  engine.inputPanic();
-  updateDebugPanel();
-});
-
-startLearnBtn.addEventListener('click', () => {
-  const control = learnControlSelect.value;
-  if (!control) {
-    engine.cancelInputLearn();
-    updateDebugPanel();
-    return;
-  }
-  engine.startInputLearn(
-    { type: 'control', control, min: 0, max: 1 },
-    () => updateDebugPanel(),
-  );
-  updateDebugPanel();
-});
-
-clearLearnedBtn.addEventListener('click', () => {
-  engine.clearInputMapping();
-  updateDebugPanel();
-});
-
-resetInputMappingBtn.addEventListener('click', () => {
-  engine.resetInputMapping();
-  updateDebugPanel();
-});
-
-document.getElementById('export-png')!.addEventListener('click', async () => {
-  exportErrorEl.textContent = '';
-  const result = await engine.exportPNG({ pixelRatio: 2 });
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'PNG export failed';
-  updateDebugPanel();
-});
-
-document.getElementById('export-svg')!.addEventListener('click', () => {
-  exportErrorEl.textContent = '';
-  const result = engine.exportSVG({ transparent: true });
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'SVG export failed';
-  updateDebugPanel();
-});
-
-document.getElementById('export-ascii')!.addEventListener('click', () => {
-  exportErrorEl.textContent = '';
-  const result = engine.exportASCII({ format: 'plain' });
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'ASCII export failed';
-  updateDebugPanel();
-});
-
-document.getElementById('export-json')!.addEventListener('click', () => {
-  exportErrorEl.textContent = '';
-  const result = engine.exportJSON();
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'JSON export failed';
-  updateDebugPanel();
-});
-
-document.getElementById('import-json')!.addEventListener('change', async (e) => {
-  exportErrorEl.textContent = '';
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file) return;
-  const text = await file.text();
-  const result = engine.importJSON(text);
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'JSON import failed';
-  syncPluginsFromEngine();
-  syncSlidersFromEngine();
-  updateDebugPanel();
-  (e.target as HTMLInputElement).value = '';
-});
-
-document.getElementById('start-recording')!.addEventListener('click', () => {
-  exportErrorEl.textContent = '';
-  const result = engine.startRecording(30);
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'Recording failed';
-  updateDebugPanel();
-});
-
-document.getElementById('stop-recording')!.addEventListener('click', () => {
-  engine.stopRecording();
-  updateDebugPanel();
-});
-
-document.getElementById('export-gif')!.addEventListener('click', async () => {
-  exportErrorEl.textContent = '';
-  const result = await engine.exportGIF({ frameRate: 15, loop: true });
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'GIF export failed';
-  updateDebugPanel();
-});
-
-document.getElementById('export-sequence')!.addEventListener('click', async () => {
-  exportErrorEl.textContent = '';
-  const result = await engine.exportSequence({ prefix: 'ascii-frame' });
-  if (!result.ok) exportErrorEl.textContent = result.error ?? 'Sequence export failed';
-  updateDebugPanel();
-});
-
-document.getElementById('play-recording')!.addEventListener('click', () => {
-  engine.playRecording({ loop: true, speed: 1, frameRate: 30 });
-  updateDebugPanel();
-});
-
-document.getElementById('stop-playback')!.addEventListener('click', () => {
-  engine.stopPlayback();
-  updateDebugPanel();
-});
-
-document.getElementById('step-back')!.addEventListener('click', () => {
-  engine.stepPlayback(-1);
-  updateDebugPanel();
-});
-
-document.getElementById('step-forward')!.addEventListener('click', () => {
-  engine.stepPlayback(1);
-  updateDebugPanel();
-});
-
-function applyRendererMode(id: RendererId) {
-  const previous = engine.getActiveRendererId();
-  const result = engine.setActiveRenderer(id);
-  if (!result.ok) {
-    rendererWarning.textContent = result.warning ?? 'Renderer switch failed.';
-    if (previous) rendererModeSelect.value = previous;
-  } else {
-    rendererWarning.textContent = result.warning ?? '';
-    updateOutputVisibility(engine.getActiveRendererId());
-  }
-  updateDebugPanel();
-}
-
-rendererModeSelect.addEventListener('change', () => {
-  applyRendererMode(rendererModeSelect.value as RendererId);
-});
-
-updateOutputVisibility(engine.getActiveRendererId());
-rendererModeSelect.value = engine.getActiveRendererId() ?? 'canvas';
-
-function drawDemoCanvas() {
+function drawDemoCanvas(): void {
   canvasAnimAngle += 0.03;
   const { width, height } = demoCanvas;
   demoCtx.fillStyle = '#001a0d';
@@ -1239,217 +441,554 @@ function drawDemoCanvas() {
   demoCtx.fillText('CANVAS SOURCE', 16, 28);
 }
 
-async function setSourceMode(mode: string) {
-  if (mode === 'procedural') {
-    engine.setSourceMode('procedural');
-    updateSourceInputs('procedural');
-    updateDebugPanel();
-    return;
-  }
-
-  engine.setActiveSource(mode);
-  updateSourceInputs(mode);
-
-  if (mode === 'canvas') {
-    drawDemoCanvas();
-    await engine.loadSource('canvas', { canvas: demoCanvas });
-  }
-
-  updateDebugPanel();
+function updateSourceInputs(mode: string): void {
+  imageInput.hidden = mode !== 'image';
+  videoInput.hidden = mode !== 'video';
+  webcamRow.hidden = mode !== 'webcam';
+  const procedural = mode === 'procedural';
+  sourceControlsEl.hidden = procedural;
+  sourceFitSelect.hidden = procedural;
+  sourceFitSelect.previousElementSibling?.toggleAttribute('hidden', procedural);
 }
 
-function updateSourceInputs(mode: string) {
-  imageInputLabel.style.display = mode === 'image' ? 'block' : 'none';
-  imageInput.style.display = mode === 'image' ? 'block' : 'none';
-  videoInputLabel.style.display = mode === 'video' ? 'block' : 'none';
-  videoInput.style.display = mode === 'video' ? 'block' : 'none';
-  startWebcamBtn.style.display = mode === 'webcam' ? 'block' : 'none';
+async function loadSource(id: string, input: unknown): Promise<void> {
+  sourceErrorEl.textContent = '';
+  try {
+    engine.setActiveSource(id);
+    await engine.loadSource(id, input);
+  } catch (error) {
+    sourceErrorEl.textContent = error instanceof Error ? error.message : String(error);
+  }
+  refreshReadouts();
 }
 
 sourceModeSelect.addEventListener('change', () => {
-  void setSourceMode(sourceModeSelect.value);
+  const mode = sourceModeSelect.value;
+  updateSourceInputs(mode);
+  sourceErrorEl.textContent = '';
+  if (mode === 'procedural') {
+    engine.setSourceMode('procedural');
+    refreshReadouts();
+    return;
+  }
+  if (mode === 'canvas') {
+    drawDemoCanvas();
+    void loadSource('canvas', { canvas: demoCanvas });
+    return;
+  }
+  // image, video, webcam wait for their input
+  engine.setActiveSource(mode);
+  refreshReadouts();
 });
 
 sourceFitSelect.addEventListener('change', () => {
-  const source = engine.getSourceManager().getActiveSource();
-  if (source) {
-    source.setFitMode(sourceFitSelect.value as 'fit' | 'fill' | 'stretch' | 'center');
-    updateDebugPanel();
-  }
+  engine
+    .getSourceManager()
+    .getActiveSource()
+    ?.setFitMode(sourceFitSelect.value as 'fit' | 'fill' | 'stretch' | 'center');
+  refreshReadouts();
 });
 
-imageInput.addEventListener('change', async () => {
+imageInput.addEventListener('change', () => {
   const file = imageInput.files?.[0];
-  if (!file) return;
-  engine.setActiveSource('image');
-  await engine.loadSource('image', file);
-  updateDebugPanel();
+  if (file) void loadSource('image', file);
 });
 
-videoInput.addEventListener('change', async () => {
+videoInput.addEventListener('change', () => {
   const file = videoInput.files?.[0];
-  if (!file) return;
-  engine.setActiveSource('video');
-  await engine.loadSource('video', { file, loop: true, muted: true });
-  updateDebugPanel();
+  if (file) void loadSource('video', { file, loop: true, muted: true });
 });
 
-startWebcamBtn.addEventListener('click', async () => {
-  engine.setActiveSource('webcam');
-  await engine.loadSource('webcam', { facingMode: 'user' });
-  updateDebugPanel();
+startWebcamBtn.addEventListener('click', () => {
+  void loadSource('webcam', { facingMode: 'user' });
 });
 
-for (const id of sourceSliderIds) {
-  const slider = sourceSliders[id];
-  if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    sourceValueDisplays[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
+engine.on('frame', () => {
+  if (sourceModeSelect.value === 'canvas') drawDemoCanvas();
+});
+
+updateSourceInputs('procedural');
+
+// ---------------------------------------------------------------------------
+// Renderer
+// ---------------------------------------------------------------------------
+
+function updateOutputVisibility(rendererId: RendererId | null): void {
+  const useDom = rendererId === 'dom';
+  canvas.style.display = useDom ? 'none' : 'block';
+  domOutput.style.display = useDom ? 'block' : 'none';
 }
 
-for (const id of audioSliderIds) {
-  const slider = audioSliders[id];
-  if (!slider) continue;
-  engine.setControl(id, parseFloat(slider.value));
-  slider.addEventListener('input', () => {
-    const value = parseFloat(slider.value);
-    audioSliderValues[id].textContent = value.toFixed(2);
-    engine.setControl(id, value);
-    updateDebugPanel();
-  });
-}
+rendererModeSelect.addEventListener('change', () => {
+  const previous = engine.getActiveRendererId();
+  const result = engine.setActiveRenderer(rendererModeSelect.value as RendererId);
+  if (!result.ok) {
+    rendererWarning.textContent = result.warning ?? 'Renderer switch failed.';
+    if (previous) rendererModeSelect.value = previous;
+  } else {
+    rendererWarning.textContent = result.warning ?? '';
+    updateOutputVisibility(engine.getActiveRendererId());
+  }
+  refreshReadouts();
+});
 
-async function connectMicrophone() {
+updateOutputVisibility(engine.getActiveRendererId());
+rendererModeSelect.value = engine.getActiveRendererId() ?? 'canvas';
+
+// ---------------------------------------------------------------------------
+// Audio
+// ---------------------------------------------------------------------------
+
+async function connectMicrophone(): Promise<void> {
   audioErrorEl.textContent = '';
   engine.disconnectAudio();
   audioElement.pause();
   const result = await engine.connectAudio({ type: 'microphone' });
-  if (!result.ok) {
-    audioErrorEl.textContent = result.error ?? 'Microphone connection failed';
-  }
-  updateDebugPanel();
+  if (!result.ok) audioErrorEl.textContent = result.error ?? 'Microphone connection failed';
+  refreshReadouts();
 }
 
-async function connectAudioFile(file: File) {
+async function connectAudioFile(file: File): Promise<void> {
   audioErrorEl.textContent = '';
   engine.disconnectAudio();
-  const url = URL.createObjectURL(file);
-  audioElement.src = url;
+  audioElement.src = URL.createObjectURL(file);
   audioElement.loop = true;
   await audioElement.play();
   const result = await engine.connectAudio({ type: 'audioElement', audioElement });
-  if (!result.ok) {
-    audioErrorEl.textContent = result.error ?? 'Audio file connection failed';
-  }
-  updateDebugPanel();
+  if (!result.ok) audioErrorEl.textContent = result.error ?? 'Audio file connection failed';
+  refreshReadouts();
 }
 
-startMicrophoneBtn.addEventListener('click', () => {
-  void connectMicrophone();
-});
-
+startMicrophoneBtn.addEventListener('click', () => void connectMicrophone());
 audioFileInput.addEventListener('change', () => {
   const file = audioFileInput.files?.[0];
-  if (!file) return;
-  void connectAudioFile(file);
+  if (file) void connectAudioFile(file);
 });
-
 disconnectAudioBtn.addEventListener('click', () => {
   engine.disconnectAudio();
   audioElement.pause();
   audioErrorEl.textContent = '';
-  updateDebugPanel();
+  refreshReadouts();
 });
 
-engine.on('frame', () => {
-  if (sourceModeSelect.value === 'canvas') {
-    drawDemoCanvas();
+function updateAudioMeters(features: NonNullable<ReturnType<typeof engine.getAudioFeatures>>): void {
+  const values: Record<AudioMeterId, number> = {
+    amplitude: features.amplitude,
+    bass: features.bass,
+    mid: features.mid,
+    treble: features.treble,
+  };
+  for (const id of audioMeterIds) {
+    audioMeterValues[id].textContent = values[id].toFixed(2);
+    audioMeterBars[id].style.width = `${Math.round(values[id] * 100)}%`;
   }
-});
+}
 
-window.addEventListener('resize', () => {
-  engine.resize(getViewportSize().width, getViewportSize().height);
-});
+// ---------------------------------------------------------------------------
+// Input
+// ---------------------------------------------------------------------------
 
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') {
-    e.preventDefault();
-    triggerBurst();
+async function refreshMidiDevices(): Promise<void> {
+  const devices = await engine.getMidiDevices();
+  midiDeviceSelect.innerHTML = '';
+  if (devices.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '(no devices)';
+    midiDeviceSelect.appendChild(opt);
+    return;
   }
+  for (const device of devices) {
+    const opt = document.createElement('option');
+    opt.value = device.id;
+    opt.textContent = device.name;
+    midiDeviceSelect.appendChild(opt);
+  }
+}
+void refreshMidiDevices();
+
+connectMidiBtn.addEventListener('click', async () => {
+  midiErrorEl.textContent = '';
+  await refreshMidiDevices();
+  const result = await engine.connectMidi(midiDeviceSelect.value || undefined);
+  if (!result.ok) midiErrorEl.textContent = result.error ?? 'MIDI connection failed';
+  refreshReadouts();
 });
 
-runScriptBtn.addEventListener('click', () => {
-  const id = scriptSelect.value;
-  if (!id) return;
-  void engine.runScript(id).then(() => {
-    syncPluginsFromEngine();
-    syncMotionsFromEngine();
-    syncSimulationsFromEngine();
-    updateDebugPanel();
-  }).catch((err) => {
-    scriptStatusEl.textContent = `error: ${err instanceof Error ? err.message : String(err)}`;
-    updateDebugPanel();
-  });
+disconnectMidiBtn.addEventListener('click', () => {
+  engine.disconnectMidi();
+  midiErrorEl.textContent = '';
+  refreshReadouts();
 });
 
-stopScriptBtn.addEventListener('click', () => {
-  void engine.stopScript().then(() => updateDebugPanel());
+inputPanicBtn.addEventListener('click', () => {
+  engine.inputPanic();
+  refreshReadouts();
 });
 
-reloadScriptBtn.addEventListener('click', () => {
-  void engine.reloadScript(scriptSelect.value || undefined).then(() => updateDebugPanel());
+keyboardInputToggle.addEventListener('change', () => {
+  if (keyboardInputToggle.checked) engine.enableKeyboardInput();
+  else engine.disableKeyboardInput();
+  refreshReadouts();
 });
 
-restartScriptBtn.addEventListener('click', () => {
-  void engine.restartScript().then(() => updateDebugPanel());
+startLearnBtn.addEventListener('click', () => {
+  const control = learnControlSelect.value;
+  if (!control) {
+    engine.cancelInputLearn();
+    refreshReadouts();
+    return;
+  }
+  const def = sliders.get(control)?.def;
+  engine.startInputLearn(
+    { type: 'control', control, min: def?.min ?? 0, max: def?.max ?? 1 },
+    () => refreshReadouts(),
+  );
+  refreshReadouts();
 });
 
-enableScriptBtn.addEventListener('click', () => {
-  engine.enableScript();
-  updateDebugPanel();
+clearLearnedBtn.addEventListener('click', () => {
+  engine.clearInputMapping();
+  refreshReadouts();
 });
 
-disableScriptBtn.addEventListener('click', () => {
-  engine.disableScript();
-  updateDebugPanel();
+resetInputMappingBtn.addEventListener('click', () => {
+  engine.resetInputMapping();
+  refreshReadouts();
 });
 
-clearScriptConsoleBtn.addEventListener('click', () => {
-  engine.clearScriptConsole();
-  updateDebugPanel();
+// ---------------------------------------------------------------------------
+// Export and recording
+// ---------------------------------------------------------------------------
+
+function reportExport(result: { ok: boolean; error?: string }, fallback: string): void {
+  exportErrorEl.textContent = result.ok ? '' : (result.error ?? fallback);
+  refreshReadouts();
+}
+
+$('export-png').addEventListener('click', async () => {
+  reportExport(await engine.exportPNG({ pixelRatio: 2 }), 'PNG export failed');
 });
+$('export-svg').addEventListener('click', () => {
+  reportExport(engine.exportSVG({ transparent: true }), 'SVG export failed');
+});
+$('export-ascii').addEventListener('click', () => {
+  reportExport(engine.exportASCII({ format: 'plain' }), 'ASCII export failed');
+});
+$('export-json').addEventListener('click', () => {
+  reportExport(engine.exportJSON(), 'JSON export failed');
+});
+
+importJsonInput.addEventListener('change', async () => {
+  const file = importJsonInput.files?.[0];
+  if (!file) return;
+  const result = engine.importJSON(await file.text());
+  reportExport(result, 'JSON import failed');
+  buildPresetControls(engine.getPreset());
+  syncSlidersFromEngine();
+  syncCompositionFromEngine();
+  importJsonInput.value = '';
+});
+
+$('start-recording').addEventListener('click', () => {
+  reportExport(engine.startRecording(30), 'Recording failed');
+});
+$('stop-recording').addEventListener('click', () => {
+  engine.stopRecording();
+  refreshReadouts();
+});
+$('export-gif').addEventListener('click', async () => {
+  reportExport(await engine.exportGIF({ frameRate: 15, loop: true }), 'GIF export failed');
+});
+$('export-sequence').addEventListener('click', async () => {
+  reportExport(await engine.exportSequence({ prefix: 'ascii-frame' }), 'Sequence export failed');
+});
+$('play-recording').addEventListener('click', () => {
+  engine.playRecording({ loop: true, speed: 1, frameRate: 30 });
+  refreshReadouts();
+});
+$('step-back').addEventListener('click', () => {
+  engine.pausePlayback();
+  engine.stepPlayback(-1);
+  refreshReadouts();
+});
+$('step-forward').addEventListener('click', () => {
+  engine.pausePlayback();
+  engine.stepPlayback(1);
+  refreshReadouts();
+});
+$('stop-playback').addEventListener('click', () => {
+  engine.stopPlayback();
+  refreshReadouts();
+});
+
+// ---------------------------------------------------------------------------
+// Performance
+// ---------------------------------------------------------------------------
 
 qualityPresetSelect.addEventListener('change', () => {
   engine.setQualityPreset(qualityPresetSelect.value as QualityPresetId);
   syncSlidersFromEngine();
-  updateDebugPanel();
+  refreshReadouts();
 });
 
 adaptiveQualityToggle.addEventListener('change', () => {
   engine.setControl('adaptiveQuality', adaptiveQualityToggle.checked ? 1 : 0);
-  engine.getPerformanceManager().setAdaptiveQuality(adaptiveQualityToggle.checked);
-  updateDebugPanel();
+  refreshReadouts();
 });
 
 dirtyRenderingToggle.addEventListener('change', () => {
   engine.setControl('dirtyRendering', dirtyRenderingToggle.checked ? 1 : 0);
-  engine.getPerformanceManager().getDirtyTracker().setEnabled(dirtyRenderingToggle.checked);
-  updateDebugPanel();
+  refreshReadouts();
 });
 
 spatialGridToggle.addEventListener('change', () => {
   engine.setControl('spatialGrid', spatialGridToggle.checked ? 1 : 0);
-  updateDebugPanel();
+  refreshReadouts();
 });
 
 fpsTargetSlider.addEventListener('input', () => {
   const val = parseInt(fpsTargetSlider.value, 10);
   fpsTargetValue.textContent = String(val);
   engine.setControl('fpsTarget', val);
-  engine.getPerformanceManager().setFpsTarget(val);
 });
+
+function drawFpsGraph(history: number[]): void {
+  const w = fpsGraphCanvas.width;
+  const h = fpsGraphCanvas.height;
+  fpsGraphCtx.fillStyle = 'rgba(0,0,0,0.6)';
+  fpsGraphCtx.fillRect(0, 0, w, h);
+  if (history.length < 2) return;
+  const maxFps = 120;
+  fpsGraphCtx.strokeStyle = '#00ff88';
+  fpsGraphCtx.lineWidth = 1;
+  fpsGraphCtx.beginPath();
+  for (let i = 0; i < history.length; i++) {
+    const x = (i / (history.length - 1)) * w;
+    const y = h - (Math.min(history[i], maxFps) / maxFps) * h;
+    if (i === 0) fpsGraphCtx.moveTo(x, y);
+    else fpsGraphCtx.lineTo(x, y);
+  }
+  fpsGraphCtx.stroke();
+  fpsGraphCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+  fpsGraphCtx.beginPath();
+  const targetY = h - (parseFloat(fpsTargetSlider.value) / maxFps) * h;
+  fpsGraphCtx.moveTo(0, targetY);
+  fpsGraphCtx.lineTo(w, targetY);
+  fpsGraphCtx.stroke();
+}
+
+// ---------------------------------------------------------------------------
+// Scripting
+// ---------------------------------------------------------------------------
+
+for (const script of galleryScripts) {
+  const opt = document.createElement('option');
+  opt.value = script.id;
+  opt.textContent = script.name ?? script.id;
+  scriptSelect.appendChild(opt);
+}
+
+$('run-script').addEventListener('click', () => {
+  const id = scriptSelect.value;
+  if (!id) return;
+  engine
+    .runScript(id)
+    .then(() => {
+      syncCompositionFromEngine();
+      refreshReadouts();
+    })
+    .catch((err) => {
+      scriptStatusEl.textContent = `error: ${err instanceof Error ? err.message : String(err)}`;
+      refreshReadouts();
+    });
+});
+$('stop-script').addEventListener('click', () => void engine.stopScript().then(refreshReadouts));
+$('restart-script').addEventListener('click', () => void engine.restartScript().then(refreshReadouts));
+$('enable-script').addEventListener('click', () => {
+  engine.enableScript();
+  refreshReadouts();
+});
+$('disable-script').addEventListener('click', () => {
+  engine.disableScript();
+  refreshReadouts();
+});
+$('clear-script-console').addEventListener('click', () => {
+  engine.clearScriptConsole();
+  refreshReadouts();
+});
+
+// ---------------------------------------------------------------------------
+// Readouts. One per section, all from getDebugState().
+// ---------------------------------------------------------------------------
+
+function formatNoteOn(note: EngineDebugState['lastNoteOn']): string {
+  if (!note) return 'none';
+  return `x=${note.x?.toFixed(2) ?? '?'} y=${note.y?.toFixed(2) ?? '?'} i=${note.intensity?.toFixed(2) ?? '?'}`;
+}
+
+function isOpen(sectionId: string): boolean {
+  return (document.getElementById(sectionId) as HTMLDetailsElement | null)?.open ?? false;
+}
+
+function refreshReadouts(): void {
+  const state = engine.getDebugState();
+  fpsEl.textContent = `fps: ${Math.round(state.fps)}`;
+  if (document.body.classList.contains('ui-hidden')) return;
+
+  if (isOpen('section-preset')) {
+    const md = state.motion;
+    const gd = state.glyph;
+    engineReadout.textContent = [
+      `preset:      ${state.preset}`,
+      `effects:     ${state.effects.join(', ') || 'none'}`,
+      `patterns:    ${state.patterns.join(', ') || 'none'}`,
+      `motions:     ${md.activeMotions.map((m) => `${m.id} w=${m.weight.toFixed(2)}`).join(', ') || 'none'}`,
+      `simulations: ${state.simulation.activeSimulations.map((s) => `${s.id} p=${s.particleCount}`).join(', ') || 'none'}`,
+      `post:        ${state.postProcessing.enabledPasses.join(', ') || 'none'}`,
+      `layers:      ${state.compositing.enabledCount}/${state.compositing.layerCount}`,
+      `glyphs:      ${gd.enabled ? `${gd.languageName ?? gd.languageId} (${gd.glyphCount})` : 'off'}`,
+      `last noteOn: ${formatNoteOn(state.lastNoteOn)}`,
+      `time:        ${state.time.toFixed(1)}s`,
+    ].join('\n');
+  }
+
+  if (isOpen('section-source')) {
+    const s = state.source;
+    sourceReadout.textContent = [
+      `mode:   ${s.mode}`,
+      `active: ${s.activeSourceId ?? 'none'} (${s.activeSourceType ?? 'none'})`,
+      `ready:  ${s.ready}`,
+      `error:  ${s.error ?? 'none'}`,
+      `size:   ${s.width}x${s.height}, fit ${s.fitMode}`,
+    ].join('\n');
+  }
+
+  if (isOpen('section-renderer')) {
+    const rd = state.renderer;
+    rendererReadout.textContent = [
+      `active:      ${rd.activeRendererId ?? 'none'} (${rd.activeRendererName ?? ''})`,
+      `render time: ${rd.renderTimeMs.toFixed(2)} ms`,
+      `live switch: ${rd.supportsLiveSwitch}`,
+      `offscreen:   ${rd.offscreenSupported ? 'supported' : 'unsupported'}`,
+      `warning:     ${rd.switchWarning ?? 'none'}`,
+    ].join('\n');
+  }
+
+  if (isOpen('section-audio')) {
+    const ad = state.audio;
+    const f = ad.features;
+    audioReadout.textContent = [
+      `connected: ${ad.connected} (${ad.inputType ?? 'none'})`,
+      `ready:     ${ad.ready}`,
+      `mapping:   ${ad.mappingEnabled ? 'on' : 'off'}`,
+      `error:     ${ad.error ?? 'none'}`,
+      `update:    ${ad.updateTimeMs.toFixed(2)} ms`,
+      f ? `transient: ${f.transient.toFixed(3)}  beat: ${f.beat.toFixed(3)}` : 'features:  none',
+    ].join('\n');
+    if (f) updateAudioMeters(f);
+  }
+
+  if (isOpen('section-input')) {
+    const id = state.input;
+    const mapping = engine.getInputMapping();
+    const cc = (mapping.ccMappings ?? []).map((m) => `  CC${m.controller} -> ${m.target.type}`);
+    const learned = (mapping.learnedMappings ?? []).map(
+      (m) => `  CC${m.controller} -> ${m.target.type}${m.target.type === 'control' ? ` (${m.target.control})` : ''}`,
+    );
+    const notes = engine.getInputNoteMonitor().slice(0, 6);
+    inputReadout.textContent = [
+      `midi:     ${id.midiConnected ? (id.deviceName ?? 'connected') : 'off'}`,
+      `keyboard: ${id.keyboardEnabled ? 'on' : 'off'}`,
+      `learn:    ${id.learnMode ? (id.learnTarget ?? 'active') : 'off'}`,
+      `notes:    ${id.activeNotes.join(', ') || 'none'}`,
+      `error:    ${id.error ?? 'none'}`,
+      `mappings: ${id.mappingCount} (+${id.learnedCount} learned)`,
+      ...cc,
+      ...learned,
+      ...notes.map((n) => `  ${n.type === 'on' ? 'ON ' : 'OFF'} ${n.note} v=${n.velocity} [${n.source}]`),
+    ].join('\n');
+  }
+
+  if (isOpen('section-export')) {
+    const ex = state.export;
+    const rec = ex.recording;
+    const pb = ex.playback;
+    recordingStatus.textContent = `${rec.state}, ${rec.frameCount} frames (${rec.duration.toFixed(1)}s @ ${rec.frameRate}fps)`;
+    recordingStatus.style.color = rec.state === 'recording' ? '#ff4444' : '';
+    exportReadout.textContent = [
+      `playback:    ${pb.active ? (pb.playing ? 'playing' : 'holding') : 'released'} frame ${pb.frameIndex + 1}/${pb.frameCount}`,
+      `last export: ${ex.lastExport ?? 'none'}`,
+    ].join('\n');
+  }
+
+  if (isOpen('section-performance')) {
+    const p = state.performance;
+    performanceReadout.textContent = [
+      `fps:         ${Math.round(p.fps)} (target ${p.fpsTarget})`,
+      `frame:       ${p.frameTimeMs.toFixed(2)} ms, slowest ${p.slowestPhase ?? 'none'} ${p.slowestPhaseMs.toFixed(2)} ms`,
+      `update:      ${p.updateTimeMs.toFixed(2)} ms, render ${p.renderTimeMs.toFixed(2)} ms`,
+      `quality:     ${p.quality}${p.adaptiveQuality ? ' (adaptive)' : ''}`,
+      `glyphs:      ${p.glyphCount}, particles ${p.particleCount}, draw calls ${p.drawCalls}`,
+      `dirty cells: ${p.render.dirtyCells}${p.render.partialUpdate ? ' (partial)' : ''}`,
+      `glyph cache: ${p.glyphAtlasHits} hits / ${p.glyphAtlasMisses} miss`,
+      `memory est:  ${(p.memory.estimatedBytes / 1024).toFixed(1)} KB, pool ${p.memory.poolAvailable}`,
+    ].join('\n');
+    drawFpsGraph(p.fpsHistory);
+  }
+
+  if (isOpen('section-scripting')) {
+    const sd = state.script;
+    scriptStatusEl.textContent = sd.activeScriptId
+      ? `${sd.activeScriptId}: ${sd.state}${sd.error ? ` (${sd.error})` : ''}, ${sd.frameCount} frames`
+      : 'idle';
+    scriptConsoleEl.textContent =
+      sd.logs.length > 0 ? sd.logs.slice(-30).map((l) => `[${l.level}] ${l.message}`).join('\n') : '(console empty)';
+    const vars = engine.getScriptEngine().getContextVars();
+    scriptVarsEl.textContent = Object.keys(vars).length > 0 ? JSON.stringify(vars, null, 2) : '(no vars)';
+  }
+}
+
+for (const section of document.querySelectorAll<HTMLDetailsElement>('details')) {
+  section.addEventListener('toggle', () => refreshReadouts());
+}
+
+engine.on('frame', () => refreshReadouts());
+engine.on('input', () => refreshReadouts());
+
+// ---------------------------------------------------------------------------
+// Keys and window
+// ---------------------------------------------------------------------------
+
+window.addEventListener('keydown', (event) => {
+  const target = event.target;
+  if (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  ) {
+    return;
+  }
+  if (event.key === 'h' || event.key === 'H') {
+    event.preventDefault();
+    document.body.classList.toggle('ui-hidden');
+    refreshReadouts();
+  } else if (event.code === 'Space') {
+    event.preventDefault();
+    triggerBurst(0.5, 0.5, 1.8);
+  }
+});
+
+window.addEventListener('resize', () => {
+  engine.resize(window.innerWidth, window.innerHeight);
+});
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+
+presetSelect.value = bootPreset.id;
+buildPresetControls(bootPreset);
+syncSlidersFromEngine();
+syncCompositionFromEngine();
+refreshReadouts();

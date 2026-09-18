@@ -2,7 +2,7 @@
 
 **What it is.** A Canvas 2D ASCII rendering engine, shipped as a TypeScript library. It turns a grid of characters into a real time visual instrument: patterns, motion fields, simulations, live sources, audio and MIDI input, compositing, export. The host application owns the shell; the engine owns the grid.
 
-**Who it is for.** Nate's own instruments first. Plantasonic and Signal 9 mount it through `@plantasonic/platform`. The vanilla demo at `examples/vanilla` is the public face of the engine itself and the harness used to test it.
+**Who it is for.** Nate's own instruments first. Plantasonic and Signal 9 mount it through `@plantasonic/platform`. The vanilla demo at `examples/vanilla` is the harness used to exercise the engine; hosts own their UI.
 
 **Status.** v0.2.0 on `release/0.2.0`, 2026-09-17: local stabilization work, GitHub main, and the platform's vendored copy consolidated. Not on npm; hosts pin a git tag. The live site at visual-engine.xyz is the older June build and is currently broken until this is deployed. See ROADMAP.md.
 
@@ -31,7 +31,7 @@ One grid, many inputs. Anything that can produce a number per cell (a pattern, a
 | Scripting | Safe public `ScriptAPI` over presets, controls, simulations, layers, events; script gallery in the demo |
 | Performance | Frame profiler, quality presets, object pooling, glyph cache, dirty region rendering, spatial grid for boids |
 | Presets | 30 built in across basic, motion, simulation, compositing, audio, performance, and glyph families |
-| Tests | 189 passing (vitest) |
+| Tests | 203 passing (vitest) |
 | Build | ESM 284 KB, CJS 213 KB, TypeScript declarations |
 
 ## What it is not
@@ -60,8 +60,7 @@ One grid, many inputs. Anything that can produce a number per cell (a pattern, a
 | Surface | Where | Purpose |
 | --- | --- | --- |
 | Library | `src/`, built to `dist/` | What Plantasonic and Signal 9 import |
-| Demo, show mode | `examples/vanilla`, default view | Six hero looks, four sliders, mic, MIDI, PNG. The public face |
-| Demo, Lab | Same page, `Lab` button, `D`, or `?debug=1` | The full control surface: every preset, renderer switching, quality presets, sources, scripting console, manual effect triggers, debug state, FPS graph |
+| Harness | `examples/vanilla` | Eight sections, one per subsystem: Preset, Source, Renderer, Audio, Input, Export, Performance, Scripting. Sliders are generated from `preset.controls` filtered by `listLiveControls()`, so every control on screen changes the output. Each section ends with a `getDebugState()` readout |
 
 ## How it is used
 

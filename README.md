@@ -11,7 +11,7 @@ A Canvas 2D ASCII engine used by [Plantasonic](https://github.com/nate-thousand/
 
 **Brief:** [BRIEF.md](./BRIEF.md) · **Roadmap:** [ROADMAP.md](./ROADMAP.md)
 
-**Live demo:** [visual-engine.xyz](https://visual-engine.xyz) — six looks and a few sliders. Press `D` or add `?debug=1` for the full harness.
+**Live demo:** [visual-engine.xyz](https://visual-engine.xyz), the engine harness: eight sections, one per subsystem. `H` hides the panel, `?preset=<id>` boots a preset.
 
 ---
 
@@ -185,7 +185,7 @@ npm run typecheck  # Type-check without emitting
 npm run dev
 ```
 
-Opens the vanilla example at `http://localhost:5173`. Default view is six presets and a short rail. Press `D` or open `?debug=1` for renderer, sources, scripts, MIDI learn, and debug dumps.
+Opens the harness at `http://localhost:5173`. One collapsible section per subsystem: Preset (sliders generated from the controls the preset actually reads, plus composition toggles), Source, Renderer, Audio, Input, Export, Performance, Scripting. Each section ends with a readout from `getDebugState()`. `H` hides the panel, `Space` fires a burst, `?preset=<id>` boots a preset.
 
 ---
 

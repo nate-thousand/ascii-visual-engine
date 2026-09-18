@@ -47,7 +47,7 @@ The grill on "simpler, more powerful, more responsive" closed with these. They r
 - [x] MIDI and input: Web MIDI, MIDI learn, keyboard performance mapping, device presets (generic, Akai, Launchkey, QWERTY)
 - [x] Procedural glyph language: categories, semantic roles, morphing, animation; eleven glyph libraries
 - [x] Export: PNG, SVG, GIF, ASCII text, JSON scene document; frame recording with scrub and step; scene import via `applySceneDocument()`
-- [x] Scripting: safe public `ScriptAPI`; example script gallery; script console in the Lab
+- [x] Scripting: safe public `ScriptAPI`; example script gallery; script console in the harness
 - [x] Performance: frame profiler, quality presets (ultra, high, medium, low, battery saver) with adaptive mode, object pooling, glyph cache, dirty region rendering, spatial grid for boids
 - [x] 30 built in presets across basic, motion, simulation, compositing, audio, performance, and glyph families
 - [x] Console warnings for unknown controls, plugins, motions, simulations, presets
@@ -64,6 +64,16 @@ The grill on "simpler, more powerful, more responsive" closed with these. They r
 - [x] Hero preset tuning: Organic Bloom, Digital Forest, CRT Terminal, Corrupted Broadcast
 - [x] README rewritten to describe the engine as it is
 - [x] Verified 2026-09-17: typecheck clean, 171 tests, library and demo build, all six looks animate at 60 fps, no console errors, clean at 375px
+
+### Engine state ownership and harness rebuild (2026-09-18, on `release/0.2.0`)
+
+- [x] A pixel source owns the grid: patterns blend by `1 - sourceBlend` instead of overwriting; the source survives `setPreset()`
+- [x] Playback owns the grid: live stages skip while a recorded frame is held; step and scrub load the timeline without a play first
+- [x] Quality scaling is base relative and re-applied on `setPreset()`; adaptive steps no longer move the base
+- [x] `blendWeight` removed (a no-op by construction)
+- [x] `listLiveControls(preset)`, `CONTROL_CATALOG`, `liveControlDefs()`: which controls a composition reads; glyph presets derive `controls` from it. `tests/live-controls.test.ts` checks the consumer table against `getControl()` calls in the source
+- [x] Harness rebuilt: eight sections by subsystem, sliders generated per preset, hero group in the preset select, show chrome and WebGL option removed, `?preset=`, `H` to hide. `tests/harness-ids.test.ts` fails on any orphan id in either direction
+- [x] 203 tests
 
 ### Documentation
 
@@ -82,12 +92,12 @@ The only work that turns "local is better" into "the live site is better".
 - [x] **Reconcile with GitHub.** `origin/main` has nine commits not here. Keep from GitHub: `.github/workflows/ci.yml`, `SECURITY.md`, `INTEGRATION.md`, `tests/visual-snapshot.test.ts`, `tests/consumer-smoke.test.ts`, `tests/pattern-system.test.ts`, `tests/helpers/mockCanvas.ts`. Keep from local: the demo show chrome (`examples/vanilla/*`), preset tuning, README, BRIEF, this roadmap. Resolve `src/core/validate.ts` and `tests/preset-validation.test.ts` by picking one implementation (GitHub's is older and in CI; local's is stricter and covers optional numeric fields). Done on `release/0.2.0`: local won, GitHub's extra cases merged into one test file, 189 tests pass
 - [x] **Fold in the platform's vendored copy.** `plantasonic-platform/packages/visual-engine` (0.1.0 plus edits) adds `setColor()`, `setGlyphSet()`, `setBassGlyphScale()` and small edits in `ExportManager`, `GifExporter`, `SourceManager`, `SourceSampler`, `RendererManager`, `GlyphRegistry`, `ThresholdPass`. Done with `tests/host-controls.test.ts`
 - [x] Commit as `0.2.0` on `release/0.2.0` with the CHANGELOG Unreleased section promoted
-- [ ] Deploy `dist-demo/` to visual-engine.xyz and confirm the live page shows the six looks and Lab, not the raw harness
+- [ ] Deploy `dist-demo/` to visual-engine.xyz and confirm the live page is the eight section harness (deferred: local design work first)
 - [ ] Tag `v0.2.0` on GitHub
 
 ### 2. The API work (0.3.0)
 
-Decisions 2 through 6. Each verifiable in the Lab.
+Decisions 2 through 6. Each verifiable in the harness.
 
 - [ ] **Facade.** `createEngine(canvas, options)` returning the twelve host methods plus `on`, typed, documented in API.md as the recommended entry point. `AsciiEngine` stays exported for power users
 - [ ] **Nested presets.** Group the 59 flat fields (`motion`, `simulation`, `audio`, `glyphs`, `post`, `layers`, `controls`); every group optional; `validatePreset()` normalizes flat input to the nested shape and warns once that flat is deprecated at 1.0. All 30 built ins converted; the flat originals stay as fixtures in a compatibility test
@@ -95,7 +105,7 @@ Decisions 2 through 6. Each verifiable in the Lab.
 - [ ] **`PointerInput` plugin.** Pointer position to normalized coordinates, tap to `noteOn`; off by default; registered like `KeyboardInput`. No pointer or touch handling exists in `src/` today
 - [ ] **Frame budget.** Measure every hero preset at 1920x1080 default density; anything under 60 fps gets fixed or its default density lowered. Record numbers in BENCHMARKS.md
 - [ ] Engine state: an explicit `idle | running | destroyed` state with guards, replacing the single `destroyed` flag
-- [ ] Preset loader: `loadPresetFromUrl()` using `validatePreset()`; `exportPreset()` from current engine state, so a Lab session can be saved as a preset
+- [ ] Preset loader: `loadPresetFromUrl()` using `validatePreset()`; `exportPreset()` from current engine state, so a harness session can be saved as a preset
 - [ ] Pattern and effect `params` in the preset schema (today only the top level numeric knobs are honoured)
 - [ ] Effect unit tests (effects are covered only through integration tests)
 

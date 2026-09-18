@@ -59,11 +59,20 @@ export class TimelineRecorder {
   }
 
   stepPlayback(delta: number): void {
+    this.ensureFramesLoaded();
     this.playback.step(delta);
   }
 
   scrubPlayback(index: number): void {
+    this.ensureFramesLoaded();
     this.playback.scrub(index);
+  }
+
+  /** Step and scrub work straight after a recording, without a play() first. */
+  private ensureFramesLoaded(): void {
+    if (this.playback.getFrameCount() > 0) return;
+    const frames = this.getTimeline();
+    if (frames.length > 0) this.playback.loadFrames(frames);
   }
 
   getRecordingStatus() {

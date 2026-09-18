@@ -1,5 +1,6 @@
 import type { AsciiPreset } from '../../core/types';
 import { resolveGlyphSetFromCategories } from '../../glyphs/GlyphLibrary';
+import { liveControlDefs } from '../controlCatalog';
 
 function glyphPreset(
   id: string,
@@ -12,7 +13,8 @@ function glyphPreset(
     ? resolveGlyphSetFromCategories(categories)
     : ['.', ':', '-', '=', '+', '*', '#', '@'];
 
-  return {
+  const { controls: _ignored, ...rest } = extra;
+  const composed: Omit<AsciiPreset, 'controls'> = {
     id,
     name,
     glyphSet,
@@ -26,20 +28,17 @@ function glyphPreset(
     ],
     patterns: ['radialSymmetry'],
     motions: [{ id: 'organicGrowth', weight: 0.5 }],
-    controls: [
-      { name: 'density', label: 'Density', min: 0.3, max: 2, default: 1, step: 0.1 },
-      { name: 'speed', label: 'Speed', min: 0.1, max: 3, default: 0.8, step: 0.1 },
-      { name: 'strength', label: 'Strength', min: 0, max: 1, default: 0.7, step: 0.05 },
-      { name: 'trailAmount', label: 'Trails', min: 0, max: 1, default: 0.5, step: 0.05 },
-      { name: 'glitchAmount', label: 'Glitch', min: 0, max: 1, default: 0.1, step: 0.05 },
-    ],
     density: 1,
     speed: 0.8,
     strength: 0.7,
     trailAmount: 0.5,
     glitchAmount: 0.1,
-    ...extra,
+    ...rest,
   };
+
+  // Sliders are derived from what the composition reads, so a glyph preset
+  // never offers a control nothing consumes.
+  return { ...composed, controls: liveControlDefs(composed) };
 }
 
 export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Glyph — Organic Bloom', 'organicBloom', {

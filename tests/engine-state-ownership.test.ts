@@ -135,8 +135,7 @@ describe('playback owns the grid', () => {
     const recorded = engine.getExportManager().getTimelineRecorder().getTimeline();
     expect(recorded.length).toBeGreaterThan(1);
 
-    engine.playRecording({ frameRate: 60 });
-    engine.pausePlayback();
+    // Scrub straight after recording, no play() first.
     engine.scrubPlayback(0);
     expect(engine.isPlaybackActive()).toBe(true);
     const shown = gridFingerprint(recorded[0].grid.cells);

@@ -18,6 +18,9 @@ Consolidation release: the local stabilization work, GitHub main, and the platfo
 - Source `strength` control passed through `SourceSampler`.
 - Validation also rejects unknown legacy `patterns` ids and names the preset in its error message; the constructor asserts the initial preset.
 - From GitHub main: GitHub Actions CI, visual snapshot tests, consumer smoke test against `dist/`, `SECURITY.md`, `INTEGRATION.md`, `npm run test:all`.
+- `listLiveControls(preset)`: the control names a preset's motions, patterns, effects, simulations, post passes, and audio mapping actually read. `CONTROL_CONSUMERS` is the table behind it, checked against the source by `tests/live-controls.test.ts`. `CONTROL_CATALOG` and `liveControlDefs()` give ranges and labels for every engine control. Hosts can intersect `preset.controls` with this to show only sliders that do something.
+- `PlaybackStatus.active` and `engine.isPlaybackActive()`.
+- `npm run typecheck` also checks `examples/vanilla` against `src/`.
 
 ### Changed
 
@@ -27,6 +30,9 @@ Consolidation release: the local stabilization work, GitHub main, and the platfo
 - A pixel source (image, video, webcam, canvas) now owns the grid. Patterns no longer overwrite it: `sourceBlend` is the source's share of cell brightness (1 = source only, patterns skipped; 0 = pattern only; between = per cell mix). Before this, every pattern preset blended the source down to 10%, so video and webcam looked like nothing happened.
 - The active source is engine state. `setPreset()` leaves it alone unless the preset declares `source`; switching looks keeps a running webcam.
 - Recording playback owns the grid while active. The live source, motion, simulation, plugin, post, and glyph stages are skipped until `stopPlayback()`, so played, paused, stepped, and scrubbed frames are actually visible. `PlaybackStatus.active` and `engine.isPlaybackActive()` expose this. A playback frame that reaches the end now holds its last frame instead of releasing the grid.
+- Glyph presets (the six hero looks plus Particle Nebula and Abstract Geometry) derive `controls` from `liveControlDefs()`, so they now expose the pattern and motion knobs they read (symmetry, petals, cellular, frequency, amplitude, flow, noise scale, scanline, sim controls) and no longer declare `glitchAmount` when no glitch plugin is enabled.
+- `stepPlayback()` and `scrubPlayback()` load the recorded timeline if nothing is loaded yet, so stepping works straight after a recording.
+- Demo rebuilt as a harness: eight collapsible sections by subsystem (Preset, Source, Renderer, Audio, Input, Export, Performance, Scripting), preset sliders generated from `preset.controls` filtered by `listLiveControls()`, hero group at the top of one preset select, composition toggles under Preset, a `getDebugState()` readout per section, `?preset=<id>`, `H` hides the panel. Show chrome, the Lab toggle, the WebGL option, the layer editor, and the hand written motion, pattern, post, and sim sliders are gone. `tests/harness-ids.test.ts` fails on an id present in only one of `index.html` and `main.ts`.
 - Quality preset scaling is relative to a base density, trail amount, and spawn rate captured from the preset and from host `setControl()` calls. Re-selecting a quality no longer compounds, adaptive quality steps no longer move the base, and `setPreset()` re-applies the current quality scaling once a quality preset has been chosen.
 
 ### Removed

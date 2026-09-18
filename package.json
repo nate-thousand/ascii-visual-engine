@@ -23,7 +23,7 @@
     "build:demo": "vite build --config vite.demo.config.ts",
     "preview": "vite preview",
     "preview:demo": "vite preview --config vite.demo.config.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p examples/tsconfig.check.json",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
