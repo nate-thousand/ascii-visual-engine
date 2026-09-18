@@ -241,7 +241,7 @@ function syncSlidersFromEngine(): void {
   }
 }
 
-const AUDIO_PANEL_CONTROLS = ['audioAttack', 'audioRelease', 'audioSensitivity', 'audioNoiseGate'];
+const isAudioControl = (name: string) => name.startsWith('audio');
 const SOURCE_PANEL_CONTROLS: ControlDef[] = [
   { name: 'sourceContrast', label: 'Contrast', min: 0.5, max: 2, default: 1, step: 0.05 },
   { name: 'sourceEdge', label: 'Edge', min: 0, max: 1, default: 0.3, step: 0.05 },
@@ -268,7 +268,7 @@ function buildPresetControls(preset: AsciiPreset): void {
     (name) => declared.get(name) ?? { name, ...CONTROL_CATALOG[name] },
   );
   const rest = preset.controls.filter(
-    (c) => !['density', 'speed'].includes(c.name) && live.has(c.name) && !AUDIO_PANEL_CONTROLS.includes(c.name),
+    (c) => !['density', 'speed'].includes(c.name) && live.has(c.name) && !isAudioControl(c.name),
   );
   for (const def of [...globals, ...rest]) {
     mountSlider(presetControlsEl, def, engine.getControl(def.name, def.default));
@@ -282,10 +282,10 @@ function buildPresetControls(preset: AsciiPreset): void {
     presetControlsEl.appendChild(note);
   }
 
-  if (live.has('audioAttack')) {
-    for (const name of AUDIO_PANEL_CONTROLS) {
-      const def = declared.get(name) ?? { name, ...CONTROL_CATALOG[name] };
-      mountSlider(audioControlsEl, def, engine.getControl(name, def.default));
+  const audioDefs = preset.controls.filter((c) => isAudioControl(c.name) && live.has(c.name));
+  if (audioDefs.length > 0) {
+    for (const def of audioDefs) {
+      mountSlider(audioControlsEl, def, engine.getControl(def.name, def.default));
     }
   } else {
     const note = document.createElement('div');

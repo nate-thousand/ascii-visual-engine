@@ -1,6 +1,7 @@
 import type { AsciiPreset } from '../../core/types';
+import { withLiveControls } from '../controlCatalog';
 
-export const compositingPreset: AsciiPreset = {
+export const compositingPreset: AsciiPreset = withLiveControls({
   id: 'compositing',
   name: 'Compositing Demo',
   glyphSet: [' ', '.', ':', '-', '=', '+', '*', '#', '@'],
@@ -112,4 +113,4 @@ export const compositingPreset: AsciiPreset = {
   spiralAmount: 0.7,
   postFeedback: 0.75,
   postSmear: 0.35,
-};
+});

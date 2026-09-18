@@ -1,5 +1,6 @@
 import type { AsciiPreset } from '../../core/types';
 import type { AudioMappingPresetConfig } from '../../audio/AudioTypes';
+import { withLiveControls } from '../controlCatalog';
 
 const sharedControls = [
   { name: 'density', label: 'Density', min: 0.3, max: 2, default: 1, step: 0.1 },
@@ -19,7 +20,7 @@ function baseAudioPreset(
   audioMapping: AudioMappingPresetConfig,
   extra: Partial<AsciiPreset> = {},
 ): AsciiPreset {
-  return {
+  return withLiveControls({
     id,
     name,
     glyphSet: [' ', '.', ':', '-', '=', '+', '*', '#', '@'],
@@ -46,7 +47,7 @@ function baseAudioPreset(
     audioMaxClamp: 1,
     audioMapping,
     ...extra,
-  };
+  });
 }
 
 export const audioAmbientPreset = baseAudioPreset('audioAmbient', 'Audio — Ambient Slow', {
@@ -63,13 +64,21 @@ export const audioBassPreset = baseAudioPreset('audioBass', 'Audio — Bass Reac
   enabled: true,
   smoothing: { attack: 0.06, release: 0.2, sensitivity: 1.2, noiseGate: 0.025 },
   mappings: [
-    { feature: 'bass', target: { type: 'control', control: 'strength', amount: 1, min: 0.2, max: 1 } },
+    { feature: 'bass', target: { type: 'control', control: 'amplitude', amount: 1, min: 0.2, max: 1 } },
     { feature: 'bass', target: { type: 'control', control: 'simSpawnRate', amount: 0.9, min: 0, max: 1 } },
     { feature: 'beat', target: { type: 'control', control: 'glitchAmount', amount: 0.5, min: 0, max: 0.6 } },
   ],
 }, {
+  plugins: [
+    { id: 'wave', type: 'effect' },
+    { id: 'burst', type: 'effect' },
+    { id: 'glitch', type: 'effect' },
+    { id: 'trails', type: 'effect' },
+    { id: 'radialSymmetry', type: 'pattern' },
+  ],
   simulations: [{ id: 'particle', enabled: true }],
   simSpawnRate: 0.3,
+  glitchAmount: 0,
 });
 
 export const audioGlitchPreset = baseAudioPreset('audioGlitch', 'Audio — Glitch Transient', {
@@ -97,7 +106,7 @@ export const audioVoicePreset = baseAudioPreset('audioVoice', 'Audio — Voice R
   mappings: [
     { feature: 'mid', target: { type: 'control', control: 'speed', amount: 0.8, min: 0.4, max: 1.8 } },
     { feature: 'highMid', target: { type: 'control', control: 'spiralAmount', amount: 0.9, min: 0, max: 1 } },
-    { feature: 'amplitude', target: { type: 'control', control: 'strength', amount: 0.7, min: 0.3, max: 1 } },
+    { feature: 'amplitude', target: { type: 'control', control: 'amplitude', amount: 0.7, min: 0.3, max: 1 } },
   ],
 }, {
   plugins: [
@@ -114,7 +123,7 @@ export const audioFullSpectrumPreset = baseAudioPreset('audioFullSpectrum', 'Aud
   smoothing: { attack: 0.07, release: 0.22, sensitivity: 1.1, noiseGate: 0.02 },
   mappings: [
     { feature: 'bass', target: { type: 'control', control: 'density', amount: 0.5, min: 0.5, max: 1.8 } },
-    { feature: 'lowMid', target: { type: 'control', control: 'strength', amount: 0.8, min: 0.2, max: 1 } },
+    { feature: 'lowMid', target: { type: 'control', control: 'amplitude', amount: 0.8, min: 0.2, max: 1 } },
     { feature: 'mid', target: { type: 'control', control: 'speed', amount: 0.7, min: 0.3, max: 2 } },
     { feature: 'highMid', target: { type: 'control', control: 'glitchAmount', amount: 0.6, min: 0, max: 0.8 } },
     { feature: 'treble', target: { type: 'control', control: 'trailAmount', amount: 0.7, min: 0, max: 1 } },
@@ -122,6 +131,14 @@ export const audioFullSpectrumPreset = baseAudioPreset('audioFullSpectrum', 'Aud
     { feature: 'beat', target: { type: 'postPass', passId: 'feedback', amount: 0.8, min: 0.2, max: 0.95 } },
   ],
 }, {
+  plugins: [
+    { id: 'wave', type: 'effect' },
+    { id: 'burst', type: 'effect' },
+    { id: 'glitch', type: 'effect' },
+    { id: 'trails', type: 'effect' },
+    { id: 'radialSymmetry', type: 'pattern' },
+  ],
   postProcessing: [{ id: 'feedback', enabled: true, amount: 0.5 }],
   postFeedback: 0.5,
+  glitchAmount: 0,
 });

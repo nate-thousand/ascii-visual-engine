@@ -4,10 +4,10 @@ Written 2026-09-17 when engine development moved out of the portfolio chat into 
 
 ## Where things stand
 
-- Branch `release/0.2.0`, seven commits ahead of `origin/main`, working tree clean. Nothing pushed, nothing tagged, nothing deployed. The user has said: local design work until they say otherwise.
+- Branch `release/0.2.0`, eight commits ahead of `origin/main`, working tree clean. Nothing pushed, nothing tagged, nothing deployed. The user has said: local design work until they say otherwise.
 - 0.2.0 is the consolidation release: local stabilization work + GitHub main (CI, snapshot and smoke tests, SECURITY, INTEGRATION) + the platform monorepo's vendored additions (`setColor`, `setGlyphSet`, `setBassGlyphScale`, GIF export options, source strength, softened threshold).
 - 2026-09-18: engine state ownership fixed (source, playback, quality scaling own the grid or their base values; `blendWeight` removed), `listLiveControls()` added, glyph presets derive their controls, demo rebuilt as an eight section harness. See the CHANGELOG 0.2.0 section and ROADMAP "Engine state ownership and harness rebuild".
-- Verified: typecheck clean (library and demo), 203 tests, `npm run build` and `npm run build:demo` succeed, no console errors, panel clean at 375px, canvas source visible under pattern presets, playback holds a frame, quality scaling survives preset switches.
+- Verified: typecheck clean (library and demo), 205 tests, `npm run build` and `npm run build:demo` succeed, no console errors, panel clean at 375px, canvas source visible under pattern presets, playback holds a frame, quality scaling survives preset switches.
 - Dev server: `npm run dev -- --port 5192 --strictPort` (the portfolio's `.claude/launch.json` has this as `ascii-engine`).
 
 ## Decisions
@@ -20,7 +20,7 @@ Harness only, hosts own UI. Eight sections by subsystem. Preset sliders generate
 
 ## Next actions, in order
 
-1. Keep working the local design until the user says push. Candidate next items: the 22 non glyph presets still declare `motionControlDefs` wholesale; the harness hides the unread ones and prints a note, but deriving their `controls` with `liveControlDefs()` the way the glyph presets do would remove the note.
+1. Keep working the local design until the user says push. All 30 presets now derive `controls` from their composition (`withLiveControls()`); the harness's "declared but unread" note only fires for host authored presets.
 2. When the user says so: `git push -u origin release/0.2.0`, PR or merge to main, `git tag v0.2.0`, push the tag. Then deploy `dist-demo/` (hosting unknown; ask).
 3. Start 0.3.0 from `ROADMAP.md` section 2: facade `createEngine()`, nested presets with flat normalization, HiDPI, `PointerInput`, frame budget in BENCHMARKS.md.
 

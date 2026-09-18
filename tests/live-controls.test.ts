@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CONTROL_CONSUMERS, listLiveControls } from '../src/core/liveControls';
 import { listPresets, getPreset } from '../src/presets';
+import { getDevicePresetMapping } from '../src/input/devicePresets';
 
 const ROOT = join(__dirname, '..', 'src');
 
@@ -75,13 +76,40 @@ describe('listLiveControls', () => {
     expect(listLiveControls(getPreset('basic'))).not.toContain('audioAttack');
   });
 
-  it('every hero preset declares only live controls', () => {
-    const heroes = ['glyphOrganicBloom', 'glyphDigitalForest', 'glyphCrtTerminal', 'glyphCorruptedBroadcast', 'glyphFlowField', 'glyphMinimalZen'] as const;
-    for (const id of heroes) {
-      const preset = getPreset(id);
+  it('every built in preset declares exactly the controls its composition reads', () => {
+    for (const preset of listPresets()) {
       const live = new Set(listLiveControls(preset));
-      const dead = preset.controls.map((c) => c.name).filter((n) => !live.has(n));
-      expect(dead, `${id} declares controls nothing reads`).toEqual([]);
+      const declared = new Set(preset.controls.map((c) => c.name));
+      const dead = Array.from(declared).filter((n) => !live.has(n));
+      const missing = Array.from(live).filter((n) => !declared.has(n));
+      expect(dead, `${preset.id} declares controls nothing reads`).toEqual([]);
+      expect(missing, `${preset.id} reads controls it does not declare`).toEqual([]);
     }
+  });
+
+  it('every audio and MIDI mapping writes a control its preset reads', () => {
+    for (const preset of listPresets()) {
+      const live = new Set(listLiveControls(preset));
+      const dead: string[] = [];
+      for (const m of preset.audioMapping?.mappings ?? []) {
+        if (m.target.type === 'control' && !live.has(m.target.control)) dead.push(`audio ${m.feature} -> ${m.target.control}`);
+      }
+      // Same expansion InputManager.applyPresetConfig does.
+      const config = preset.inputMapping;
+      const base = config ? getDevicePresetMapping(config.devicePreset ?? 'genericKeyboard') : null;
+      const input = config && base ? { ...base, ...config, ccMappings: config.ccMappings?.length ? config.ccMappings : base.ccMappings } : null;
+      for (const cc of input?.ccMappings ?? []) {
+        if (cc.target.type === 'control' && !live.has(cc.target.control)) dead.push(`cc${cc.controller} -> ${cc.target.control}`);
+      }
+      const wheel = input?.modWheel;
+      if (wheel?.type === 'control' && !live.has(wheel.control)) dead.push(`modWheel -> ${wheel.control}`);
+      expect(dead, `${preset.id} maps into controls nothing reads`).toEqual([]);
+    }
+  });
+
+  it('keeps an author declared range for a live control', () => {
+    const terminal = getPreset('terminal');
+    const density = terminal.controls.find((c) => c.name === 'density');
+    expect(density?.default).toBe(1.2);
   });
 });

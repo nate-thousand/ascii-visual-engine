@@ -71,9 +71,9 @@ The grill on "simpler, more powerful, more responsive" closed with these. They r
 - [x] Playback owns the grid: live stages skip while a recorded frame is held; step and scrub load the timeline without a play first
 - [x] Quality scaling is base relative and re-applied on `setPreset()`; adaptive steps no longer move the base
 - [x] `blendWeight` removed (a no-op by construction)
-- [x] `listLiveControls(preset)`, `CONTROL_CATALOG`, `liveControlDefs()`: which controls a composition reads; glyph presets derive `controls` from it. `tests/live-controls.test.ts` checks the consumer table against `getControl()` calls in the source
+- [x] `listLiveControls(preset)`, `CONTROL_CATALOG`, `liveControlDefs()`, `withLiveControls()`: which controls a composition reads; all 30 presets derive `controls` from it. `tests/live-controls.test.ts` checks the consumer table against `getControl()` calls in the source, every preset's declared set against its live set, and every audio and MIDI mapping target
 - [x] Harness rebuilt: eight sections by subsystem, sliders generated per preset, hero group in the preset select, show chrome and WebGL option removed, `?preset=`, `H` to hide. `tests/harness-ids.test.ts` fails on any orphan id in either direction
-- [x] 203 tests
+- [x] 205 tests
 
 ### Documentation
 

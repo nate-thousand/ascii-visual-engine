@@ -1,6 +1,7 @@
 import type { AsciiPreset } from '../core/types';
+import { withLiveControls } from './controlCatalog';
 
-export const organicPreset: AsciiPreset = {
+export const organicPreset: AsciiPreset = withLiveControls({
   id: 'organic',
   name: 'Organic Classic',
   glyphSet: ['·', '°', '○', '●', '◦', '∘', '∙', '◉'],
@@ -102,4 +103,4 @@ export const organicPreset: AsciiPreset = {
   spiralAmount: 0.25,
   cellularAmount: 0.65,
   scanlineAmount: 0,
-};
+});

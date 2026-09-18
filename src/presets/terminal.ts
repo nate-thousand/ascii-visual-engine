@@ -1,6 +1,7 @@
 import type { AsciiPreset } from '../core/types';
+import { withLiveControls } from './controlCatalog';
 
-export const terminalPreset: AsciiPreset = {
+export const terminalPreset: AsciiPreset = withLiveControls({
   id: 'terminal',
   name: 'Terminal Classic',
   glyphSet: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'F'],
@@ -103,4 +104,4 @@ export const terminalPreset: AsciiPreset = {
   spiralAmount: 0.2,
   cellularAmount: 0.15,
   scanlineAmount: 0.75,
-};
+});

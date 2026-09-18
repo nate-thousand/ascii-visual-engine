@@ -1,7 +1,8 @@
 import type { AsciiPreset } from '../../core/types';
-import { baseMotionDefaults, motionControlDefs } from '../motionShared';
+import { baseMotionDefaults } from '../motionShared';
+import { withLiveControls } from '../controlCatalog';
 
-export const ambientPreset: AsciiPreset = {
+export const ambientPreset: AsciiPreset = withLiveControls({
   id: 'ambient',
   name: 'Ambient',
   glyphSet: ['.', ':', '-', '~', '≈', '∿', '◦', '○'],
@@ -16,16 +17,15 @@ export const ambientPreset: AsciiPreset = {
     { id: 'breathing', weight: 0.8, priority: 18 },
     { id: 'wave', weight: 0.4, priority: 5 },
   ],
-  controls: motionControlDefs,
   ...baseMotionDefaults,
   speed: 0.6,
   strength: 0.5,
   flowStrength: 0.6,
   amplitude: 0.8,
   trailAmount: 0.55,
-};
+});
 
-export const motionOrganicPreset: AsciiPreset = {
+export const motionOrganicPreset: AsciiPreset = withLiveControls({
   id: 'motionOrganic',
   name: 'Organic',
   glyphSet: ['·', '°', '○', '●', '◦', '∘', '∙', '◉'],
@@ -41,7 +41,6 @@ export const motionOrganicPreset: AsciiPreset = {
     { id: 'breathing', weight: 0.7, priority: 18 },
     { id: 'flowField', weight: 0.3, priority: 10 },
   ],
-  controls: motionControlDefs,
   ...baseMotionDefaults,
   speed: 0.5,
   strength: 0.75,
@@ -49,9 +48,9 @@ export const motionOrganicPreset: AsciiPreset = {
   symmetry: 8,
   petals: 7,
   trailAmount: 0.65,
-};
+});
 
-export const mechanicalPreset: AsciiPreset = {
+export const mechanicalPreset: AsciiPreset = withLiveControls({
   id: 'mechanical',
   name: 'Mechanical',
   glyphSet: ['|', '-', '+', '#', '█', '▓', '▒', '░'],
@@ -67,16 +66,15 @@ export const mechanicalPreset: AsciiPreset = {
     { id: 'pulse', weight: 0.6, priority: 8 },
     { id: 'spiral', weight: 0.5, priority: 22 },
   ],
-  controls: motionControlDefs,
   ...baseMotionDefaults,
   speed: 1.2,
   strength: 0.85,
   frequency: 1.5,
   scanlineAmount: 0.7,
   glitchAmount: 0.2,
-};
+});
 
-export const motionTerminalPreset: AsciiPreset = {
+export const motionTerminalPreset: AsciiPreset = withLiveControls({
   id: 'motionTerminal',
   name: 'Terminal',
   glyphSet: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'F'],
@@ -92,7 +90,6 @@ export const motionTerminalPreset: AsciiPreset = {
     { id: 'pulse', weight: 0.4, priority: 8 },
     { id: 'brownian', weight: 0.3, priority: 40 },
   ],
-  controls: motionControlDefs,
   ...baseMotionDefaults,
   speed: 0.9,
   flowStrength: 0.9,
@@ -100,9 +97,9 @@ export const motionTerminalPreset: AsciiPreset = {
   scanlineAmount: 0.8,
   glitchAmount: 0.3,
   density: 1.2,
-};
+});
 
-export const chaoticPreset: AsciiPreset = {
+export const chaoticPreset: AsciiPreset = withLiveControls({
   id: 'chaotic',
   name: 'Chaotic',
   glyphSet: ['@', '#', '$', '%', '&', '!', '?', '*'],
@@ -118,7 +115,6 @@ export const chaoticPreset: AsciiPreset = {
     { id: 'flocking', weight: 0.6, priority: 25 },
     { id: 'gravity', weight: 0.5, priority: 15 },
   ],
-  controls: motionControlDefs,
   ...baseMotionDefaults,
   speed: 1.5,
   strength: 0.9,
@@ -126,20 +122,19 @@ export const chaoticPreset: AsciiPreset = {
   gravity: 1.2,
   glitchAmount: 0.45,
   trailAmount: 0.5,
-};
+});
 
-export const minimalPreset: AsciiPreset = {
+export const minimalPreset: AsciiPreset = withLiveControls({
   id: 'minimal',
   name: 'Minimal',
   glyphSet: ['.', '·', ' '],
   motionField: 'none',
   plugins: [{ id: 'trails', type: 'effect' }],
   motions: [{ id: 'wave', weight: 1, priority: 5 }],
-  controls: motionControlDefs,
   ...baseMotionDefaults,
   speed: 0.4,
   strength: 0.35,
   amplitude: 0.6,
   density: 0.7,
   trailAmount: 0.25,
-};
+});

@@ -31,7 +31,7 @@ One grid, many inputs. Anything that can produce a number per cell (a pattern, a
 | Scripting | Safe public `ScriptAPI` over presets, controls, simulations, layers, events; script gallery in the demo |
 | Performance | Frame profiler, quality presets, object pooling, glyph cache, dirty region rendering, spatial grid for boids |
 | Presets | 30 built in across basic, motion, simulation, compositing, audio, performance, and glyph families |
-| Tests | 203 passing (vitest) |
+| Tests | 205 passing (vitest) |
 | Build | ESM 284 KB, CJS 213 KB, TypeScript declarations |
 
 ## What it is not

@@ -1,6 +1,6 @@
 import type { AsciiPreset } from '../../core/types';
 import { resolveGlyphSetFromCategories } from '../../glyphs/GlyphLibrary';
-import { liveControlDefs } from '../controlCatalog';
+import { withLiveControls } from '../controlCatalog';
 
 function glyphPreset(
   id: string,
@@ -38,7 +38,7 @@ function glyphPreset(
 
   // Sliders are derived from what the composition reads, so a glyph preset
   // never offers a control nothing consumes.
-  return { ...composed, controls: liveControlDefs(composed) };
+  return withLiveControls(composed);
 }
 
 export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Glyph — Organic Bloom', 'organicBloom', {

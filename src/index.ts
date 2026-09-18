@@ -118,7 +118,7 @@ export type { SourcePresetConfig } from './core/types';
 export { KNOWN_CONTROLS, warnUnknownControl, warnUnknownPluginIds, warnUnknownPreset, warnUnknownMotionIds, warnUnknownSimulationIds, validatePreset, assertValidPreset } from './core/validate';
 export type { PresetValidationResult } from './core/validate';
 export { listLiveControls, CONTROL_CONSUMERS, GLOBAL_CONTROLS, AUDIO_CONTROLS } from './core/liveControls';
-export { CONTROL_CATALOG, liveControlDefs } from './presets/controlCatalog';
+export { CONTROL_CATALOG, liveControlDefs, withLiveControls } from './presets/controlCatalog';
 
 // Motion
 export {

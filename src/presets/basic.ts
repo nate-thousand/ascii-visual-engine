@@ -1,4 +1,5 @@
 import type { AsciiPreset } from '../core/types';
+import { withLiveControls } from './controlCatalog';
 
 const patternControls = [
   {
@@ -43,7 +44,7 @@ const patternControls = [
   },
 ] as const;
 
-export const basicPreset: AsciiPreset = {
+export const basicPreset: AsciiPreset = withLiveControls({
   id: 'basic',
   name: 'Basic',
   glyphSet: ['.', ':', '-', '=', '+', '*', '#', '@'],
@@ -105,4 +106,4 @@ export const basicPreset: AsciiPreset = {
   spiralAmount: 0.3,
   cellularAmount: 0.2,
   scanlineAmount: 0.1,
-};
+});

@@ -51,13 +51,32 @@ export const CONTROL_CATALOG: Record<string, ControlRange> = {
  * sets one, else from the catalog. Presets that describe their composition
  * and let this derive `controls` cannot declare a slider nothing reads.
  */
-export function liveControlDefs(preset: Omit<AsciiPreset, 'controls'>): ControlDef[] {
+export function liveControlDefs(
+  preset: Omit<AsciiPreset, 'controls'> & { controls?: ControlDef[] },
+): ControlDef[] {
   const live = new Set(listLiveControls({ ...preset, controls: [] }));
+  const declared = new Map((preset.controls ?? []).map((c) => [c.name, c]));
   const defs: ControlDef[] = [];
   for (const [name, range] of Object.entries(CONTROL_CATALOG)) {
     if (!live.has(name)) continue;
-    const own = (preset as Record<string, unknown>)[name];
-    defs.push({ name, ...range, default: typeof own === 'number' ? own : range.default });
+    const own = declared.get(name);
+    if (own) {
+      defs.push(own);
+      continue;
+    }
+    const flat = (preset as Record<string, unknown>)[name];
+    defs.push({ name, ...range, default: typeof flat === 'number' ? flat : range.default });
   }
   return defs;
+}
+
+/**
+ * Finish a preset by deriving `controls` from its composition. Declared
+ * control definitions are kept for names the composition reads (an author's
+ * range or default wins); names nothing reads are dropped.
+ */
+export function withLiveControls(
+  preset: Omit<AsciiPreset, 'controls'> & { controls?: ControlDef[] },
+): AsciiPreset {
+  return { ...preset, controls: liveControlDefs(preset) };
 }

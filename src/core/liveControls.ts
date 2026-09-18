@@ -2,7 +2,7 @@ import type { AsciiPreset } from './types';
 import { resolvePresetPlugins } from '../plugins/builtins';
 import { resolvePresetMotions } from '../motion/builtins';
 import { resolvePresetSimulations } from '../simulation/builtins';
-import { resolvePresetPostProcessing } from '../compositing/builtins';
+import { resolvePresetLayers, resolvePresetPostProcessing } from '../compositing/builtins';
 import { resolvePresetAudioMapping } from '../audio/builtins';
 
 /**
@@ -108,6 +108,10 @@ export function listLiveControls(preset: AsciiPreset): string[] {
   }
   for (const pass of resolvePresetPostProcessing(preset)) {
     for (const c of consumersFor('post', pass.id)) live.add(c);
+  }
+  for (const layer of resolvePresetLayers(preset)) {
+    if (layer.enabled === false || !layer.pattern) continue;
+    for (const c of consumersFor('pattern', layer.pattern)) live.add(c);
   }
   if (resolvePresetAudioMapping(preset)) {
     for (const c of AUDIO_CONTROLS) live.add(c);

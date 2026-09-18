@@ -1,4 +1,5 @@
 import type { AsciiPreset } from '../../core/types';
+import { withLiveControls } from '../controlCatalog';
 
 function performancePreset(
   id: string,
@@ -6,7 +7,7 @@ function performancePreset(
   devicePreset: 'akaiMpkMini' | 'novationLaunchkey' | 'genericKeyboard' | 'qwertyKeyboard',
   extra: Partial<AsciiPreset> = {},
 ): AsciiPreset {
-  return {
+  return withLiveControls({
     id,
     name,
     glyphSet: [' ', '.', ':', '-', '=', '+', '*', '#', '@'],
@@ -19,7 +20,8 @@ function performancePreset(
       { id: 'radialSymmetry', type: 'pattern' },
     ],
     patterns: ['radialSymmetry'],
-    motions: [{ id: 'flowField', weight: 0.4 }],
+    // breathing reads strength, so the device presets' strength knob is live
+    motions: [{ id: 'flowField', weight: 0.4 }, { id: 'breathing', weight: 0.3 }],
     inputMapping: { enabled: true, devicePreset },
     controls: [
       { name: 'density', label: 'Density', min: 0.3, max: 2, default: 1, step: 0.1 },
@@ -34,7 +36,7 @@ function performancePreset(
     glitchAmount: 0.15,
     strength: 0.7,
     ...extra,
-  };
+  });
 }
 
 export const performanceGenericPreset = performancePreset(
@@ -47,7 +49,17 @@ export const performanceAkaiPreset = performancePreset(
   'performanceAkai',
   'Performance — Akai MPK Mini',
   'akaiMpkMini',
-  { simulations: [{ id: 'particle', enabled: true }], simSpawnRate: 0.4 },
+  {
+    simulations: [{ id: 'particle', enabled: true }],
+    simSpawnRate: 0.4,
+    // Akai knobs 7 and 8 drive feedback and smear
+    postProcessing: [
+      { id: 'feedback', enabled: true, amount: 0.3 },
+      { id: 'smear', enabled: true, amount: 0.2 },
+    ],
+    postFeedback: 0.3,
+    postSmear: 0.2,
+  },
 );
 
 export const performanceLaunchkeyPreset = performancePreset(
