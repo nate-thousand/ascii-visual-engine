@@ -27,7 +27,7 @@ import type {
   GridState,
   NoteEvent,
 } from './types';
-import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds } from './validate';
+import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
 import type { EngineDebugState } from './debug';
 import {
   SourceManager,
@@ -232,6 +232,7 @@ export class AsciiEngine {
   }
 
   setPreset(preset: AsciiPreset): void {
+    assertValidPreset(preset);
     this.preset = preset;
     this.initControls(preset);
     this.rendererManager.setDensity(this.getControl('density', preset.density));

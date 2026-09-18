@@ -3,30 +3,23 @@
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/nate-thousand/ascii-visual-engine/releases/tag/v0.1.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-162%20passing-brightgreen.svg)](#development)
+[![Tests](https://img.shields.io/badge/tests-171%20passing-brightgreen.svg)](#development)
 
-A reusable TypeScript framework for building expressive, real-time ASCII visual systems.
+A Canvas 2D ASCII engine used by [Plantasonic](https://github.com/nate-thousand/plantasonic) and [Signal 9](https://github.com/nate-thousand/signal-9-live). Grid, frame loop, presets, plugins, audio, and MIDI — the host app owns the shell.
 
-**v0.1.0 MVP** — ready for integration into [Plantasonic](https://github.com/nate-thousand) and future prototypes.
+**v0.1.0** — library + live demo. Not on npm. WebGL is a stub (`render()` is a no-op).
+
+**Brief:** [BRIEF.md](./BRIEF.md) · **Roadmap:** [ROADMAP.md](./ROADMAP.md)
+
+**Live demo:** [visual-engine.xyz](https://visual-engine.xyz) — six looks and a few sliders. Press `D` or add `?debug=1` for the full harness.
 
 ---
 
 ## Project Overview
 
-ASCII Visual Engine is a portable rendering and animation framework — designed similarly to a game engine or audio engine — that powers ASCII-based visuals in any JavaScript environment. It is **not** a demo. It is **not** tied to any single product or installation. It is a library intended to be imported, extended, and composed into larger creative systems.
+This is a TypeScript library, not a product UI. Plantasonic and Signal 9 mount it through `@plantasonic/platform`. The vanilla demo is the public face of the engine itself.
 
-Use it to build:
-
-- Interactive installations and performances
-- Visual synthesizers and generative instruments
-- Creative coding sketches and live visuals
-- Interactive art and museum exhibits
-- Terminal and CLI visualizations
-- Games and playful interfaces
-- Data visualizations with character-based aesthetics
-- Web experiences and embedded displays
-
-The engine handles grid management, frame timing, effect composition, preset loading, and event dispatch. Your application handles UI, input routing, audio analysis, or whatever domain logic your project requires.
+The engine handles grid management, frame timing, effect composition, preset loading, and event dispatch. The host application handles layout, routing, and whatever else the show needs.
 
 ---
 
@@ -36,14 +29,13 @@ The engine handles grid management, frame timing, effect composition, preset loa
 | --- | --- |
 | **Modular** | Systems are separated into core, renderer, effects, presets, and events. Each can evolve independently. |
 | **Plugin based** | Visual behavior is composed from registered plugins and effects rather than monolithic rendering code. |
-| **Renderer agnostic** | The engine abstracts rendering behind a renderer interface. Canvas 2D is the first implementation; GPU renderers are planned. |
-| **High performance** | Built for real-time animation with `requestAnimationFrame`, efficient grid updates, and a path toward worker and GPU backends. |
-| **Framework first** | Optimized for reuse across projects, not for a single demo or product. |
-| **Creative coding friendly** | Presets, controls, and events map naturally to knobs, sliders, MIDI, OSC, and generative parameters. |
-| **TypeScript first** | Full type exports for consumers, contributors, and plugin authors. |
-| **Realtime** | Designed for continuous animation at display refresh rates. |
+| **Canvas 2D first** | The working renderer is Canvas 2D. DOM and offscreen canvas exist. WebGL is a placeholder, not a backend. |
+| **Realtime** | Built for continuous animation at display refresh rates. |
+| **Host-owned UI** | The engine is imported. It does not ship an application chrome. |
+| **Creative coding friendly** | Presets, controls, and events map to knobs, sliders, MIDI, and audio. |
+| **TypeScript first** | Full type exports for consumers and plugin authors. |
 | **Event driven** | Notes, controls, presets, and custom events flow through a typed event bus. |
-| **Portable** | Zero framework dependency. Runs in browsers, bundlers, and any environment with canvas support. |
+| **Portable** | Zero framework dependency. Runs in browsers and bundlers with canvas support. |
 
 ---
 
@@ -56,7 +48,7 @@ The engine handles grid management, frame timing, effect composition, preset loa
 | **Motion** | Blendable motion fields — flow, organic growth, orbital, breathing, curl noise |
 | **Simulation** | Particles, boids, CA, reaction diffusion, L-systems, gravity, spring, fluid |
 | **Sources** | Image, video, webcam, canvas, procedural |
-| **Renderers** | Canvas 2D, DOM, offscreen canvas (WebGL stub for future work) |
+| **Renderers** | Canvas 2D (working), DOM, offscreen canvas. WebGL stub does not draw. |
 | **Compositing** | Multi-layer blend modes, masks, post-processing passes |
 | **Audio** | Web Audio FFT analysis and reactive control mapping |
 | **MIDI** | Web MIDI, keyboard input, performance mapping, MIDI learn |
@@ -86,15 +78,20 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) and [API.md](./API.md) for full referen
 
 ## Integration (Plantasonic & external projects)
 
-Install from the built package or link locally:
+Install from GitHub (not npm):
+
+```bash
+npm install github:nate-thousand/ascii-visual-engine#v0.1.0
+```
+
+Or a sibling checkout:
 
 ```bash
 # In ascii-visual-engine/
 npm run build
-npm link
 
-# In your project (e.g. Plantasonic)
-npm link ascii-visual-engine
+# In the host app package.json
+"ascii-visual-engine": "file:../ascii-visual-engine"
 ```
 
 Minimal usage:
@@ -106,7 +103,7 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
 const engine = new AsciiEngine({
   canvas,
-  preset: getPreset('ambient'),
+  preset: getPreset('glyphOrganicBloom'),
   width: window.innerWidth,
   height: window.innerHeight,
 });
@@ -162,8 +159,10 @@ Full details: [ARCHITECTURE.md](./ARCHITECTURE.md)
 ### As a dependency
 
 ```bash
-npm install ascii-visual-engine
+npm install github:nate-thousand/ascii-visual-engine#v0.1.0
 ```
+
+Not published to npm. `npm install ascii-visual-engine` will not resolve this package.
 
 ### Development
 
@@ -186,7 +185,7 @@ npm run typecheck  # Type-check without emitting
 npm run dev
 ```
 
-Opens the vanilla example at `http://localhost:5173` with a fullscreen ASCII canvas, preset selector, control sliders, and burst buttons.
+Opens the vanilla example at `http://localhost:5173`. Default view is six presets and a short rail. Press `D` or open `?debug=1` for renderer, sources, scripts, MIDI learn, and debug dumps.
 
 ---
 

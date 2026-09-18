@@ -4,6 +4,10 @@ Complete specification for ASCII Visual Engine preset objects.
 
 Presets are plain, JSON-serializable objects that define the visual appearance and behavior of an ASCII animation. They contain no logic — the engine interprets the schema at runtime.
 
+## Validation
+
+Every preset is validated when it is applied. `AsciiEngine.setPreset()` calls `assertValidPreset()`, which throws an `Error` listing every structural problem (missing or mistyped required fields, control `min > max`, NaN values, unknown `motionField` or plugin `type`) and logs a console warning once per preset id for soft issues (a control default outside its range, a control name the engine does not know). Hosts that load presets from JSON can call `validatePreset(json)` first to get `{ ok, errors, warnings }` without throwing.
+
 ---
 
 ## Type Definition

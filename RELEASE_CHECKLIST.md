@@ -45,7 +45,7 @@ Initial MVP release of ASCII Visual Engine. Use this checklist before tagging or
 
 - [x] `vercel.json` configured (`build:demo` → `dist-demo/`)
 - [x] Production deployment succeeds
-- [x] Live demo accessible with no console errors
+- [x] Live demo: [visual-engine.xyz](https://visual-engine.xyz)
 
 ## Integration Readiness
 

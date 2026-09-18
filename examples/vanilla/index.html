@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ASCII Visual Engine v0.1.0 — real-time generative ASCII visuals with motion, simulation, audio, MIDI, and compositing." />
+    <meta name="description" content="ASCII Visual Engine — Canvas 2D generative ASCII visuals. Press D for the lab." />
     <meta name="theme-color" content="#000000" />
-    <title>ASCII Visual Engine — Demo</title>
+    <title>ASCII Visual Engine</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='4' y='24' font-family='monospace' font-size='20' fill='%2300ff88'>#</text></svg>" />
     <style>
       * {
@@ -58,6 +58,8 @@
         max-width: 340px;
         max-height: calc(100vh - 32px);
         overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
         padding: 16px;
         background: rgba(0, 0, 0, 0.75);
         border: 1px solid rgba(0, 255, 136, 0.3);
@@ -65,6 +67,10 @@
         backdrop-filter: blur(8px);
         font-size: 13px;
         line-height: 1.5;
+      }
+
+      #ui::-webkit-scrollbar {
+        display: none;
       }
 
       #ui h1 {
@@ -175,6 +181,45 @@
         color: rgba(0, 255, 136, 0.5);
       }
 
+      #show-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      #show-actions button {
+        flex: 1;
+        min-width: 90px;
+      }
+
+      #lab-toggle {
+        margin-top: 12px;
+        width: 100%;
+      }
+
+      #lab {
+        display: none;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0, 255, 136, 0.2);
+      }
+
+      body.lab-open #lab {
+        display: block;
+      }
+
+      .kbd {
+        font-size: 10px;
+        color: rgba(0, 255, 136, 0.45);
+      }
+
+      #keyboard-show-label {
+        margin: 8px 0 0;
+        justify-content: flex-start;
+        gap: 8px;
+      }
+
       #debug-panel {
         margin-top: 12px;
         padding: 10px;
@@ -217,10 +262,50 @@
     <div id="ui">
       <h1>ASCII Visual Engine</h1>
       <p>
-        Motion system demo — switch presets, toggle motions/effects/patterns,
-        and drag sliders. Debug panels show live engine and motion state.
+        Real-time ASCII visuals. Six looks, a few sliders, mic or MIDI if you want them.
+        Press <span class="kbd">D</span> or Lab for the full harness.
       </p>
 
+      <div class="control-group">
+        <label for="preset">Preset</label>
+        <select id="preset"></select>
+      </div>
+
+      <div class="control-group">
+        <label for="density">
+          Density <span class="value" id="density-value"></span>
+        </label>
+        <input type="range" id="density" min="0.3" max="2" step="0.1" />
+        <label for="speed">
+          Speed <span class="value" id="speed-value"></span>
+        </label>
+        <input type="range" id="speed" min="0.1" max="3" step="0.1" />
+        <label for="trailAmount">
+          Trails <span class="value" id="trailAmount-value"></span>
+        </label>
+        <input type="range" id="trailAmount" min="0" max="1" step="0.05" />
+        <label for="glitchAmount">
+          Glitch <span class="value" id="glitchAmount-value"></span>
+        </label>
+        <input type="range" id="glitchAmount" min="0" max="1" step="0.05" />
+      </div>
+
+      <div class="control-group">
+        <div id="show-actions">
+          <button type="button" id="start-microphone">Microphone</button>
+          <button type="button" id="connect-midi">MIDI</button>
+          <button type="button" id="export-png">PNG</button>
+        </div>
+        <label id="keyboard-show-label">
+          <input type="checkbox" id="keyboard-input-toggle" /> Keyboard (A–L, −/+ octave)
+        </label>
+        <div id="midi-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
+        <div id="audio-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
+        <div id="fps">fps: —</div>
+        <button type="button" id="lab-toggle">Lab</button>
+      </div>
+
+      <div id="lab">
       <div class="control-group">
         <div class="section-label">Renderer Pipeline</div>
         <label for="renderer-mode">Renderer</label>
@@ -270,17 +355,15 @@
       </div>
 
       <div class="control-group">
-        <label for="preset">Preset</label>
-        <select id="preset"></select>
+        <label for="preset-all">All Presets</label>
+        <select id="preset-all"></select>
       </div>
 
       <div class="control-group">
         <div class="section-label">Audio Reactivity</div>
-        <button id="start-microphone">Enable Microphone</button>
         <label for="audio-file-input">Audio File</label>
         <input type="file" id="audio-file-input" accept="audio/*" />
         <button id="disconnect-audio">Disconnect Audio</button>
-        <div id="audio-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
         <div class="section-label" style="margin-top:10px">Live Meters</div>
         <label>Amplitude <span class="value" id="meter-amplitude">0.00</span></label>
         <div class="meter-bar"><div id="bar-amplitude" class="meter-fill"></div></div>
@@ -304,7 +387,6 @@
         <div class="section-label">Export &amp; Recording</div>
         <div id="recording-indicator" style="font-size:11px;margin-bottom:6px;color:#888;">● idle</div>
         <div id="frame-counter" style="font-size:11px;margin-bottom:8px;">frames: 0</div>
-        <button id="export-png">Screenshot PNG</button>
         <button id="export-svg">Download SVG</button>
         <button id="export-ascii">Download ASCII</button>
         <button id="export-json">Export JSON Scene</button>
@@ -366,13 +448,8 @@
         <div class="section-label">MIDI &amp; Performance</div>
         <label for="midi-device">MIDI Device</label>
         <select id="midi-device"><option value="">(scan devices)</option></select>
-        <button id="connect-midi">Connect MIDI</button>
         <button id="disconnect-midi">Disconnect MIDI</button>
-        <label>
-          <input type="checkbox" id="keyboard-input-toggle" /> Keyboard Input (A-L keys, -/+ octave)
-        </label>
         <button id="input-panic">Panic — All Notes Off</button>
-        <div id="midi-error" style="font-size:11px;color:#ffaa00;margin-top:6px;"></div>
         <label for="learn-control">MIDI Learn Target</label>
         <select id="learn-control">
           <option value="">(off)</option>
@@ -470,18 +547,6 @@
       </div>
 
       <div class="control-group">
-        <div class="section-label">Core Controls</div>
-        <label for="density">
-          Density <span class="value" id="density-value"></span>
-        </label>
-        <input type="range" id="density" min="0.3" max="2" step="0.1" />
-        <label for="speed">
-          Speed <span class="value" id="speed-value"></span>
-        </label>
-        <input type="range" id="speed" min="0.1" max="3" step="0.1" />
-      </div>
-
-      <div class="control-group">
         <div class="section-label">Motion Controls</div>
         <label for="strength">Strength <span class="value" id="strength-value"></span></label>
         <input type="range" id="strength" min="0" max="1" step="0.05" />
@@ -539,20 +604,6 @@
           Scanline <span class="value" id="scanlineAmount-value"></span>
         </label>
         <input type="range" id="scanlineAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <label for="trailAmount">
-          Trails <span class="value" id="trailAmount-value"></span>
-        </label>
-        <input type="range" id="trailAmount" min="0" max="1" step="0.05" />
-      </div>
-
-      <div class="control-group">
-        <label for="glitchAmount">
-          Glitch <span class="value" id="glitchAmount-value"></span>
-        </label>
-        <input type="range" id="glitchAmount" min="0" max="1" step="0.05" />
       </div>
 
       <div class="buttons">
@@ -628,6 +679,7 @@
       <div class="control-group">
         <div class="section-label">Motion Debug</div>
         <pre id="motion-debug-panel">loading…</pre>
+      </div>
       </div>
     </div>
 

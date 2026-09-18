@@ -52,6 +52,9 @@ export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Glyph — Or
   ],
   patterns: ['radialSymmetry', 'cellular'],
   motions: [{ id: 'organicGrowth', weight: 0.7 }, { id: 'breathing', weight: 0.3 }],
+  speed: 0.55,
+  trailAmount: 0.4,
+  glitchAmount: 0,
 });
 
 export const digitalForestPreset = glyphPreset(
@@ -68,6 +71,9 @@ export const digitalForestPreset = glyphPreset(
     ],
     patterns: ['grid', 'cellular'],
     motions: [{ id: 'flowField', weight: 0.6 }],
+    speed: 0.45,
+    trailAmount: 0.35,
+    glitchAmount: 0,
   },
 );
 
@@ -81,7 +87,8 @@ export const crtTerminalPreset = glyphPreset('glyphCrtTerminal', 'Glyph — CRT 
   ],
   patterns: ['scanline'],
   scanlineAmount: 0.8,
-  glitchAmount: 0.35,
+  trailAmount: 0.3,
+  glitchAmount: 0.18,
 });
 
 export const corruptedBroadcastPreset = glyphPreset(
@@ -95,7 +102,8 @@ export const corruptedBroadcastPreset = glyphPreset(
       { id: 'burst', type: 'effect' },
       { id: 'scanline', type: 'pattern' },
     ],
-    glitchAmount: 0.7,
+    trailAmount: 0.25,
+    glitchAmount: 0.45,
     motions: [{ id: 'curlNoise', weight: 0.5 }],
   },
 );
@@ -110,6 +118,8 @@ export const flowFieldPreset = glyphPreset('glyphFlowField', 'Glyph — Flow Fie
   patterns: ['spiral'],
   motions: [{ id: 'flowField', weight: 0.8 }],
   flowStrength: 0.7,
+  trailAmount: 0.45,
+  glitchAmount: 0,
 });
 
 export const particleNebulaPreset = glyphPreset(
@@ -151,6 +161,8 @@ export const minimalZenPreset = glyphPreset('glyphMinimalZen', 'Glyph — Minima
     { id: 'wave', type: 'effect' },
   ],
   motions: [{ id: 'breathing', weight: 0.9 }],
-  density: 0.7,
-  trailAmount: 0.6,
+  density: 0.65,
+  speed: 0.4,
+  trailAmount: 0.35,
+  glitchAmount: 0,
 });

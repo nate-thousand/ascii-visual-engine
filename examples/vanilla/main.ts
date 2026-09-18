@@ -11,7 +11,6 @@ import {
   type BlendMode,
   type EngineDebugState,
   type Plugin,
-  type PresetId,
   type RendererId,
   type QualityPresetId,
 } from 'ascii-visual-engine';
@@ -20,6 +19,9 @@ import { galleryScripts } from '../scripts';
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const domOutput = document.getElementById('dom-output') as HTMLPreElement;
 const presetSelect = document.getElementById('preset') as HTMLSelectElement;
+const presetAllSelect = document.getElementById('preset-all') as HTMLSelectElement;
+const labToggle = document.getElementById('lab-toggle') as HTMLButtonElement;
+const fpsEl = document.getElementById('fps') as HTMLDivElement;
 const effectPluginList = document.getElementById('effect-plugins') as HTMLDivElement;
 const patternPluginList = document.getElementById('pattern-plugins') as HTMLDivElement;
 const motionPluginList = document.getElementById('motion-plugins') as HTMLDivElement;
@@ -167,6 +169,49 @@ const valueDisplays = Object.fromEntries(
 
 const allPresets = listPresets();
 const presetIds = allPresets.map((p) => p.id);
+const HERO_PRESET_IDS = [
+  'glyphOrganicBloom',
+  'glyphDigitalForest',
+  'glyphCrtTerminal',
+  'glyphCorruptedBroadcast',
+  'glyphFlowField',
+  'glyphMinimalZen',
+] as const;
+const BOOT_PRESET_ID = 'glyphOrganicBloom';
+const heroPresetIdSet = new Set<string>(HERO_PRESET_IDS);
+
+function isLabOpen(): boolean {
+  return document.body.classList.contains('lab-open');
+}
+
+function setLabOpen(open: boolean, refreshDebug = true): void {
+  document.body.classList.toggle('lab-open', open);
+  labToggle.textContent = open ? 'Hide Lab' : 'Lab';
+  const url = new URL(window.location.href);
+  if (open) url.searchParams.set('debug', '1');
+  else url.searchParams.delete('debug');
+  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  if (open && refreshDebug) updateDebugPanel();
+}
+
+const debugParam = new URLSearchParams(window.location.search).get('debug');
+setLabOpen(debugParam === '1' || debugParam === 'true', false);
+
+labToggle.addEventListener('click', () => setLabOpen(!isLabOpen()));
+
+window.addEventListener('keydown', (event) => {
+  if (event.key !== 'd' && event.key !== 'D') return;
+  const target = event.target;
+  if (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  ) {
+    return;
+  }
+  event.preventDefault();
+  setLabOpen(!isLabOpen());
+});
 const pluginCheckboxes = new Map<string, HTMLInputElement>();
 const motionCheckboxes = new Map<string, HTMLInputElement>();
 const simulationCheckboxes = new Map<string, HTMLInputElement>();
@@ -230,11 +275,20 @@ const simValueDisplays = Object.fromEntries(
   simSliderIds.map((id) => [id, document.getElementById(`${id}-value`) as HTMLSpanElement]),
 ) as Record<SimSliderId, HTMLSpanElement>;
 
+for (const id of HERO_PRESET_IDS) {
+  const preset = allPresets.find((p) => p.id === id);
+  if (!preset) continue;
+  const option = document.createElement('option');
+  option.value = preset.id;
+  option.textContent = preset.name.replace(/^Glyph — /, '');
+  presetSelect.appendChild(option);
+}
+
 for (const preset of allPresets) {
   const option = document.createElement('option');
   option.value = preset.id;
   option.textContent = preset.name;
-  presetSelect.appendChild(option);
+  presetAllSelect.appendChild(option);
 }
 
 function getViewportSize() {
@@ -246,7 +300,7 @@ const { width, height } = getViewportSize();
 const engine = new AsciiEngine({
   canvas,
   element: domOutput,
-  preset: allPresets.find((p) => p.id === 'ambient') ?? allPresets[0],
+  preset: allPresets.find((p) => p.id === BOOT_PRESET_ID) ?? allPresets[0],
   width,
   height,
 });
@@ -619,6 +673,9 @@ function updateSimulationDebugPanel() {
 
 function updateDebugPanel() {
   const state = engine.getDebugState();
+  fpsEl.textContent = `fps: ${Math.round(state.fps)}`;
+  if (!isLabOpen()) return;
+
   debugPanel.textContent = [
     `preset:       ${state.preset}`,
     `renderer:     ${state.renderer.activeRendererId ?? 'canvas'} (${state.renderer.activeRendererName ?? 'Canvas 2D'})`,
@@ -792,6 +849,7 @@ syncSimulationsFromEngine();
 syncLayersFromEngine();
 syncPostPassesFromEngine();
 presetSelect.value = initialPreset.id;
+presetAllSelect.value = initialPreset.id;
 updateDebugPanel();
 
 for (const id of simSliderIds) {
@@ -806,8 +864,7 @@ for (const id of simSliderIds) {
   });
 }
 
-presetSelect.addEventListener('change', () => {
-  const id = presetSelect.value as PresetId;
+function applyPresetById(id: string): void {
   warnUnknownPreset(id, presetIds);
   const preset = allPresets.find((p) => p.id === id);
   if (!preset) {
@@ -821,7 +878,21 @@ presetSelect.addEventListener('change', () => {
   syncSimulationsFromEngine();
   syncLayersFromEngine();
   syncPostPassesFromEngine();
+  presetAllSelect.value = preset.id;
+  if (heroPresetIdSet.has(preset.id)) {
+    presetSelect.value = preset.id;
+  } else {
+    presetSelect.selectedIndex = -1;
+  }
   updateDebugPanel();
+}
+
+presetSelect.addEventListener('change', () => {
+  applyPresetById(presetSelect.value);
+});
+
+presetAllSelect.addEventListener('change', () => {
+  applyPresetById(presetAllSelect.value);
 });
 
 for (const id of sliderIds) {
