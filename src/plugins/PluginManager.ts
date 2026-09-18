@@ -122,9 +122,14 @@ export class PluginManager {
     }
   }
 
-  applyPatterns(context: PluginContext): void {
+  /**
+   * Blend enabled patterns into cell brightness. `share` is the pattern's
+   * share of the result (0.9 for procedural frames; `1 - sourceBlend` when a
+   * pixel source owns the grid).
+   */
+  applyPatterns(context: PluginContext, share = 0.9): void {
     const patterns = this.getEnabledByType('pattern').filter(isPatternPlugin);
-    if (patterns.length === 0) return;
+    if (patterns.length === 0 || share <= 0) return;
 
     const { grid, glyphSet } = context;
 
@@ -145,7 +150,7 @@ export class PluginManager {
       if (weight <= 0) continue;
 
       const value = sum / weight;
-      cell.brightness = clamp01(cell.brightness * 0.1 + value * 0.9);
+      cell.brightness = clamp01(cell.brightness * (1 - share) + value * share);
 
       if (!context.glyphLanguageActive) {
         const index = Math.floor(cell.brightness * (glyphSet.length - 1));

@@ -450,7 +450,7 @@ External visual source pipeline — images, video, webcam, canvas. See [SOURCE_P
 | --- | --- | --- |
 | `sourceContrast` | `1` | Brightness contrast multiplier |
 | `sourceEdge` | `0.3` | Edge emphasis blend |
-| `sourceBlend` | `1` | Source brightness blend strength |
+| `sourceBlend` | `1` | Source share of cell brightness: 1 = source only, 0 = pattern only |
 
 ---
 

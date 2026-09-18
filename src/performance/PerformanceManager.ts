@@ -37,6 +37,12 @@ export class PerformanceManager {
     partialUpdate: false,
   };
   private baseDensity = 1;
+  private baseTrailAmount = 0.3;
+  private baseSpawnRate = 0.5;
+  /** Set once a quality preset has scaled controls; setPreset() then re-applies it. */
+  private controlsScaled = false;
+  /** Guards base capture while the quality preset itself writes controls. */
+  private applyingQuality = false;
   private audioLatencyMs = 0;
   private adaptiveCooldown = 0;
 
@@ -51,8 +57,30 @@ export class PerformanceManager {
 
   setEngine(engine: AsciiEngine): void {
     this.engine = engine;
-    this.baseDensity = engine.getControl('density', 1);
+    this.syncBaseControls();
     this.applyQualityPreset(this.quality, false);
+  }
+
+  /** Capture the unscaled density, trail, and spawn values the quality scales apply to. */
+  syncBaseControls(): void {
+    if (!this.engine) return;
+    this.baseDensity = this.engine.getControl('density', 1);
+    this.baseTrailAmount = this.engine.getControl('trailAmount', 0.3);
+    this.baseSpawnRate = this.engine.getControl('simSpawnRate', 0.5);
+  }
+
+  /** Called by the engine on every setControl(); host edits move the base, quality scaling does not. */
+  noteControl(name: string, value: number): void {
+    if (this.applyingQuality) return;
+    if (name === 'density') this.baseDensity = value;
+    else if (name === 'trailAmount') this.baseTrailAmount = value;
+    else if (name === 'simSpawnRate') this.baseSpawnRate = value;
+  }
+
+  /** Re-apply the current quality scaling after a preset reset its controls. */
+  reapplyQualityScaling(): void {
+    this.syncBaseControls();
+    if (this.controlsScaled) this.applyQualityPreset(this.quality, true);
   }
 
   destroy(): void {
@@ -101,12 +129,15 @@ export class PerformanceManager {
     }
 
     if (adjustControls && this.engine) {
-      const density = this.baseDensity * settings.densityScale;
-      this.engine.setControl('density', density);
-      const trail = this.engine.getControl('trailAmount', 0.3) * settings.trailScale;
-      this.engine.setControl('trailAmount', Math.min(1, trail));
-      const spawn = this.engine.getControl('simSpawnRate', 0.5) * settings.particleScale;
-      this.engine.setControl('simSpawnRate', Math.min(1, spawn));
+      this.controlsScaled = true;
+      this.applyingQuality = true;
+      try {
+        this.engine.setControl('density', this.baseDensity * settings.densityScale);
+        this.engine.setControl('trailAmount', Math.min(1, this.baseTrailAmount * settings.trailScale));
+        this.engine.setControl('simSpawnRate', Math.min(1, this.baseSpawnRate * settings.particleScale));
+      } finally {
+        this.applyingQuality = false;
+      }
     }
   }
 
@@ -283,12 +314,18 @@ export class PerformanceManager {
     const target = this.fpsTarget;
     const currentDensity = this.engine.getControl('density', this.baseDensity);
 
-    if (fps < target * 0.85 && currentDensity > 0.3) {
-      this.engine.setControl('density', Math.max(0.3, currentDensity * 0.95));
-      this.adaptiveCooldown = 30;
-    } else if (fps > target * 1.1 && currentDensity < this.baseDensity * settings.densityScale) {
-      this.engine.setControl('density', Math.min(this.baseDensity * settings.densityScale, currentDensity * 1.02));
-      this.adaptiveCooldown = 60;
+    // Adaptive steps are quality scaling too: they must not move the base.
+    this.applyingQuality = true;
+    try {
+      if (fps < target * 0.85 && currentDensity > 0.3) {
+        this.engine.setControl('density', Math.max(0.3, currentDensity * 0.95));
+        this.adaptiveCooldown = 30;
+      } else if (fps > target * 1.1 && currentDensity < this.baseDensity * settings.densityScale) {
+        this.engine.setControl('density', Math.min(this.baseDensity * settings.densityScale, currentDensity * 1.02));
+        this.adaptiveCooldown = 60;
+      }
+    } finally {
+      this.applyingQuality = false;
     }
   }
 }

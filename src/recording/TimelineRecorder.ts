@@ -74,6 +74,10 @@ export class TimelineRecorder {
     return this.playback.getStatus();
   }
 
+  isPlaybackActive(): boolean {
+    return this.playback.isActive();
+  }
+
   getTimeline(): RecordedFrame[] {
     return this.timeline.length > 0 ? this.timeline : this.session.getFrames();
   }

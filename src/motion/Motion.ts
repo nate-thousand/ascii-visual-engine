@@ -102,7 +102,6 @@ export const MOTION_CONTROLS = [
   'gravity',
   'noiseScale',
   'flowStrength',
-  'blendWeight',
 ] as const;
 
 export type MotionControlName = (typeof MOTION_CONTROLS)[number];
@@ -118,5 +117,4 @@ export const DEFAULT_MOTION_CONTROLS: Record<MotionControlName, number> = {
   gravity: 0.5,
   noiseScale: 1,
   flowStrength: 0.8,
-  blendWeight: 1,
 };

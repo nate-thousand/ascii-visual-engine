@@ -163,7 +163,6 @@ export interface AsciiPreset {
   gravity?: number;
   noiseScale?: number;
   flowStrength?: number;
-  blendWeight?: number;
   simStrength?: number;
   simSpeed?: number;
   simDensity?: number;

@@ -12,6 +12,8 @@ export class PlaybackSession {
   private rafId: number | null = null;
   private lastTime = 0;
   private frameRate = 30;
+  /** True while a recorded frame owns the grid (play, pause, step, scrub) until stop(). */
+  private holding = false;
 
   setEngine(_engine: ExportEngineBridge, importGrid: (grid: import('../core/types').GridState) => void): void {
     this.importGrid = importGrid;
@@ -52,13 +54,25 @@ export class PlaybackSession {
     this.scheduleStep();
   }
 
+  /** Release the grid back to the live pipeline. */
   stop(): void {
-    this.playing = false;
+    this.halt();
     this.paused = false;
+    this.holding = false;
+  }
+
+  /** Stop advancing but keep the current frame on screen. */
+  private halt(): void {
+    this.playing = false;
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+  }
+
+  /** Whether playback currently owns the grid; the engine skips its live stages while true. */
+  isActive(): boolean {
+    return this.holding;
   }
 
   step(delta: number): void {
@@ -86,6 +100,7 @@ export class PlaybackSession {
     return {
       playing: this.playing,
       paused: this.paused,
+      active: this.holding,
       frameIndex: this.frameIndex,
       frameCount: this.frames.length,
       speed: this.speed,
@@ -102,12 +117,15 @@ export class PlaybackSession {
     const frame = this.frames[index];
     if (frame && this.importGrid) {
       this.importGrid(frame.grid);
+      this.holding = true;
     }
   }
 
   private scheduleStep(): void {
     if (!this.playing || this.paused) return;
     this.rafId = requestAnimationFrame((now) => {
+      this.rafId = null;
+      if (!this.playing || this.paused) return;
       const interval = (1000 / this.frameRate / this.speed);
       if (now - this.lastTime >= interval) {
         this.lastTime = now;
@@ -115,7 +133,7 @@ export class PlaybackSession {
           if (this.loop) {
             this.frameIndex = 0;
           } else {
-            this.stop();
+            this.halt();
             return;
           }
         } else {

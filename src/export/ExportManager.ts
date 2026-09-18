@@ -181,6 +181,10 @@ export class ExportManager {
     this.timeline.scrubPlayback(index);
   }
 
+  isPlaybackActive(): boolean {
+    return this.timeline.isPlaybackActive();
+  }
+
   getDebugState(): ExportDebugState {
     return {
       recording: this.timeline.getRecordingStatus(),

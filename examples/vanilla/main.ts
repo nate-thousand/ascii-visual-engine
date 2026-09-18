@@ -145,7 +145,6 @@ const sliderIds = [
   'gravity',
   'noiseScale',
   'flowStrength',
-  'blendWeight',
   'symmetry',
   'petals',
   'spiralAmount',
@@ -337,6 +336,19 @@ function syncSlidersFromPreset(preset: AsciiPreset) {
       valueDisplays[id].textContent = formatSliderValue(id, value);
     }
     engine.setControl(id, value);
+  }
+}
+
+/** Reflect the engine's current control values without writing them back. */
+function syncSlidersFromEngine() {
+  for (const id of sliderIds) {
+    const slider = sliders[id];
+    if (!slider) continue;
+    const value = engine.getControl(id, parseFloat(slider.value));
+    slider.value = String(value);
+    if (valueDisplays[id]) {
+      valueDisplays[id].textContent = formatSliderValue(id, value);
+    }
   }
 }
 
@@ -872,7 +884,7 @@ function applyPresetById(id: string): void {
     return;
   }
   engine.setPreset(preset);
-  syncSlidersFromPreset(preset);
+  syncSlidersFromEngine();
   syncPluginsFromEngine();
   syncMotionsFromEngine();
   syncSimulationsFromEngine();
@@ -1136,7 +1148,7 @@ document.getElementById('import-json')!.addEventListener('change', async (e) => 
   const result = engine.importJSON(text);
   if (!result.ok) exportErrorEl.textContent = result.error ?? 'JSON import failed';
   syncPluginsFromEngine();
-  syncSlidersFromPreset(engine.getPreset());
+  syncSlidersFromEngine();
   updateDebugPanel();
   (e.target as HTMLInputElement).value = '';
 });
@@ -1414,7 +1426,7 @@ clearScriptConsoleBtn.addEventListener('click', () => {
 
 qualityPresetSelect.addEventListener('change', () => {
   engine.setQualityPreset(qualityPresetSelect.value as QualityPresetId);
-  syncSlidersFromPreset(engine.getPreset());
+  syncSlidersFromEngine();
   updateDebugPanel();
 });
 

@@ -142,7 +142,7 @@ Helpers:
 | --- | --- | --- |
 | `sourceContrast` | `1` | Contrast multiplier on sampled brightness |
 | `sourceEdge` | `0.3` | Edge emphasis blend (0 = off, 1 = full) |
-| `sourceBlend` | `1` | How strongly source overwrites grid brightness |
+| `sourceBlend` | `1` | Source share of cell brightness: 1 = source only (patterns skipped), 0 = pattern only |
 
 ```typescript
 engine.setControl('sourceContrast', 1.5);

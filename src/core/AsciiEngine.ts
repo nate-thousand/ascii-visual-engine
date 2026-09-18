@@ -249,6 +249,7 @@ export class AsciiEngine {
     this.applyPresetAudioMapping(preset);
     this.applyPresetInputMapping(preset);
     this.applyPresetGlyphs(preset);
+    this.performanceManager.reapplyQualityScaling();
     this.eventBus.emit('preset', preset);
   }
 
@@ -256,9 +257,9 @@ export class AsciiEngine {
     warnUnknownControl(name);
     this.controlValues.set(name, value);
 
+    this.performanceManager.noteControl(name, value);
     if (name === 'density') {
       this.rendererManager.setDensity(value);
-      this.performanceManager.setBaseDensity(value);
     }
 
     if (name === 'perfQuality') {
@@ -889,6 +890,11 @@ export class AsciiEngine {
     this.exportManager.scrubPlayback(index);
   }
 
+  /** True while a recorded frame owns the grid (until stopPlayback()). */
+  isPlaybackActive(): boolean {
+    return this.exportManager.isPlaybackActive();
+  }
+
   getGlyphRegistry(): GlyphRegistry {
     return this.glyphRegistry;
   }
@@ -1023,10 +1029,9 @@ export class AsciiEngine {
 
   private applyPresetSource(preset: AsciiPreset): void {
     const config = resolvePresetSource(preset);
-    if (!config) {
-      this.sourceManager.setMode('procedural');
-      return;
-    }
+    // The active source is engine state. A preset only changes it when it
+    // declares one, so switching looks keeps a running webcam or video.
+    if (!config) return;
 
     const source = this.sourceManager.getSource(config.id);
     if (!source) return;
@@ -1255,26 +1260,8 @@ export class AsciiEngine {
     };
   }
 
-  private tick = (now: number): void => {
-    if (!this.running) return;
-
-    const dt = Math.min((now - this.lastTime) / 1000, 0.05);
-    this.lastTime = now;
-    this.time += dt;
-
-    this.performanceManager.beginFrame(now, dt);
-
-    this.performanceManager.markPhase('script');
-    this.scriptEngine.onFrameStart(dt, this.time);
-
-    this.performanceManager.markPhase('audio');
-    this.updateAudio(dt);
-
-    this.performanceManager.markPhase('input');
-    this.updateInput();
-
-    const trailAmount = this.getControl('trailAmount', this.preset.trailAmount);
-
+  /** Source, simulation, motion, plugin, compositing, post, and glyph stages. */
+  private updateLiveGrid(dt: number): void {
     this.performanceManager.markPhase('source');
     const sourceCtx = this.buildSourceContext(dt);
     this.sourceManager.update(dt, sourceCtx);
@@ -1307,7 +1294,13 @@ export class AsciiEngine {
       this.pluginManager.runMotionEffects(ctx);
     }
     this.pluginManager.updatePatterns(dt, ctx);
-    this.pluginManager.applyPatterns(ctx);
+    if (sourceApplied) {
+      // sourceBlend is the source's share: 1 = source only, 0 = pattern only.
+      const sourceBlend = Math.max(0, Math.min(1, this.getControl('sourceBlend', 1)));
+      this.pluginManager.applyPatterns(ctx, 1 - sourceBlend);
+    } else {
+      this.pluginManager.applyPatterns(ctx);
+    }
     this.pluginManager.runPostEffects(ctx);
 
     const compositingActive = this.layerManager.isCompositingActive();
@@ -1335,6 +1328,33 @@ export class AsciiEngine {
     const glyphGrid = this.rendererManager.getGridState(this.time);
     this.glyphRegistry.applyToGrid(glyphGrid, this.buildGlyphContext(dt));
     this.applyBassReactiveGlyphScale(glyphGrid);
+  }
+
+  private tick = (now: number): void => {
+    if (!this.running) return;
+
+    const dt = Math.min((now - this.lastTime) / 1000, 0.05);
+    this.lastTime = now;
+    this.time += dt;
+
+    this.performanceManager.beginFrame(now, dt);
+
+    this.performanceManager.markPhase('script');
+    this.scriptEngine.onFrameStart(dt, this.time);
+
+    this.performanceManager.markPhase('audio');
+    this.updateAudio(dt);
+
+    this.performanceManager.markPhase('input');
+    this.updateInput();
+
+    const trailAmount = this.getControl('trailAmount', this.preset.trailAmount);
+
+    // A recorded frame owns the grid during playback; the live stages would
+    // overwrite it before it is rendered.
+    if (!this.exportManager.isPlaybackActive()) {
+      this.updateLiveGrid(dt);
+    }
 
     this.performanceManager.markPhase('render');
     const trailsEnabled = this.pluginManager.get('trails')?.enabled ?? false;

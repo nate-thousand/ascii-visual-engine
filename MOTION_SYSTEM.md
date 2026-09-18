@@ -107,7 +107,6 @@ Exposed via `engine.setControl()` / preset fields:
 | `gravity` | 0.5 | Downward pull strength |
 | `noiseScale` | 1 | Noise field scale |
 | `flowStrength` | 0.8 | Flow/wind field strength |
-| `blendWeight` | 1 | Global motion blend multiplier |
 
 ---
 

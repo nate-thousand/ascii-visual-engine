@@ -96,7 +96,7 @@ const REQUIRED_NUMBERS = ['density', 'speed', 'trailAmount', 'glitchAmount'] as 
 const OPTIONAL_NUMBERS = [
   'symmetry', 'petals', 'spiralAmount', 'cellularAmount', 'scanlineAmount',
   'strength', 'randomness', 'frequency', 'amplitude', 'decay', 'drag', 'gravity',
-  'noiseScale', 'flowStrength', 'blendWeight',
+  'noiseScale', 'flowStrength',
   'simStrength', 'simSpeed', 'simDensity', 'simDecay', 'simSpawnRate',
   'postFeedback', 'postSmear', 'postDisplacement', 'postThreshold', 'postInvert',
   'postEdge', 'postPosterize', 'postScanline', 'postDither',

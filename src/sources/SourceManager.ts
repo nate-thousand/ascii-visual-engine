@@ -122,7 +122,7 @@ export class SourceManager {
       grid.rows,
       getControl('sourceContrast', 1),
       getControl('sourceEdge', 0.3),
-      getControl('sourceBlend', 1),
+      1,
       getControl,
     );
     return true;

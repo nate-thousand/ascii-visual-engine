@@ -116,14 +116,13 @@ export class MotionManager {
     if (enabled.length === 0) return;
 
     let totalWeight = 0;
-    const blendWeight = context.getControl('blendWeight', 1);
 
     const motionContext: MotionContext = { ...context, scratch };
 
     for (const motion of enabled) {
       clearMotionBuffer(scratch, cellCount);
       motion.update(context.dt, motionContext);
-      const w = motion.weight * blendWeight;
+      const w = motion.weight;
       if (w <= 0) continue;
       this.blendBuffer(acc, scratch, w, cellCount);
       totalWeight += w;

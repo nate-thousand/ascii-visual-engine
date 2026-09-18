@@ -86,6 +86,8 @@ export interface RecordingStatus {
 export interface PlaybackStatus {
   playing: boolean;
   paused: boolean;
+  /** A recorded frame owns the grid until stopPlayback() */
+  active: boolean;
   frameIndex: number;
   frameCount: number;
   speed: number;

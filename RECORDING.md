@@ -51,9 +51,10 @@ engine.stopPlayback();
 engine.stepPlayback(-1);   // previous frame
 engine.stepPlayback(1);    // next frame
 engine.scrubPlayback(42);  // jump to frame index
+engine.isPlaybackActive(); // true while a recorded frame owns the grid
 ```
 
-Playback imports grid state into the active renderer without restarting the engine.
+Playback imports grid state into the active renderer without restarting the engine. While a recorded frame is on screen (playing, paused, stepped, or scrubbed) the engine skips its live stages, so the frame is not overwritten. `stopPlayback()` releases the grid back to the live pipeline; reaching the end of a non looping playback holds the last frame.
 
 ---
 
