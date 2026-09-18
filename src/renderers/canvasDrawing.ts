@@ -65,6 +65,27 @@ export function clearCanvas(
   ctx.fillRect(0, 0, width, height);
 }
 
+/** Alpha is quantized to this many levels so a frame sets fillStyle a few dozen times, not once per cell. */
+const ALPHA_LEVELS = 32;
+const alphaStyleCache = new Map<string, string[]>();
+/** Per level cell index lists, reused across frames. */
+const buckets: number[][] = Array.from({ length: ALPHA_LEVELS }, () => []);
+
+function alphaStyles(color: string): string[] {
+  let styles = alphaStyleCache.get(color);
+  if (!styles) {
+    styles = Array.from({ length: ALPHA_LEVELS }, (_, i) => withAlpha(color, 0.2 + (i / (ALPHA_LEVELS - 1)) * 0.8));
+    alphaStyleCache.set(color, styles);
+  }
+  return styles;
+}
+
+/**
+ * Draw every cell (or only the dirty ones). Cells are grouped by quantized
+ * brightness so `fillStyle` changes at most ALPHA_LEVELS times per frame;
+ * setting a new color string is the expensive part of a Canvas 2D text draw
+ * loop, `fillText` itself is the rest.
+ */
 export function drawGridToCanvas(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   cells: GridCell[],
@@ -87,51 +108,56 @@ export function drawGridToCanvas(
     options.dirtyTracker.getDirtyCount() < cells.length;
 
   const dirtySet = useDirty ? options.dirtyTracker!.getDirtyIndices() : null;
-  let drawCalls = 0;
+  const styles = alphaStyles(color);
+  for (const b of buckets) b.length = 0;
 
-  const drawCell = (cell: GridCell, px: number, py: number): void => {
+  const bucketOf = (cell: GridCell): number => {
     const brightness = Math.min(1, cell.brightness + cell.burst);
-    const alpha = 0.2 + brightness * 0.8;
-    ctx.fillStyle = withAlpha(color, alpha);
-    drawCalls++;
-
-    if (cell.rotation !== 0 || cell.scale !== 1) {
-      ctx.save();
-      ctx.translate(px, py);
-      if (cell.rotation !== 0) ctx.rotate(cell.rotation);
-      if (cell.scale !== 1) ctx.scale(cell.scale, cell.scale);
-      ctx.fillText(cell.char, 0, 0);
-      ctx.restore();
-    } else {
-      ctx.fillText(cell.char, px, py);
-    }
-    if (options.glyphCache) {
-      options.glyphCache.measure(ctx, cell.char, font);
-    }
+    return Math.max(0, Math.min(ALPHA_LEVELS - 1, Math.round(brightness * (ALPHA_LEVELS - 1))));
   };
 
+  let drawn = 0;
   if (dirtySet) {
     for (const idx of dirtySet) {
       const cell = cells[idx];
       if (!cell) continue;
-      drawCell(cell, cell.x * cellWidth + cell.ox, cell.y * cellHeight + cell.oy);
+      buckets[bucketOf(cell)].push(idx);
+      drawn++;
     }
-    return {
-      drawCalls,
-      glyphCount: dirtySet.size,
-      dirtyCells: dirtySet.size,
-      partialUpdate: true,
-    };
+  } else {
+    for (let i = 0; i < cells.length; i++) {
+      buckets[bucketOf(cells[i])].push(i);
+    }
+    drawn = cells.length;
   }
 
-  for (const cell of cells) {
-    drawCell(cell, cell.x * cellWidth + cell.ox, cell.y * cellHeight + cell.oy);
+  let drawCalls = 0;
+  for (let level = 0; level < ALPHA_LEVELS; level++) {
+    const bucket = buckets[level];
+    if (bucket.length === 0) continue;
+    ctx.fillStyle = styles[level];
+    for (let j = 0; j < bucket.length; j++) {
+      const cell = cells[bucket[j]];
+      const px = cell.x * cellWidth + cell.ox;
+      const py = cell.y * cellHeight + cell.oy;
+      drawCalls++;
+      if (cell.rotation !== 0 || cell.scale !== 1) {
+        ctx.save();
+        ctx.translate(px, py);
+        if (cell.rotation !== 0) ctx.rotate(cell.rotation);
+        if (cell.scale !== 1) ctx.scale(cell.scale, cell.scale);
+        ctx.fillText(cell.char, 0, 0);
+        ctx.restore();
+      } else {
+        ctx.fillText(cell.char, px, py);
+      }
+    }
   }
 
   return {
     drawCalls,
-    glyphCount: cells.length,
-    dirtyCells: cells.length,
-    partialUpdate: false,
+    glyphCount: drawn,
+    dirtyCells: drawn,
+    partialUpdate: dirtySet !== null,
   };
 }

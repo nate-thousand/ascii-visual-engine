@@ -17,6 +17,7 @@ import {
   type QualityPresetId,
 } from 'ascii-visual-engine';
 import { galleryScripts } from '../scripts';
+import { runFrameBudget, benchTable } from './bench';
 
 // ---------------------------------------------------------------------------
 // Elements. Every id here exists in index.html; tests/harness-ids.test.ts
@@ -91,6 +92,8 @@ const fpsTargetValue = $<HTMLSpanElement>('fps-target-value');
 const fpsGraphCanvas = $<HTMLCanvasElement>('fps-graph');
 const fpsGraphCtx = fpsGraphCanvas.getContext('2d')!;
 const performanceReadout = $<HTMLPreElement>('performance-readout');
+const runBenchBtn = $<HTMLButtonElement>('run-bench');
+const benchOutput = $<HTMLPreElement>('bench-output');
 
 const scriptSelect = $<HTMLSelectElement>('script-select');
 const scriptStatusEl = $<HTMLDivElement>('script-status');
@@ -189,8 +192,18 @@ const engine = handle.engine;
 
 engine.registerScripts(galleryScripts);
 engine.getScriptEngine().setHotReload(import.meta.env.DEV);
-// Dev only: poke the engine from the browser console.
-if (import.meta.env.DEV) (window as unknown as { engine: AsciiEngine }).engine = engine;
+// Dev only: poke the engine from the browser console, and run the frame budget
+// (see BENCHMARKS.md): `await bench({ pixelRatios: [1, 2] })`.
+if (import.meta.env.DEV) {
+  const w = window as unknown as { engine: AsciiEngine; bench: (o?: Parameters<typeof runFrameBudget>[1]) => Promise<string> };
+  w.engine = engine;
+  w.bench = async (o) => {
+    const rows = await runFrameBudget(engine, o);
+    const table = benchTable(rows);
+    console.log(table);
+    return table;
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Sliders. One factory for every numeric control in the panel.
@@ -770,6 +783,25 @@ fpsTargetSlider.addEventListener('input', () => {
   const val = parseInt(fpsTargetSlider.value, 10);
   fpsTargetValue.textContent = String(val);
   engine.setControl('fpsTarget', val);
+});
+
+runBenchBtn.addEventListener('click', async () => {
+  runBenchBtn.disabled = true;
+  benchOutput.hidden = false;
+  benchOutput.textContent = 'measuring, keep this tab visible...';
+  try {
+    const rows = await runFrameBudget(engine, { seconds: 3, settle: 0.7 });
+    benchOutput.textContent = rows
+      .map((r) => `${r.preset.replace(/^glyph/, '')}  ${r.frameMs} ms (p95 ${r.frameP95})  ${r.fps} fps  ${r.cells} cells  slowest ${r.slowest} ${r.slowestMs}`)
+      .join('\n');
+    console.log(benchTable(rows));
+  } finally {
+    runBenchBtn.disabled = false;
+    buildPresetControls(engine.getPreset());
+    syncSlidersFromEngine();
+    syncCompositionFromEngine();
+    presetSelect.value = engine.getPreset().id;
+  }
 });
 
 function drawFpsGraph(history: number[]): void {

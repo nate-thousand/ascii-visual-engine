@@ -486,6 +486,10 @@
           <label for="fps-target">FPS target <span class="value" id="fps-target-value">60</span></label>
           <input type="range" id="fps-target" min="30" max="120" step="15" value="60" />
           <canvas id="fps-graph" width="300" height="40"></canvas>
+          <div class="row">
+            <button type="button" id="run-bench">Run frame budget (hero presets, ~25 s)</button>
+          </div>
+          <pre id="bench-output" class="readout" hidden></pre>
           <pre id="performance-readout" class="readout"></pre>
         </div>
       </details>
