@@ -1,701 +1,178 @@
 # Preset Schema
 
-Complete specification for ASCII Visual Engine preset objects.
+A preset is a plain JSON serializable object that describes a look. The engine interprets it at runtime; it carries no code. This is the 0.3 nested shape. The 0.2 flat shape is still accepted everywhere and normalized on load (see the end of this document); it is deprecated at 1.0. The flat reference is kept at `docs/PRESET_SCHEMA-0.2-flat.md`.
 
-Presets are plain, JSON-serializable objects that define the visual appearance and behavior of an ASCII animation. They contain no logic — the engine interprets the schema at runtime.
-
-## Validation
-
-Every preset is validated when it is applied. `AsciiEngine.setPreset()` calls `assertValidPreset()`, which throws an `Error` listing every structural problem (missing or mistyped required fields, control `min > max`, NaN values, unknown `motionField` or plugin `type`) and logs a console warning once per preset id for soft issues (a control default outside its range, a control name the engine does not know). Hosts that load presets from JSON can call `validatePreset(json)` first to get `{ ok, errors, warnings }` without throwing.
-
----
-
-## Type Definition
+## Shape
 
 ```typescript
 interface AsciiPreset {
   id: string;
   name: string;
   glyphSet: string[];
-  motionField: MotionFieldType;
-  plugins: PluginConfig[];
-  /** @deprecated Use `plugins` array */
-  effects?: EffectConfig[];
-  /** @deprecated Use `plugins` array */
-  patterns?: PatternId[];
-  controls: ControlDef[];
-  density: number;
-  speed: number;
-  trailAmount: number;
-  glitchAmount: number;
-  symmetry?: number;
-  petals?: number;
-  spiralAmount?: number;
-  cellularAmount?: number;
-  scanlineAmount?: number;
-  source?: SourcePresetConfig;
+
+  plugins?: PluginConfig[];        // effects and patterns to enable
+  controls?: ControlDef[];         // slider metadata; derived from the composition when absent
+
+  density?: number;                // default 1
+  speed?: number;                  // default 1
+  trailAmount?: number;            // default 0.3
+  glitchAmount?: number;           // default 0.1
+
+  motion?: {
+    field?: 'noise' | 'wave' | 'none';   // legacy field; ignored when behaviors are listed
+    behaviors?: MotionConfig[];          // { id, weight?, priority?, enabled? }
+    strength?, randomness?, frequency?, amplitude?, decay?, drag?, gravity?, noiseScale?, flowStrength?: number;
+  };
+  pattern?: { symmetry?, petals?, spiralAmount?, cellularAmount?, scanlineAmount?: number };
+  simulation?: {
+    behaviors?: SimulationConfig[];      // { id, enabled? }
+    simStrength?, simSpeed?, simDensity?, simDecay?, simSpawnRate?: number;
+  };
+  post?: {
+    passes?: PostProcessingPresetConfig[];   // { id, enabled?, amount? }
+    postFeedback?, postSmear?, postDisplacement?, postThreshold?, postInvert?,
+    postEdge?, postPosterize?, postScanline?, postDither?: number;
+  };
+  audio?: {
+    mapping?: AudioMappingPresetConfig;
+    audioAttack?, audioRelease?, audioSensitivity?, audioNoiseGate?, audioMinThreshold?, audioMaxClamp?: number;
+  };
+  input?: InputMappingPresetConfig;
+  glyphs?: {
+    language?: string | string[];
+    categories?: GlyphCategoryId[];
+    rules?: GlyphRuleConfig[];
+    morphing?: GlyphMorphConfig;
+    animation?: GlyphAnimationConfig;
+  };
   layers?: LayerPresetConfig[];
-  postProcessing?: PostProcessingPresetConfig[];
-  postFeedback?: number;
-  postSmear?: number;
-  postDisplacement?: number;
-  postThreshold?: number;
-  postInvert?: number;
-  postEdge?: number;
-  postPosterize?: number;
-  postScanline?: number;
-  postDither?: number;
-  audioMapping?: AudioMappingPresetConfig;
-  inputMapping?: InputMappingPresetConfig;
-  audioAttack?: number;
-  audioRelease?: number;
-  audioSensitivity?: number;
-  audioNoiseGate?: number;
-  audioMinThreshold?: number;
-  audioMaxClamp?: number;
-  glyphLanguage?: string | string[];
-  glyphCategories?: GlyphCategoryId[];
-  glyphRules?: GlyphRuleConfig[];
-  glyphMorphing?: GlyphMorphConfig;
-  glyphAnimation?: GlyphAnimationConfig;
+  source?: SourcePresetConfig;
 }
-
-interface AudioMappingPresetConfig {
-  enabled?: boolean;
-  smoothing?: {
-    attack?: number;
-    release?: number;
-    sensitivity?: number;
-    noiseGate?: number;
-    minThreshold?: number;
-    maxClamp?: number;
-  };
-  mappings: Array<{
-    feature: 'amplitude' | 'bass' | 'lowMid' | 'mid' | 'highMid' | 'treble' | 'spectralCentroid' | 'transient' | 'beat';
-    target:
-      | { type: 'control'; control: string; base?: number; amount?: number; min?: number; max?: number }
-      | { type: 'layerOpacity'; layerId: string; base?: number; amount?: number; min?: number; max?: number }
-      | { type: 'noteOn'; minIntensity?: number; maxIntensity?: number; cooldownMs?: number }
-      | { type: 'postPass'; passId: string; base?: number; amount?: number; min?: number; max?: number };
-  }>;
-}
-
-interface InputMappingPresetConfig {
-  enabled?: boolean;
-  devicePreset?: 'akaiMpkMini' | 'novationLaunchkey' | 'genericKeyboard' | 'qwertyKeyboard';
-  channelFilter?: number[];
-  defaultNoteOn?: boolean;
-  defaultNoteOff?: boolean;
-  ccMappings?: Array<{
-    controller: number;
-    channel?: number;
-    target:
-      | { type: 'control'; control: string; min?: number; max?: number; amount?: number }
-      | { type: 'noteOn' | 'noteOff'; mapPitchToX?: boolean; mapPitchToY?: boolean; mapVelocityToIntensity?: boolean; minIntensity?: number; maxIntensity?: number }
-      | { type: 'layerOpacity'; layerId: string; min?: number; max?: number }
-      | { type: 'postPass'; passId: string; min?: number; max?: number }
-      | { type: 'togglePlugin'; pluginId: string }
-      | { type: 'setPreset'; presetId: string };
-  }>;
-  noteMappings?: Array<{
-    note?: number;
-    minNote?: number;
-    maxNote?: number;
-    channel?: number;
-    target: /* same as ccMappings target */;
-  }>;
-  pitchBend?: { target: { type: 'control'; control: string; min?: number; max?: number } };
-  modWheel?: { type: 'control'; control: string; min?: number; max?: number; amount?: number };
-  aftertouch?: { target: { type: 'control'; control: string; min?: number; max?: number } };
-  learnedMappings?: Array<{
-    id: string;
-    controller: number;
-    channel?: number;
-    target: /* same as ccMappings target */;
-  }>;
-}
-
-interface LayerPresetConfig {
-  id: string;
-  name?: string;
-  enabled?: boolean;
-  opacity?: number;
-  blendMode?: 'normal' | 'add' | 'multiply' | 'screen' | 'difference' | 'max' | 'min' | 'overlay';
-  mask?: {
-    type: 'radial' | 'linear' | 'noise' | 'brightness';
-    amount?: number;
-    angle?: number;
-    centerX?: number;
-    centerY?: number;
-    invert?: boolean;
-  };
-  glyphSet?: string[];
-  source?: string;
-  pattern?: string;
-  simulation?: string;
-  effects?: string[];
-  fill?: number;
-}
-
-interface PostProcessingPresetConfig {
-  id: string;
-  enabled?: boolean;
-  amount?: number;
-}
-
-interface SourcePresetConfig {
-  type: 'image' | 'video' | 'webcam' | 'canvas';
-  options?: Record<string, unknown>;
-}
-
-type PatternId =
-  | 'radialSymmetry'
-  | 'spiral'
-  | 'wave'
-  | 'grid'
-  | 'cellular'
-  | 'scanline';
 ```
 
----
+Three rules make the shape predictable:
 
-## Field Reference
+1. **Every group is optional.** `{ id, name, glyphSet }` is a valid preset: a static grid with the engine defaults.
+2. **A numeric field inside a group is the default for the control of the same name.** `motion.strength: 0.5` means `getControl('strength')` starts at 0.5. The control names are the same flat identifiers hosts pass to `setControl()`; the group only says where the default lives. `CONTROL_GROUP` in the package maps every control name to its group.
+3. **Composition lists live next to their defaults.** `motion.behaviors`, `simulation.behaviors`, `post.passes`, `audio.mapping`, `layers`, and `plugins` decide what runs; the numbers beside them tune it.
 
-### `id`
+## Fields
 
-| | |
-| --- | --- |
-| **Type** | `string` |
-| **Required** | Yes |
-| **Description** | Unique identifier for the preset. Used for selection, persistence, and URL routing. |
-| **Constraints** | Lowercase alphanumeric and hyphens. No spaces. |
-| **Example** | `"terminal"` |
-
----
-
-### `name`
-
-| | |
-| --- | --- |
-| **Type** | `string` |
-| **Required** | Yes |
-| **Description** | Human-readable display name shown in UI selectors and debug output. |
-| **Example** | `"Terminal"` |
-
----
-
-### `glyphSet`
-
-| | |
-| --- | --- |
-| **Type** | `string[]` |
-| **Required** | Yes |
-| **Description** | Ordered array of characters used to render the grid. Order affects animation — earlier characters appear in lower-intensity regions. Motion fields index into this array. |
-| **Constraints** | Minimum 1 character. Each entry is a single Unicode character. |
-| **Example** | `[".", ":", "-", "=", "+", "*", "#", "@"]` |
-
----
-
-### `motionField`
-
-| | |
-| --- | --- |
-| **Type** | `'noise' \| 'wave' \| 'none'` |
-| **Required** | Yes |
-| **Description** | Primary motion algorithm that drives glyph selection across the grid. |
-
-| Value | Effect class | Behavior |
+| Field | Required | Notes |
 | --- | --- | --- |
-| `'noise'` | `NoiseField` | Organic, flowing movement using sine-product noise |
-| `'wave'` | `WaveField` | Smooth sine wave patterns across the grid |
-| `'none'` | — | Static base glyphs, no motion field active |
+| `id` | yes | Non empty. Used for selection, `?preset=` in the harness, and warnings |
+| `name` | yes | Display name |
+| `glyphSet` | yes | Ordered characters from dark to bright. Ignored for character choice when `glyphs.language` or `glyphs.categories` is set, still required |
+| `plugins` | no | `{ id, type: 'effect' \| 'pattern', enabled? }`. Effects: `noise wave burst glitch trails`. Patterns: `radialSymmetry spiral wavePattern grid cellular scanline` |
+| `controls` | no | `{ name, label?, min, max, default, step? }`. When absent, derived from what the composition reads (see `listLiveControls()`). A declared entry keeps its range and label; its `default` follows the preset's own value for that control |
+| `density` `speed` `trailAmount` `glitchAmount` | no | Base values every preset has. `trailAmount` only draws when the `trails` effect is enabled, `glitchAmount` when `glitch` is |
+| `motion` | no | See MOTION_SYSTEM.md. `field` alone (no behaviors) maps to the legacy noise or wave behavior set |
+| `pattern` | no | Knobs for the pattern plugins: `symmetry` and `petals` for `radialSymmetry`, `spiralAmount` for `spiral`, `cellularAmount` for `cellular`, `scanlineAmount` for `scanline` |
+| `simulation` | no | See SIMULATION_ENGINE.md. `simSpawnRate` for particle and fluid, `simDensity` for cellular automata, `simDecay` for particle, spring, and cellular automata |
+| `post` | no | See POST_PROCESSING.md. Each pass reads the `post*` control of its name |
+| `audio` | no | See AUDIO_REACTIVITY.md. The `audio*` values tune the analyzer once audio is connected |
+| `input` | no | See MIDI_AND_INPUT.md. `devicePreset` picks a CC layout; `ccMappings` overrides it |
+| `glyphs` | no | See GLYPH_LANGUAGE.md. `language` turns on semantic glyph selection; `categories` alone builds a custom set |
+| `layers` | no | See COMPOSITING.md |
+| `source` | no | `{ type: 'image' \| 'video' \| 'webcam' \| 'canvas', options? }`. Sets a pixel source when the preset loads. Presets without it leave the active source alone |
 
-The corresponding effect must also be listed in `effects` with `enabled: true`.
+## Validation
 
----
+`AsciiEngine.setPreset()` and the constructor run `assertValidPreset()`, which normalizes, validates, and throws with every structural problem listed. Soft problems (a default outside its range, an unknown control name, the deprecated flat shape) warn once per preset id. `validatePreset(json)` does the same without throwing and returns `{ ok, errors, warnings, preset }`, where `preset` is the normalized nested object with `controls` filled in.
 
-### `effects`
+Structural errors: missing or mistyped `id`, `name`, `glyphSet`; `plugins` or `controls` not arrays; a plugin `type` outside `pattern effect input renderer utility`; a control with `min > max` or a non positive `step`; a base or group number that is not finite; `density` not greater than 0; `motion.field` outside `noise wave none`; a group that is not an object; a legacy `patterns` id that is not a known pattern.
 
-| | |
-| --- | --- |
-| **Type** | `EffectConfig[]` |
-| **Required** | Yes |
-| **Description** | Array of effect configurations. Defines which visual effects are active and their parameters. |
+## Examples
 
-#### EffectConfig
-
-```typescript
-interface EffectConfig {
-  type: EffectType;
-  enabled?: boolean;  // default: true
-  params?: Record<string, number>;
-}
-```
-
-#### EffectType values
-
-| Type | Class | Role |
-| --- | --- | --- |
-| `'noise'` | `NoiseField` | Motion field — organic movement |
-| `'wave'` | `WaveField` | Motion field — sine wave movement |
-| `'burst'` | `GlyphBurst` | Radial burst on `noteOn` events |
-| `'glitch'` | `Glitch` | Random glyph corruption |
-| `'trails'` | `Trails` | Frame fade for motion persistence |
-
-**Pipeline order:** Motion field → Burst → Glitch → Trails.
-
-**Note:** Only one motion field (`noise` or `wave`) should be active, matching the `motionField` value. The `params` field is reserved for future per-effect configuration and is not yet consumed by the engine.
-
----
-
-### `plugins`
-
-| | |
-| --- | --- |
-| **Type** | `PluginConfig[]` |
-| **Required** | Yes |
-| **Description** | Declarative list of plugins to enable when the preset loads. |
-
-```typescript
-interface PluginConfig {
-  id: string;
-  type: 'pattern' | 'effect' | 'input' | 'renderer' | 'utility';
-  enabled?: boolean;  // default: true
-  options?: Record<string, unknown>;
-}
-```
-
-Example:
+Minimal:
 
 ```json
-"plugins": [
-  { "id": "radialSymmetry", "type": "pattern", "options": {} },
-  { "id": "trails", "type": "effect", "options": {} },
-  { "id": "glitch", "type": "effect" }
-]
+{ "id": "dots", "name": "Dots", "glyphSet": [".", ":", "*"] }
 ```
 
-Legacy `effects` and `patterns` arrays are still supported and automatically migrated when `plugins` is omitted.
-
----
-
-### `patterns` (deprecated)
-
-Use `plugins` with `type: "pattern"` instead. Still supported for backward compatibility.
-
----
-
-### `effects` (deprecated)
-
-Use `plugins` with `type: "effect"` instead. Still supported for backward compatibility.
-
----
-
-| | |
-| --- | --- |
-| **Type** | `PatternId[]` |
-| **Required** | Yes (may be empty array) |
-| **Description** | Procedural patterns enabled when the preset loads. Patterns shape glyph brightness and character selection. |
-
-| Pattern id | Class | Visual character |
-| --- | --- | --- |
-| `'radialSymmetry'` | `RadialSymmetryPattern` | Flowers, mandalas, blooms |
-| `'spiral'` | `SpiralPattern` | Growth, orbiting, hypnotic motion |
-| `'wave'` | `WavePattern` | Ambient flowing motion |
-| `'grid'` | `GridPattern` | Structured lattice |
-| `'cellular'` | `CellularPattern` | Organic decay, mold, crawling texture |
-| `'scanline'` | `ScanlinePattern` | Terminal, broadcast, CRT scanlines |
-
-Example:
-
-```json
-"patterns": ["radialSymmetry", "cellular"]
-```
-
-**Pipeline order:** Motion field → Patterns → Burst → Glitch → Trails.
-
----
-
-### Pattern control defaults
-
-Optional top-level fields set initial pattern control values:
-
-| Field | Type | Range | Description |
-| --- | --- | --- | --- |
-| `symmetry` | `number` | 2–12 | Radial fold count |
-| `petals` | `number` | 3–12 | Petal count for radial forms |
-| `spiralAmount` | `number` | 0–1 | Spiral pattern intensity |
-| `cellularAmount` | `number` | 0–1 | Cellular/decay intensity |
-| `scanlineAmount` | `number` | 0–1 | Scanline/broadcast intensity |
-
----
-
-### `source` (optional)
-
-| | |
-| --- | --- |
-| **Type** | `SourcePresetConfig` |
-| **Required** | No |
-| **Description** | Optional external visual source. When present, `setPreset()` activates the source pipeline. |
-
-```typescript
-interface SourcePresetConfig {
-  type: 'image' | 'video' | 'webcam' | 'canvas';
-  options?: Record<string, unknown>;
-}
-```
-
-| `type` | Behavior |
-| --- | --- |
-| `'image'` | Load image from `options.src` or `options.file` |
-| `'video'` | Load video with `loop`, `muted`, `fitMode` options |
-| `'webcam'` | Request camera with `facingMode`, `fitMode` |
-| `'canvas'` | Bind to `options.canvas` element |
-
-Example:
-
-```json
-"source": {
-  "type": "image",
-  "options": { "fitMode": "fit" }
-}
-```
-
-When no `source` field is present, the engine runs in procedural mode (unchanged behavior).
-
----
-
-### `controls`
-
-| | |
-| --- | --- |
-| **Type** | `ControlDef[]` |
-| **Required** | Yes (may be empty array) |
-| **Description** | UI control metadata for building sliders, knobs, or automation. Defines range, defaults, and labels. |
-
-#### ControlDef
-
-```typescript
-interface ControlDef {
-  name: string;
-  label?: string;
-  min: number;
-  max: number;
-  default: number;
-  step?: number;
-}
-```
-
-#### Standard controls
-
-These four controls are recognized by the engine:
-
-| Name | Description | Typical range |
-| --- | --- | --- |
-| `density` | Grid cell density multiplier | 0.3 – 2.0 |
-| `speed` | Animation speed multiplier | 0.1 – 3.0 |
-| `trailAmount` | Motion trail fade strength | 0.0 – 1.0 |
-| `glitchAmount` | Random corruption intensity | 0.0 – 1.0 |
-
-Custom control names are allowed but require application-level handling until plugin control binding is implemented.
-
----
-
-### `density`
-
-| | |
-| --- | --- |
-| **Type** | `number` |
-| **Required** | Yes |
-| **Description** | Initial grid density. Higher values produce more columns and smaller characters. Changing this at runtime via `setControl('density', value)` rebuilds the grid. |
-| **Range** | 0.3 – 2.0 recommended |
-| **Example** | `1.0` |
-
----
-
-### `speed`
-
-| | |
-| --- | --- |
-| **Type** | `number` |
-| **Required** | Yes |
-| **Description** | Initial animation speed multiplier. Affects all time-based motion in effects. |
-| **Range** | 0.1 – 3.0 recommended |
-| **Example** | `1.0` |
-
----
-
-### `trailAmount`
-
-| | |
-| --- | --- |
-| **Type** | `number` |
-| **Required** | Yes |
-| **Description** | Initial trail fade strength. At 0, each frame fully clears the canvas. At 1, maximum persistence creates long motion trails. |
-| **Range** | 0.0 – 1.0 |
-| **Example** | `0.35` |
-
----
-
-### `glitchAmount`
-
-| | |
-| --- | --- |
-| **Type** | `number` |
-| **Required** | Yes |
-| **Description** | Initial glitch corruption intensity. At 0, no random glyph corruption. Higher values increase the probability and frequency of character substitution. |
-| **Range** | 0.0 – 1.0 |
-| **Example** | `0.15` |
-
----
-
-## Validation Rules
-
-When preset validation is implemented (planned v0.2), the following rules will be enforced:
-
-| Rule | Error |
-| --- | --- |
-| `id` is non-empty string | `"Preset id is required"` |
-| `glyphSet` has at least one character | `"Glyph set must not be empty"` |
-| `motionField` matches an enabled motion effect | `"Motion field 'wave' requires enabled wave effect"` |
-| Control defaults are within min/max | `"Control 'speed' default 5.0 exceeds max 3.0"` |
-| Top-level defaults match control defaults | Warning, not error |
-| No duplicate effect types | Warning, last wins |
-
----
-
-## Example: Organic
-
-Soft, flowing dot characters with gentle noise motion and long trails. No glitch.
+A look with motion, a pattern, and tuned defaults:
 
 ```json
 {
-  "id": "organic",
-  "name": "Organic",
-  "glyphSet": ["·", "°", "○", "●", "◦", "∘", "∙", "◉"],
-  "motionField": "noise",
-  "effects": [
-    { "type": "noise", "enabled": true },
-    { "type": "burst", "enabled": true },
-    { "type": "glitch", "enabled": false },
-    { "type": "trails", "enabled": true }
+  "id": "bloom",
+  "name": "Bloom",
+  "glyphSet": [".", ":", "-", "=", "+", "*", "#", "@"],
+  "plugins": [
+    { "id": "burst", "type": "effect" },
+    { "id": "trails", "type": "effect" },
+    { "id": "radialSymmetry", "type": "pattern" }
   ],
-  "patterns": ["radialSymmetry", "cellular"],
-  "controls": [
-    { "name": "density", "label": "Density", "min": 0.3, "max": 2, "default": 0.9, "step": 0.1 },
-    { "name": "speed", "label": "Speed", "min": 0.1, "max": 3, "default": 0.5, "step": 0.1 },
-    { "name": "trailAmount", "label": "Trails", "min": 0, "max": 1, "default": 0.7, "step": 0.05 },
-    { "name": "glitchAmount", "label": "Glitch", "min": 0, "max": 1, "default": 0, "step": 0.05 }
-  ],
-  "density": 0.9,
-  "speed": 0.5,
-  "trailAmount": 0.7,
-  "glitchAmount": 0,
-  "symmetry": 8,
-  "petals": 7,
-  "spiralAmount": 0.25,
-  "cellularAmount": 0.65,
-  "scanlineAmount": 0
-}
-```
-
-**Character:** Calm, meditative, particle-like. Best for ambient installations and background visuals.
-
----
-
-## Example: Terminal
-
-Hex digit glyphs with noise motion, moderate glitch, and medium trails. Evokes retro computing aesthetics.
-
-```json
-{
-  "id": "terminal",
-  "name": "Terminal",
-  "glyphSet": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "F"],
-  "motionField": "noise",
-  "effects": [
-    { "type": "noise", "enabled": true },
-    { "type": "burst", "enabled": true },
-    { "type": "glitch", "enabled": true },
-    { "type": "trails", "enabled": true }
-  ],
-  "patterns": ["scanline", "grid"],
-  "controls": [
-    { "name": "density", "label": "Density", "min": 0.3, "max": 2, "default": 1.2, "step": 0.1 },
-    { "name": "speed", "label": "Speed", "min": 0.1, "max": 3, "default": 0.8, "step": 0.1 },
-    { "name": "trailAmount", "label": "Trails", "min": 0, "max": 1, "default": 0.5, "step": 0.05 },
-    { "name": "glitchAmount", "label": "Glitch", "min": 0, "max": 1, "default": 0.25, "step": 0.05 }
-  ],
-  "density": 1.2,
-  "speed": 0.8,
-  "trailAmount": 0.5,
-  "glitchAmount": 0.25,
-  "symmetry": 4,
-  "petals": 4,
-  "spiralAmount": 0.2,
-  "cellularAmount": 0.15,
-  "scanlineAmount": 0.75
-}
-```
-
-**Character:** Data-stream, matrix-like, technical. Best for hacker aesthetics, data visualizations, and synth interfaces.
-
----
-
-## Example: Abstract
-
-Geometric symbols with wave motion, heavy glitch, and short trails. Designed for high-energy performances.
-
-```json
-{
-  "id": "abstract",
-  "name": "Abstract",
-  "glyphSet": ["/", "\\", "|", "-", "+", "×", "÷", "≡", "∞", "∆", "∇", "◊"],
-  "motionField": "wave",
-  "effects": [
-    { "type": "wave", "enabled": true },
-    { "type": "burst", "enabled": true },
-    { "type": "glitch", "enabled": true },
-    { "type": "trails", "enabled": true }
-  ],
-  "patterns": ["spiral", "wave"],
-  "controls": [
-    { "name": "density", "label": "Density", "min": 0.3, "max": 2, "default": 1.4, "step": 0.1 },
-    { "name": "speed", "label": "Speed", "min": 0.1, "max": 3, "default": 1.8, "step": 0.1 },
-    { "name": "trailAmount", "label": "Trails", "min": 0, "max": 1, "default": 0.2, "step": 0.05 },
-    { "name": "glitchAmount", "label": "Glitch", "min": 0, "max": 1, "default": 0.45, "step": 0.05 }
-  ],
-  "density": 1.4,
-  "speed": 1.8,
-  "trailAmount": 0.2,
-  "glitchAmount": 0.45,
-  "symmetry": 6,
-  "petals": 6,
-  "spiralAmount": 0.8,
-  "cellularAmount": 0.1,
-  "scanlineAmount": 0.3
-}
-```
-
-**Character:** Aggressive, rhythmic, geometric. Best for live performances, VJ sets, and interactive bursts.
-
-> **Note:** The `abstract` preset is a schema example. It is not included in the built-in preset library. Copy this JSON to create your own preset file.
-
----
-
-## Input Mapping
-
-Optional `inputMapping` configures MIDI and keyboard performance controls. See [MIDI_AND_INPUT.md](./MIDI_AND_INPUT.md).
-
-```json
-{
-  "inputMapping": {
-    "enabled": true,
-    "devicePreset": "genericKeyboard",
-    "defaultNoteOn": true,
-    "ccMappings": [
-      { "controller": 1, "target": { "type": "control", "control": "glitchAmount", "min": 0, "max": 1 } },
-      { "controller": 74, "target": { "type": "control", "control": "speed", "min": 0.2, "max": 3 } }
-    ],
-    "pitchBend": { "target": { "type": "control", "control": "flowStrength", "min": 0, "max": 1 } }
-  }
-}
-```
-
-Device presets (`akaiMpkMini`, `novationLaunchkey`, `genericKeyboard`, `qwertyKeyboard`) provide default CC and note layouts. Preset-level `ccMappings` override device defaults when non-empty.
-
----
-
-## Glyph Language
-
-Optional procedural glyph configuration. See [GLYPH_LANGUAGE.md](./GLYPH_LANGUAGE.md) and [GLYPH_AUTHORING.md](./GLYPH_AUTHORING.md).
-
-```json
-{
-  "glyphLanguage": "organicBloom",
-  "glyphCategories": ["organic", "unicodeDecorative"],
-  "glyphMorphing": {
-    "enabled": true,
-    "chains": [{ "id": "bloom", "steps": [".", "°", "*", "✦", "✿"], "duration": 2, "loop": true }],
-    "speed": 1,
-    "smooth": true
+  "speed": 0.6,
+  "trailAmount": 0.45,
+  "motion": {
+    "behaviors": [{ "id": "organicGrowth", "weight": 0.7 }, { "id": "breathing", "weight": 0.3 }],
+    "strength": 0.7,
+    "frequency": 1.2
   },
-  "glyphAnimation": {
-    "enabled": true,
-    "kinds": ["breathing", "bloom"],
-    "speed": 0.8,
-    "amount": 0.6
+  "pattern": { "symmetry": 8, "petals": 6 },
+  "glyphs": { "language": "organicBloom" }
+}
+```
+
+Audio reactive with a simulation and a post pass:
+
+```json
+{
+  "id": "pulse",
+  "name": "Pulse",
+  "glyphSet": [" ", ".", ":", "=", "#"],
+  "plugins": [{ "id": "glitch", "type": "effect" }, { "id": "trails", "type": "effect" }],
+  "glitchAmount": 0,
+  "simulation": { "behaviors": [{ "id": "particle" }], "simSpawnRate": 0.3 },
+  "post": { "passes": [{ "id": "feedback", "amount": 0.5 }], "postFeedback": 0.5 },
+  "audio": {
+    "mapping": {
+      "enabled": true,
+      "mappings": [
+        { "feature": "bass", "target": { "type": "control", "control": "simSpawnRate", "amount": 0.9, "min": 0, "max": 1 } },
+        { "feature": "beat", "target": { "type": "control", "control": "glitchAmount", "amount": 0.5, "min": 0, "max": 0.6 } }
+      ]
+    },
+    "audioAttack": 0.06,
+    "audioRelease": 0.2
   }
 }
 ```
 
-Legacy `glyphSet` remains required for backward compatibility. When `glyphLanguage` is set, semantic role selection replaces brightness-only mapping.
-
----
-
-## Usage
-
-### TypeScript
+## Using presets
 
 ```typescript
-import { AsciiEngine } from 'ascii-visual-engine';
-import abstractPreset from './presets/abstract.json';
+import { createEngine, listPresets, validatePreset } from 'ascii-visual-engine';
 
-const engine = new AsciiEngine({
-  canvas,
-  preset: abstractPreset,
-});
+const engine = createEngine(canvas, { preset: 'glyphOrganicBloom' });
+engine.setPreset(myNestedPreset);      // objects or built in ids
+engine.setPreset(myOldFlatPreset);     // still fine, warns once
+
+const result = validatePreset(JSON.parse(text));
+if (result.ok) engine.setPreset(result.preset!);
+else console.error(result.errors);
 ```
 
-### Runtime switching
+`listLiveControls(preset)` returns the control names a preset's composition actually reads; `liveControlDefs(preset)` turns that into slider definitions; `withLiveControls(preset)` fills `controls` the same way the built ins do.
 
-```typescript
-import { terminalPreset, organicPreset } from 'ascii-visual-engine';
+## The flat shape (deprecated at 1.0)
 
-engine.setPreset(terminalPreset);
+The 0.1 and 0.2 shape kept every field at the top level. Any preset carrying a flat only key is treated as flat and normalized:
 
-// Later...
-engine.setPreset(organicPreset);
-```
+| Flat | Nested |
+| --- | --- |
+| `motionField` | `motion.field` (dropped when it is `none` or when behaviors are listed) |
+| `motions` | `motion.behaviors` |
+| `strength randomness frequency amplitude decay drag gravity noiseScale flowStrength` | `motion.*` |
+| `symmetry petals spiralAmount cellularAmount scanlineAmount` | `pattern.*` |
+| `simulations` | `simulation.behaviors` |
+| `sim*` | `simulation.*` |
+| `postProcessing` | `post.passes` |
+| `post*` | `post.*` |
+| `audioMapping` | `audio.mapping` |
+| `audio*` | `audio.*` |
+| `inputMapping` | `input` |
+| `glyphLanguage glyphCategories glyphRules glyphMorphing glyphAnimation` | `glyphs.language categories rules morphing animation` |
+| `effects`, `patterns` | folded into `plugins` when `plugins` is empty, as they always were |
 
-### Custom preset inline
-
-```typescript
-const myPreset: AsciiPreset = {
-  id: 'custom',
-  name: 'Custom',
-  glyphSet: ['*', '+', '#'],
-  motionField: 'wave',
-  effects: [
-    { type: 'wave', enabled: true },
-    { type: 'burst', enabled: true },
-    { type: 'trails', enabled: true },
-  ],
-  controls: [],
-  density: 1,
-  speed: 1,
-  trailAmount: 0.4,
-  glitchAmount: 0,
-};
-
-engine.setPreset(myPreset);
-```
-
----
-
-## Schema Evolution
-
-Future schema versions may add optional fields:
-
-| Field | Status | Description |
-| --- | --- | --- |
-| `version` | Planned | Schema version for migration |
-| `colors` | Planned | Foreground/background/palette colors |
-| `font` | Planned | Font family and sizing overrides |
-| `layers` | Planned | Multi-layer compositing config |
-| `input` | Planned | Input mapping configuration |
-| `plugins` | Planned | Required plugin ids |
-
-Existing presets without these fields will continue to work with sensible defaults.
-
-See [ROADMAP.md](./ROADMAP.md) Milestone 06 for preset system progress.
+`normalizePreset(flat)` performs this mapping; `flattenPreset(nested)` is its inverse for hosts that still read flat fields; `isFlatPreset(x)` tells the two apart. `tests/fixtures/flat-presets.json` holds the 30 built ins exactly as 0.2.0 shipped them, and `tests/preset-shape.test.ts` proves each normalizes to its converted nested form and renders the same frames.

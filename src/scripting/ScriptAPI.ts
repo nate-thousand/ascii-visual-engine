@@ -65,23 +65,28 @@ export class ScriptAPI {
       enabled: true,
     }));
 
+    const {
+      basePresetId: _base,
+      motions: _m,
+      simulations: _s,
+      glyphLanguage,
+      ...rest
+    } = options;
+
     const preset: AsciiPreset = {
       ...base,
-      ...options,
+      ...rest,
       id: options.id,
       name: options.name,
       glyphSet: options.glyphSet ?? base.glyphSet,
       plugins: options.plugins ?? base.plugins,
-      patterns: options.patterns ?? base.patterns,
-      motions: motions ?? base.motions,
-      simulations: simulations ?? base.simulations,
       layers: options.layers ?? base.layers,
       controls: options.controls ?? base.controls,
     };
 
-    if (options.glyphLanguage) {
-      preset.glyphLanguage = options.glyphLanguage;
-    }
+    if (motions) preset.motion = { ...base.motion, behaviors: motions };
+    if (simulations) preset.simulation = { ...base.simulation, behaviors: simulations };
+    if (glyphLanguage) preset.glyphs = { ...base.glyphs, language: glyphLanguage };
 
     return preset;
   }

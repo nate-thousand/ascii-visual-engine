@@ -10,7 +10,7 @@ The glyph system treats characters as reusable visual primitives. Instead of map
 
 Presets define **glyph languages** — composable visual vocabularies that can be combined, morphed, and animated without changing engine code.
 
-When no `glyphLanguage` is configured, the engine falls back to legacy `glyphSet` brightness mapping. All existing presets continue to work unchanged.
+When no `glyphs.language` is configured, the engine falls back to `glyphSet` brightness mapping. All existing presets continue to work unchanged.
 
 ---
 
@@ -142,8 +142,8 @@ engine.registerGlyphLanguage({
 Combine multiple languages into a hybrid vocabulary:
 
 ```typescript
-glyphLanguage: ['organicBloom', 'crtTerminal']
-// Organic × Terminal hybrid
+glyphs: { language: ['organicBloom', 'crtTerminal'] }
+// Organic and Terminal hybrid
 ```
 
 ---
@@ -152,12 +152,14 @@ glyphLanguage: ['organicBloom', 'crtTerminal']
 
 ```typescript
 {
-  glyphSet: ['.', '#'],           // legacy fallback / renderer init
-  glyphLanguage: 'organicBloom',  // or string[]
-  glyphCategories: ['organic', 'unicodeDecorative'],
-  glyphRules: [{ role: 'flower', category: 'unicodeDecorative' }],
-  glyphMorphing: { enabled: true, speed: 1 },
-  glyphAnimation: { enabled: true, kinds: ['breathing'] },
+  glyphSet: ['.', '#'],             // fallback and renderer init
+  glyphs: {
+    language: 'organicBloom',       // or string[]
+    categories: ['organic', 'unicodeDecorative'],
+    rules: [{ role: 'flower', category: 'unicodeDecorative' }],
+    morphing: { enabled: true, speed: 1 },
+    animation: { enabled: true, kinds: ['breathing'] },
+  },
 }
 ```
 

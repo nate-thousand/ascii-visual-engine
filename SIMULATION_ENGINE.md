@@ -133,13 +133,14 @@ const preset: AsciiPreset = {
   id: 'reactionDiffusionSim',
   name: 'Reaction Diffusion',
   glyphSet: ['.', ':', '-', '~', '≈', '∿', '◦', '○'],
-  motionField: 'none',
   plugins: [{ id: 'trails', type: 'effect' }],
-  simulations: [
-    { id: 'reactionDiffusion' },
-    { id: 'particle', enabled: false },
-  ],
-  controls: [],
+  simulation: {
+    behaviors: [
+      { id: 'reactionDiffusion' },
+      { id: 'particle', enabled: false },
+    ],
+    simSpeed: 0.8,
+  },
   density: 1,
   speed: 1,
   trailAmount: 0.4,

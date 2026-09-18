@@ -1,0 +1,4542 @@
+[
+  {
+    "id": "basic",
+    "name": "Basic",
+    "glyphSet": [
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      }
+    ],
+    "patterns": [
+      "wave"
+    ],
+    "effects": [
+      {
+        "type": "wave",
+        "enabled": true
+      },
+      {
+        "type": "burst",
+        "enabled": true
+      },
+      {
+        "type": "glitch",
+        "enabled": true
+      },
+      {
+        "type": "trails",
+        "enabled": true
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.35,
+    "glitchAmount": 0.15,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.3,
+    "cellularAmount": 0.2,
+    "scanlineAmount": 0.1
+  },
+  {
+    "id": "terminal",
+    "name": "Terminal Classic",
+    "glyphSet": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "A",
+      "F"
+    ],
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "noise",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "scanline",
+        "type": "pattern"
+      },
+      {
+        "id": "grid",
+        "type": "pattern"
+      }
+    ],
+    "effects": [
+      {
+        "type": "noise",
+        "enabled": true
+      },
+      {
+        "type": "burst",
+        "enabled": true
+      },
+      {
+        "type": "glitch",
+        "enabled": true
+      },
+      {
+        "type": "trails",
+        "enabled": true
+      }
+    ],
+    "patterns": [
+      "scanline",
+      "grid"
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1.2,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "randomness",
+        "label": "Randomness",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "decay",
+        "label": "Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.05
+      },
+      {
+        "name": "scanlineAmount",
+        "label": "Scanline",
+        "min": 0,
+        "max": 1,
+        "default": 0.75,
+        "step": 0.05
+      }
+    ],
+    "density": 1.2,
+    "speed": 0.8,
+    "trailAmount": 0.5,
+    "glitchAmount": 0.25,
+    "symmetry": 4,
+    "petals": 4,
+    "spiralAmount": 0.2,
+    "cellularAmount": 0.15,
+    "scanlineAmount": 0.75
+  },
+  {
+    "id": "organic",
+    "name": "Organic Classic",
+    "glyphSet": [
+      "·",
+      "°",
+      "○",
+      "●",
+      "◦",
+      "∘",
+      "∙",
+      "◉"
+    ],
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "noise",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      },
+      {
+        "id": "cellular",
+        "type": "pattern"
+      }
+    ],
+    "effects": [
+      {
+        "type": "noise",
+        "enabled": true
+      },
+      {
+        "type": "burst",
+        "enabled": true
+      },
+      {
+        "type": "glitch",
+        "enabled": false
+      },
+      {
+        "type": "trails",
+        "enabled": true
+      }
+    ],
+    "patterns": [
+      "radialSymmetry",
+      "cellular"
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 0.9,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.5,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "randomness",
+        "label": "Randomness",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "decay",
+        "label": "Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 8,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 7,
+        "step": 1
+      },
+      {
+        "name": "cellularAmount",
+        "label": "Cellular",
+        "min": 0,
+        "max": 1,
+        "default": 0.65,
+        "step": 0.05
+      }
+    ],
+    "density": 0.9,
+    "speed": 0.5,
+    "trailAmount": 0.7,
+    "glitchAmount": 0,
+    "symmetry": 8,
+    "petals": 7,
+    "spiralAmount": 0.25,
+    "cellularAmount": 0.65,
+    "scanlineAmount": 0
+  },
+  {
+    "id": "ambient",
+    "name": "Ambient",
+    "glyphSet": [
+      ".",
+      ":",
+      "-",
+      "~",
+      "≈",
+      "∿",
+      "◦",
+      "○"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "wavePattern",
+        "type": "pattern"
+      }
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.6,
+        "priority": 10
+      },
+      {
+        "id": "breathing",
+        "weight": 0.8,
+        "priority": 18
+      },
+      {
+        "id": "wave",
+        "weight": 0.4,
+        "priority": 5
+      }
+    ],
+    "density": 1,
+    "speed": 0.6,
+    "trailAmount": 0.55,
+    "glitchAmount": 0.1,
+    "strength": 0.5,
+    "randomness": 0.3,
+    "frequency": 1,
+    "amplitude": 0.8,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.6,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.5,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.6,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.6,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.55,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "motionOrganic",
+    "name": "Organic",
+    "glyphSet": [
+      "·",
+      "°",
+      "○",
+      "●",
+      "◦",
+      "∘",
+      "∙",
+      "◉"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      },
+      {
+        "id": "cellular",
+        "type": "pattern"
+      }
+    ],
+    "motions": [
+      {
+        "id": "organicGrowth",
+        "weight": 1,
+        "priority": 20
+      },
+      {
+        "id": "breathing",
+        "weight": 0.7,
+        "priority": 18
+      },
+      {
+        "id": "flowField",
+        "weight": 0.3,
+        "priority": 10
+      }
+    ],
+    "density": 1,
+    "speed": 0.5,
+    "trailAmount": 0.65,
+    "glitchAmount": 0.1,
+    "strength": 0.75,
+    "randomness": 0.3,
+    "frequency": 1,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 8,
+    "petals": 7,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.65,
+    "scanlineAmount": 0.5,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.5,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.75,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.65,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 8,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 7,
+        "step": 1
+      },
+      {
+        "name": "cellularAmount",
+        "label": "Cellular",
+        "min": 0,
+        "max": 1,
+        "default": 0.65,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "mechanical",
+    "name": "Mechanical",
+    "glyphSet": [
+      "|",
+      "-",
+      "+",
+      "#",
+      "█",
+      "▓",
+      "▒",
+      "░"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "grid",
+        "type": "pattern"
+      },
+      {
+        "id": "scanline",
+        "type": "pattern"
+      }
+    ],
+    "motions": [
+      {
+        "id": "orbital",
+        "weight": 0.8,
+        "priority": 30
+      },
+      {
+        "id": "pulse",
+        "weight": 0.6,
+        "priority": 8
+      },
+      {
+        "id": "spiral",
+        "weight": 0.5,
+        "priority": 22
+      }
+    ],
+    "density": 1,
+    "speed": 1.2,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.2,
+    "strength": 0.85,
+    "randomness": 0.3,
+    "frequency": 1.5,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.7,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1.2,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.85,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1.5,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.05
+      },
+      {
+        "name": "scanlineAmount",
+        "label": "Scanline",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "motionTerminal",
+    "name": "Terminal",
+    "glyphSet": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "A",
+      "F"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "scanline",
+        "type": "pattern"
+      },
+      {
+        "id": "grid",
+        "type": "pattern"
+      }
+    ],
+    "motions": [
+      {
+        "id": "wind",
+        "weight": 0.9,
+        "priority": 12
+      },
+      {
+        "id": "pulse",
+        "weight": 0.4,
+        "priority": 8
+      },
+      {
+        "id": "brownian",
+        "weight": 0.3,
+        "priority": 40
+      }
+    ],
+    "density": 1.2,
+    "speed": 0.9,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.3,
+    "strength": 0.7,
+    "randomness": 0.4,
+    "frequency": 1,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.9,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.8,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1.2,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.9,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "randomness",
+        "label": "Randomness",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "decay",
+        "label": "Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.1,
+        "step": 0.05
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.9,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "step": 0.05
+      },
+      {
+        "name": "scanlineAmount",
+        "label": "Scanline",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "chaotic",
+    "name": "Chaotic",
+    "glyphSet": [
+      "@",
+      "#",
+      "$",
+      "%",
+      "&",
+      "!",
+      "?",
+      "*"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      }
+    ],
+    "motions": [
+      {
+        "id": "brownian",
+        "weight": 1,
+        "priority": 40
+      },
+      {
+        "id": "curlNoise",
+        "weight": 0.8,
+        "priority": 35
+      },
+      {
+        "id": "flocking",
+        "weight": 0.6,
+        "priority": 25
+      },
+      {
+        "id": "gravity",
+        "weight": 0.5,
+        "priority": 15
+      }
+    ],
+    "density": 1,
+    "speed": 1.5,
+    "trailAmount": 0.5,
+    "glitchAmount": 0.45,
+    "strength": 0.9,
+    "randomness": 0.8,
+    "frequency": 1,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 1.2,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.5,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1.5,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.9,
+        "step": 0.05
+      },
+      {
+        "name": "randomness",
+        "label": "Randomness",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "decay",
+        "label": "Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.1,
+        "step": 0.05
+      },
+      {
+        "name": "drag",
+        "label": "Drag",
+        "min": 0,
+        "max": 1,
+        "default": 0.05,
+        "step": 0.05
+      },
+      {
+        "name": "gravity",
+        "label": "Gravity",
+        "min": 0,
+        "max": 2,
+        "default": 1.2,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.45,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "name": "Minimal",
+    "glyphSet": [
+      ".",
+      "·",
+      " "
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "trails",
+        "type": "effect"
+      }
+    ],
+    "motions": [
+      {
+        "id": "wave",
+        "weight": 1,
+        "priority": 5
+      }
+    ],
+    "density": 0.7,
+    "speed": 0.4,
+    "trailAmount": 0.25,
+    "glitchAmount": 0.1,
+    "strength": 0.35,
+    "randomness": 0.3,
+    "frequency": 1,
+    "amplitude": 0.6,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.5,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 0.7,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.4,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 0.6,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "particleSim",
+    "name": "Particle Sim",
+    "glyphSet": [
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      }
+    ],
+    "simulations": [
+      {
+        "id": "particle"
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.6,
+    "glitchAmount": 0.1,
+    "strength": 0.7,
+    "randomness": 0.3,
+    "frequency": 1,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.5,
+    "simStrength": 0.9,
+    "simSpawnRate": 0.8,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.6,
+        "step": 0.05
+      },
+      {
+        "name": "simStrength",
+        "label": "Sim Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.9,
+        "step": 0.05
+      },
+      {
+        "name": "simSpeed",
+        "label": "Sim Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "simSpawnRate",
+        "label": "Spawn Rate",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "simDecay",
+        "label": "Sim Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "reactionDiffusionSim",
+    "name": "Reaction Diffusion",
+    "glyphSet": [
+      ".",
+      ":",
+      "-",
+      "~",
+      "≈",
+      "∿",
+      "◦",
+      "○"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "trails",
+        "type": "effect"
+      }
+    ],
+    "simulations": [
+      {
+        "id": "reactionDiffusion"
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.1,
+    "strength": 0.7,
+    "randomness": 0.3,
+    "frequency": 1,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.5,
+    "simSpeed": 0.8,
+    "simStrength": 0.85,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "simStrength",
+        "label": "Sim Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.85,
+        "step": 0.05
+      },
+      {
+        "name": "simSpeed",
+        "label": "Sim Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      }
+    ]
+  },
+  {
+    "id": "lsystemSim",
+    "name": "L-System Growth",
+    "glyphSet": [
+      "|",
+      "/",
+      "\\",
+      "Y",
+      "y",
+      "F",
+      "+",
+      "-"
+    ],
+    "motionField": "none",
+    "plugins": [
+      {
+        "id": "trails",
+        "type": "effect"
+      }
+    ],
+    "simulations": [
+      {
+        "id": "lsystem"
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.35,
+    "glitchAmount": 0.1,
+    "strength": 0.7,
+    "randomness": 0.3,
+    "frequency": 1,
+    "amplitude": 1,
+    "decay": 0.1,
+    "drag": 0.05,
+    "gravity": 0.5,
+    "noiseScale": 1,
+    "flowStrength": 0.8,
+    "symmetry": 6,
+    "petals": 5,
+    "spiralAmount": 0.5,
+    "cellularAmount": 0.5,
+    "scanlineAmount": 0.5,
+    "simSpeed": 0.6,
+    "simStrength": 0.9,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "simStrength",
+        "label": "Sim Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.9,
+        "step": 0.05
+      },
+      {
+        "name": "simSpeed",
+        "label": "Sim Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.6,
+        "step": 0.1
+      }
+    ]
+  },
+  {
+    "id": "compositing",
+    "name": "Compositing Demo",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      },
+      {
+        "id": "spiral",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry",
+      "spiral"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.6
+      }
+    ],
+    "layers": [
+      {
+        "id": "base",
+        "name": "Base Pattern",
+        "enabled": true,
+        "opacity": 1,
+        "blendMode": "normal",
+        "pattern": "radialSymmetry",
+        "mask": {
+          "type": "radial",
+          "amount": 1,
+          "centerX": 0.5,
+          "centerY": 0.5
+        }
+      },
+      {
+        "id": "overlay",
+        "name": "Spiral Overlay",
+        "enabled": true,
+        "opacity": 0.65,
+        "blendMode": "add",
+        "pattern": "spiral",
+        "mask": {
+          "type": "linear",
+          "amount": 0.8,
+          "angle": 45
+        }
+      },
+      {
+        "id": "accent",
+        "name": "Noise Accent",
+        "enabled": true,
+        "opacity": 0.35,
+        "blendMode": "screen",
+        "fill": 0.6,
+        "mask": {
+          "type": "noise",
+          "amount": 1.2
+        }
+      }
+    ],
+    "postProcessing": [
+      {
+        "id": "feedback",
+        "enabled": true,
+        "amount": 0.75
+      },
+      {
+        "id": "smear",
+        "enabled": true,
+        "amount": 0.35
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 8,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "spiralAmount",
+        "label": "Spiral",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "postFeedback",
+        "label": "Feedback",
+        "min": 0,
+        "max": 1,
+        "default": 0.75,
+        "step": 0.05
+      },
+      {
+        "name": "postSmear",
+        "label": "Smear",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      }
+    ],
+    "density": 1,
+    "speed": 0.8,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.05,
+    "symmetry": 8,
+    "spiralAmount": 0.7,
+    "postFeedback": 0.75,
+    "postSmear": 0.35
+  },
+  {
+    "id": "audioAmbient",
+    "name": "Audio — Ambient Slow",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.5
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "audioAttack",
+        "label": "Audio Attack",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.08,
+        "step": 0.01
+      },
+      {
+        "name": "audioRelease",
+        "label": "Audio Release",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.01
+      },
+      {
+        "name": "audioSensitivity",
+        "label": "Sensitivity",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "audioNoiseGate",
+        "label": "Noise Gate",
+        "min": 0,
+        "max": 0.2,
+        "default": 0.02,
+        "step": 0.005
+      },
+      {
+        "name": "audioMinThreshold",
+        "label": "Audio Floor",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "step": 0.01
+      },
+      {
+        "name": "audioMaxClamp",
+        "label": "Audio Ceiling",
+        "min": 0,
+        "max": 1,
+        "default": 1,
+        "step": 0.01
+      }
+    ],
+    "density": 1,
+    "speed": 0.5,
+    "trailAmount": 0.5,
+    "glitchAmount": 0.1,
+    "strength": 0.6,
+    "audioAttack": 0.08,
+    "audioRelease": 0.25,
+    "audioSensitivity": 1,
+    "audioNoiseGate": 0.02,
+    "audioMinThreshold": 0,
+    "audioMaxClamp": 1,
+    "audioMapping": {
+      "enabled": true,
+      "smoothing": {
+        "attack": 0.35,
+        "release": 0.6,
+        "sensitivity": 0.8,
+        "noiseGate": 0.015
+      },
+      "mappings": [
+        {
+          "feature": "amplitude",
+          "target": {
+            "type": "control",
+            "control": "trailAmount",
+            "amount": 0.7,
+            "min": 0.1,
+            "max": 0.9
+          }
+        },
+        {
+          "feature": "bass",
+          "target": {
+            "type": "control",
+            "control": "density",
+            "amount": 0.4,
+            "min": 0.6,
+            "max": 1.6
+          }
+        },
+        {
+          "feature": "spectralCentroid",
+          "target": {
+            "type": "control",
+            "control": "speed",
+            "amount": 0.5,
+            "min": 0.3,
+            "max": 1.2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "audioBass",
+    "name": "Audio — Bass Reactive",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.5
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "simStrength",
+        "label": "Sim Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "simSpeed",
+        "label": "Sim Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "simSpawnRate",
+        "label": "Spawn Rate",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "step": 0.05
+      },
+      {
+        "name": "simDecay",
+        "label": "Sim Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.05
+      },
+      {
+        "name": "audioAttack",
+        "label": "Audio Attack",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.08,
+        "step": 0.01
+      },
+      {
+        "name": "audioRelease",
+        "label": "Audio Release",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.01
+      },
+      {
+        "name": "audioSensitivity",
+        "label": "Sensitivity",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "audioNoiseGate",
+        "label": "Noise Gate",
+        "min": 0,
+        "max": 0.2,
+        "default": 0.02,
+        "step": 0.005
+      },
+      {
+        "name": "audioMinThreshold",
+        "label": "Audio Floor",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "step": 0.01
+      },
+      {
+        "name": "audioMaxClamp",
+        "label": "Audio Ceiling",
+        "min": 0,
+        "max": 1,
+        "default": 1,
+        "step": 0.01
+      }
+    ],
+    "density": 1,
+    "speed": 0.7,
+    "trailAmount": 0.35,
+    "glitchAmount": 0,
+    "strength": 0.6,
+    "audioAttack": 0.08,
+    "audioRelease": 0.25,
+    "audioSensitivity": 1,
+    "audioNoiseGate": 0.02,
+    "audioMinThreshold": 0,
+    "audioMaxClamp": 1,
+    "audioMapping": {
+      "enabled": true,
+      "smoothing": {
+        "attack": 0.06,
+        "release": 0.2,
+        "sensitivity": 1.2,
+        "noiseGate": 0.025
+      },
+      "mappings": [
+        {
+          "feature": "bass",
+          "target": {
+            "type": "control",
+            "control": "amplitude",
+            "amount": 1,
+            "min": 0.2,
+            "max": 1
+          }
+        },
+        {
+          "feature": "bass",
+          "target": {
+            "type": "control",
+            "control": "simSpawnRate",
+            "amount": 0.9,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "feature": "beat",
+          "target": {
+            "type": "control",
+            "control": "glitchAmount",
+            "amount": 0.5,
+            "min": 0,
+            "max": 0.6
+          }
+        }
+      ]
+    },
+    "simulations": [
+      {
+        "id": "particle",
+        "enabled": true
+      }
+    ],
+    "simSpawnRate": 0.3
+  },
+  {
+    "id": "audioGlitch",
+    "name": "Audio — Glitch Transient",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "spiral",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.5
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      },
+      {
+        "name": "spiralAmount",
+        "label": "Spiral",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "audioAttack",
+        "label": "Audio Attack",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.08,
+        "step": 0.01
+      },
+      {
+        "name": "audioRelease",
+        "label": "Audio Release",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.01
+      },
+      {
+        "name": "audioSensitivity",
+        "label": "Sensitivity",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "audioNoiseGate",
+        "label": "Noise Gate",
+        "min": 0,
+        "max": 0.2,
+        "default": 0.02,
+        "step": 0.005
+      },
+      {
+        "name": "audioMinThreshold",
+        "label": "Audio Floor",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "step": 0.01
+      },
+      {
+        "name": "audioMaxClamp",
+        "label": "Audio Ceiling",
+        "min": 0,
+        "max": 1,
+        "default": 1,
+        "step": 0.01
+      }
+    ],
+    "density": 1,
+    "speed": 0.7,
+    "trailAmount": 0.35,
+    "glitchAmount": 0.2,
+    "strength": 0.6,
+    "audioAttack": 0.08,
+    "audioRelease": 0.25,
+    "audioSensitivity": 1,
+    "audioNoiseGate": 0.02,
+    "audioMinThreshold": 0,
+    "audioMaxClamp": 1,
+    "audioMapping": {
+      "enabled": true,
+      "smoothing": {
+        "attack": 0.02,
+        "release": 0.12,
+        "sensitivity": 1.5,
+        "noiseGate": 0.01
+      },
+      "mappings": [
+        {
+          "feature": "transient",
+          "target": {
+            "type": "noteOn",
+            "minIntensity": 0.8,
+            "maxIntensity": 2.2,
+            "cooldownMs": 80
+          }
+        },
+        {
+          "feature": "transient",
+          "target": {
+            "type": "control",
+            "control": "glitchAmount",
+            "amount": 1,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "feature": "amplitude",
+          "target": {
+            "type": "control",
+            "control": "trailAmount",
+            "amount": 0.6,
+            "min": 0,
+            "max": 0.8
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "audioVoice",
+    "name": "Audio — Voice Reactive",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "spiral",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.5
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "spiralAmount",
+        "label": "Spiral",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "audioAttack",
+        "label": "Audio Attack",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.08,
+        "step": 0.01
+      },
+      {
+        "name": "audioRelease",
+        "label": "Audio Release",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.01
+      },
+      {
+        "name": "audioSensitivity",
+        "label": "Sensitivity",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "audioNoiseGate",
+        "label": "Noise Gate",
+        "min": 0,
+        "max": 0.2,
+        "default": 0.02,
+        "step": 0.005
+      },
+      {
+        "name": "audioMinThreshold",
+        "label": "Audio Floor",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "step": 0.01
+      },
+      {
+        "name": "audioMaxClamp",
+        "label": "Audio Ceiling",
+        "min": 0,
+        "max": 1,
+        "default": 1,
+        "step": 0.01
+      }
+    ],
+    "density": 1,
+    "speed": 0.7,
+    "trailAmount": 0.35,
+    "glitchAmount": 0.1,
+    "strength": 0.6,
+    "audioAttack": 0.08,
+    "audioRelease": 0.25,
+    "audioSensitivity": 1,
+    "audioNoiseGate": 0.02,
+    "audioMinThreshold": 0,
+    "audioMaxClamp": 1,
+    "audioMapping": {
+      "enabled": true,
+      "smoothing": {
+        "attack": 0.1,
+        "release": 0.3,
+        "sensitivity": 1,
+        "noiseGate": 0.03
+      },
+      "mappings": [
+        {
+          "feature": "mid",
+          "target": {
+            "type": "control",
+            "control": "speed",
+            "amount": 0.8,
+            "min": 0.4,
+            "max": 1.8
+          }
+        },
+        {
+          "feature": "highMid",
+          "target": {
+            "type": "control",
+            "control": "spiralAmount",
+            "amount": 0.9,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "feature": "amplitude",
+          "target": {
+            "type": "control",
+            "control": "amplitude",
+            "amount": 0.7,
+            "min": 0.3,
+            "max": 1
+          }
+        }
+      ]
+    },
+    "spiralAmount": 0.4
+  },
+  {
+    "id": "audioFullSpectrum",
+    "name": "Audio — Full Spectrum",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.5
+      }
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "postFeedback",
+        "label": "Feedback",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "audioAttack",
+        "label": "Audio Attack",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.08,
+        "step": 0.01
+      },
+      {
+        "name": "audioRelease",
+        "label": "Audio Release",
+        "min": 0.01,
+        "max": 1,
+        "default": 0.25,
+        "step": 0.01
+      },
+      {
+        "name": "audioSensitivity",
+        "label": "Sensitivity",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "audioNoiseGate",
+        "label": "Noise Gate",
+        "min": 0,
+        "max": 0.2,
+        "default": 0.02,
+        "step": 0.005
+      },
+      {
+        "name": "audioMinThreshold",
+        "label": "Audio Floor",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "step": 0.01
+      },
+      {
+        "name": "audioMaxClamp",
+        "label": "Audio Ceiling",
+        "min": 0,
+        "max": 1,
+        "default": 1,
+        "step": 0.01
+      }
+    ],
+    "density": 1,
+    "speed": 0.7,
+    "trailAmount": 0.35,
+    "glitchAmount": 0,
+    "strength": 0.6,
+    "audioAttack": 0.08,
+    "audioRelease": 0.25,
+    "audioSensitivity": 1,
+    "audioNoiseGate": 0.02,
+    "audioMinThreshold": 0,
+    "audioMaxClamp": 1,
+    "audioMapping": {
+      "enabled": true,
+      "smoothing": {
+        "attack": 0.07,
+        "release": 0.22,
+        "sensitivity": 1.1,
+        "noiseGate": 0.02
+      },
+      "mappings": [
+        {
+          "feature": "bass",
+          "target": {
+            "type": "control",
+            "control": "density",
+            "amount": 0.5,
+            "min": 0.5,
+            "max": 1.8
+          }
+        },
+        {
+          "feature": "lowMid",
+          "target": {
+            "type": "control",
+            "control": "amplitude",
+            "amount": 0.8,
+            "min": 0.2,
+            "max": 1
+          }
+        },
+        {
+          "feature": "mid",
+          "target": {
+            "type": "control",
+            "control": "speed",
+            "amount": 0.7,
+            "min": 0.3,
+            "max": 2
+          }
+        },
+        {
+          "feature": "highMid",
+          "target": {
+            "type": "control",
+            "control": "glitchAmount",
+            "amount": 0.6,
+            "min": 0,
+            "max": 0.8
+          }
+        },
+        {
+          "feature": "treble",
+          "target": {
+            "type": "control",
+            "control": "trailAmount",
+            "amount": 0.7,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "feature": "transient",
+          "target": {
+            "type": "noteOn",
+            "minIntensity": 0.7,
+            "maxIntensity": 1.8,
+            "cooldownMs": 100
+          }
+        },
+        {
+          "feature": "beat",
+          "target": {
+            "type": "postPass",
+            "passId": "feedback",
+            "amount": 0.8,
+            "min": 0.2,
+            "max": 0.95
+          }
+        }
+      ]
+    },
+    "postProcessing": [
+      {
+        "id": "feedback",
+        "enabled": true,
+        "amount": 0.5
+      }
+    ],
+    "postFeedback": 0.5
+  },
+  {
+    "id": "performanceGeneric",
+    "name": "Performance — Generic MIDI",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.4
+      },
+      {
+        "id": "breathing",
+        "weight": 0.3
+      }
+    ],
+    "inputMapping": {
+      "enabled": true,
+      "devicePreset": "genericKeyboard"
+    },
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.15,
+    "strength": 0.7
+  },
+  {
+    "id": "performanceAkai",
+    "name": "Performance — Akai MPK Mini",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.4
+      },
+      {
+        "id": "breathing",
+        "weight": 0.3
+      }
+    ],
+    "inputMapping": {
+      "enabled": true,
+      "devicePreset": "akaiMpkMini"
+    },
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "simStrength",
+        "label": "Sim Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "simSpeed",
+        "label": "Sim Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "simSpawnRate",
+        "label": "Spawn Rate",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "simDecay",
+        "label": "Sim Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.05
+      },
+      {
+        "name": "postFeedback",
+        "label": "Feedback",
+        "min": 0,
+        "max": 1,
+        "default": 0.3,
+        "step": 0.05
+      },
+      {
+        "name": "postSmear",
+        "label": "Smear",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.05
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.15,
+    "strength": 0.7,
+    "simulations": [
+      {
+        "id": "particle",
+        "enabled": true
+      }
+    ],
+    "simSpawnRate": 0.4,
+    "postProcessing": [
+      {
+        "id": "feedback",
+        "enabled": true,
+        "amount": 0.3
+      },
+      {
+        "id": "smear",
+        "enabled": true,
+        "amount": 0.2
+      }
+    ],
+    "postFeedback": 0.3,
+    "postSmear": 0.2
+  },
+  {
+    "id": "performanceLaunchkey",
+    "name": "Performance — Novation Launchkey",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.4
+      },
+      {
+        "id": "breathing",
+        "weight": 0.3
+      }
+    ],
+    "inputMapping": {
+      "enabled": true,
+      "devicePreset": "novationLaunchkey"
+    },
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.15,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.15,
+    "strength": 0.7
+  },
+  {
+    "id": "performanceQwerty",
+    "name": "Performance — QWERTY Keyboard",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "=",
+      "+",
+      "*",
+      "#",
+      "@"
+    ],
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "spiral",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.4
+      },
+      {
+        "id": "breathing",
+        "weight": 0.3
+      }
+    ],
+    "inputMapping": {
+      "enabled": true,
+      "devicePreset": "qwertyKeyboard"
+    },
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "spiralAmount",
+        "label": "Spiral",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      }
+    ],
+    "density": 1,
+    "speed": 1,
+    "trailAmount": 0.4,
+    "glitchAmount": 0.15,
+    "strength": 0.7
+  },
+  {
+    "id": "glyphOrganicBloom",
+    "name": "Glyph — Organic Bloom",
+    "glyphSet": [
+      ".",
+      "·",
+      "•",
+      "°",
+      "*",
+      "✦",
+      "✧",
+      "✿",
+      "❀",
+      "❁",
+      "✾",
+      "✽",
+      "╱",
+      "╲",
+      "╳",
+      "⌒",
+      "⌢",
+      "⌣",
+      "★",
+      "☆",
+      "❄",
+      "♥",
+      "♠",
+      "♣",
+      "♦",
+      "♪",
+      "♫",
+      "☀",
+      "☾"
+    ],
+    "glyphLanguage": "organicBloom",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      },
+      {
+        "id": "cellular",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry",
+      "cellular"
+    ],
+    "motions": [
+      {
+        "id": "organicGrowth",
+        "weight": 0.7
+      },
+      {
+        "id": "breathing",
+        "weight": 0.3
+      }
+    ],
+    "density": 1,
+    "speed": 0.55,
+    "strength": 0.7,
+    "trailAmount": 0.4,
+    "glitchAmount": 0,
+    "glyphCategories": [
+      "organic",
+      "unicodeDecorative"
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.55,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.4,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "cellularAmount",
+        "label": "Cellular",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphDigitalForest",
+    "name": "Glyph — Digital Forest",
+    "glyphSet": [
+      ".",
+      "·",
+      "•",
+      "°",
+      "*",
+      "✦",
+      "✧",
+      "✿",
+      "❀",
+      "❁",
+      "✾",
+      "✽",
+      "╱",
+      "╲",
+      "╳",
+      "⌒",
+      "⌢",
+      "⌣",
+      "─",
+      "│",
+      "┌",
+      "┐",
+      "└",
+      "┘",
+      "┼",
+      "┬",
+      "█",
+      "▓",
+      ":",
+      ";",
+      "|",
+      "/",
+      "\\",
+      "#",
+      "@",
+      "%",
+      "&",
+      "+",
+      "=",
+      "-",
+      "_"
+    ],
+    "glyphLanguage": "digitalForest",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "noise",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "grid",
+        "type": "pattern"
+      },
+      {
+        "id": "cellular",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "grid",
+      "cellular"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.6
+      }
+    ],
+    "density": 1,
+    "speed": 0.45,
+    "strength": 0.7,
+    "trailAmount": 0.35,
+    "glitchAmount": 0,
+    "glyphCategories": [
+      "organic",
+      "architecture",
+      "terminal"
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.45,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      },
+      {
+        "name": "cellularAmount",
+        "label": "Cellular",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphCrtTerminal",
+    "name": "Glyph — CRT Terminal",
+    "glyphSet": [
+      ".",
+      ":",
+      ";",
+      "|",
+      "/",
+      "\\",
+      "#",
+      "@",
+      "%",
+      "&",
+      "+",
+      "=",
+      "-",
+      "_",
+      "░",
+      "▒",
+      "▓",
+      "█",
+      "?",
+      "!"
+    ],
+    "glyphLanguage": "crtTerminal",
+    "motionField": "wave",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "scanline",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "scanline"
+    ],
+    "motions": [
+      {
+        "id": "organicGrowth",
+        "weight": 0.5
+      }
+    ],
+    "density": 1,
+    "speed": 0.8,
+    "strength": 0.7,
+    "trailAmount": 0.3,
+    "glitchAmount": 0.18,
+    "glyphCategories": [
+      "terminal",
+      "noise"
+    ],
+    "scanlineAmount": 0.8,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.18,
+        "step": 0.05
+      },
+      {
+        "name": "scanlineAmount",
+        "label": "Scanline",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphCorruptedBroadcast",
+    "name": "Glyph — Corrupted Broadcast",
+    "glyphSet": [
+      "░",
+      "▒",
+      "▓",
+      "█",
+      "#",
+      "@",
+      "%",
+      "&",
+      "?",
+      "!",
+      ".",
+      ":",
+      ";",
+      "|",
+      "/",
+      "\\",
+      "+",
+      "=",
+      "-",
+      "_",
+      "*",
+      "×"
+    ],
+    "glyphLanguage": "corruptedBroadcast",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "glitch",
+        "type": "effect"
+      },
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "scanline",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "curlNoise",
+        "weight": 0.5
+      }
+    ],
+    "density": 1,
+    "speed": 0.8,
+    "strength": 0.7,
+    "trailAmount": 0.25,
+    "glitchAmount": 0.45,
+    "glyphCategories": [
+      "noise",
+      "terminal",
+      "abstract"
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "glitchAmount",
+        "label": "Glitch",
+        "min": 0,
+        "max": 1,
+        "default": 0.45,
+        "step": 0.05
+      },
+      {
+        "name": "scanlineAmount",
+        "label": "Scanline",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphFlowField",
+    "name": "Glyph — Flow Field",
+    "glyphSet": [
+      "~",
+      "≈",
+      "-",
+      "=",
+      ":",
+      ".",
+      "S",
+      "%",
+      "&",
+      "·",
+      "*",
+      "+",
+      "×",
+      "✦",
+      "✧",
+      "○",
+      "●",
+      " "
+    ],
+    "glyphLanguage": "flowField",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "spiral",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "spiral"
+    ],
+    "motions": [
+      {
+        "id": "flowField",
+        "weight": 0.8
+      }
+    ],
+    "density": 1,
+    "speed": 0.8,
+    "strength": 0.7,
+    "trailAmount": 0.45,
+    "glitchAmount": 0,
+    "glyphCategories": [
+      "fluid",
+      "particle",
+      "minimal"
+    ],
+    "flowStrength": 0.7,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "noiseScale",
+        "label": "Noise Scale",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "flowStrength",
+        "label": "Flow Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.45,
+        "step": 0.05
+      },
+      {
+        "name": "spiralAmount",
+        "label": "Spiral",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphParticleNebula",
+    "name": "Glyph — Particle Nebula",
+    "glyphSet": [
+      ".",
+      "·",
+      "*",
+      "+",
+      "×",
+      "✦",
+      "✧",
+      "○",
+      "●",
+      "★",
+      "☆",
+      "❄",
+      "♥",
+      "♠",
+      "♣",
+      "♦",
+      "♪",
+      "♫",
+      "☀",
+      "☾",
+      "/",
+      "\\",
+      "|",
+      "#",
+      "@",
+      "%"
+    ],
+    "glyphLanguage": "particleNebula",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "burst",
+        "type": "effect"
+      },
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "radialSymmetry",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "organicGrowth",
+        "weight": 0.5
+      }
+    ],
+    "density": 1,
+    "speed": 0.8,
+    "strength": 0.7,
+    "trailAmount": 0.5,
+    "glitchAmount": 0.1,
+    "glyphCategories": [
+      "particle",
+      "unicodeDecorative",
+      "abstract"
+    ],
+    "simulations": [
+      {
+        "id": "particle",
+        "enabled": true
+      }
+    ],
+    "simSpawnRate": 0.5,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "symmetry",
+        "label": "Symmetry",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "step": 1
+      },
+      {
+        "name": "petals",
+        "label": "Petals",
+        "min": 3,
+        "max": 12,
+        "default": 5,
+        "step": 1
+      },
+      {
+        "name": "simStrength",
+        "label": "Sim Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.8,
+        "step": 0.05
+      },
+      {
+        "name": "simSpeed",
+        "label": "Sim Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "simSpawnRate",
+        "label": "Spawn Rate",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      },
+      {
+        "name": "simDecay",
+        "label": "Sim Decay",
+        "min": 0,
+        "max": 1,
+        "default": 0.2,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphAbstractGeometry",
+    "name": "Glyph — Abstract Geometry",
+    "glyphSet": [
+      ".",
+      "+",
+      "×",
+      "□",
+      "■",
+      "◇",
+      "◆",
+      "○",
+      "●",
+      "△",
+      "▲",
+      "/",
+      "\\",
+      "|",
+      "*",
+      "#",
+      "@",
+      "%",
+      "[",
+      "]",
+      "{",
+      "}",
+      "<",
+      ">",
+      "$",
+      "~"
+    ],
+    "glyphLanguage": "abstractGeometry",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "wave",
+        "type": "effect"
+      },
+      {
+        "id": "grid",
+        "type": "pattern"
+      },
+      {
+        "id": "spiral",
+        "type": "pattern"
+      }
+    ],
+    "patterns": [
+      "grid",
+      "spiral"
+    ],
+    "motions": [
+      {
+        "id": "organicGrowth",
+        "weight": 0.5
+      }
+    ],
+    "density": 1,
+    "speed": 0.8,
+    "strength": 0.7,
+    "trailAmount": 0.5,
+    "glitchAmount": 0.1,
+    "glyphCategories": [
+      "geometric",
+      "abstract",
+      "technical"
+    ],
+    "symmetry": 8,
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.8,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "frequency",
+        "label": "Frequency",
+        "min": 0.1,
+        "max": 3,
+        "default": 1,
+        "step": 0.1
+      },
+      {
+        "name": "spiralAmount",
+        "label": "Spiral",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "id": "glyphMinimalZen",
+    "name": "Glyph — Minimal Zen",
+    "glyphSet": [
+      " ",
+      ".",
+      ":",
+      "-",
+      "+",
+      "○",
+      "●"
+    ],
+    "glyphLanguage": "minimalZen",
+    "motionField": "noise",
+    "plugins": [
+      {
+        "id": "trails",
+        "type": "effect"
+      },
+      {
+        "id": "wave",
+        "type": "effect"
+      }
+    ],
+    "patterns": [
+      "radialSymmetry"
+    ],
+    "motions": [
+      {
+        "id": "breathing",
+        "weight": 0.9
+      }
+    ],
+    "density": 0.65,
+    "speed": 0.4,
+    "strength": 0.7,
+    "trailAmount": 0.35,
+    "glitchAmount": 0,
+    "glyphCategories": [
+      "minimal"
+    ],
+    "controls": [
+      {
+        "name": "density",
+        "label": "Density",
+        "min": 0.3,
+        "max": 2,
+        "default": 0.65,
+        "step": 0.1
+      },
+      {
+        "name": "speed",
+        "label": "Speed",
+        "min": 0.1,
+        "max": 3,
+        "default": 0.4,
+        "step": 0.1
+      },
+      {
+        "name": "strength",
+        "label": "Strength",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "step": 0.05
+      },
+      {
+        "name": "amplitude",
+        "label": "Amplitude",
+        "min": 0,
+        "max": 2,
+        "default": 1,
+        "step": 0.05
+      },
+      {
+        "name": "trailAmount",
+        "label": "Trails",
+        "min": 0,
+        "max": 1,
+        "default": 0.35,
+        "step": 0.05
+      }
+    ]
+  }
+]

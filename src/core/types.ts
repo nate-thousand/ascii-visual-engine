@@ -129,7 +129,105 @@ import type {
 export type { AudioMappingPresetConfig };
 export type { InputMappingPresetConfig };
 
+/** Motion group: the motion field, blended behaviors, and their control defaults. */
+export interface PresetMotionConfig {
+  /** Legacy noise or wave field; `none` when behaviors are listed. Default `none`. */
+  field?: MotionFieldType;
+  behaviors?: MotionConfig[];
+  strength?: number;
+  randomness?: number;
+  frequency?: number;
+  amplitude?: number;
+  decay?: number;
+  drag?: number;
+  gravity?: number;
+  noiseScale?: number;
+  flowStrength?: number;
+}
+
+/** Pattern group: defaults for the pattern plugins' knobs. */
+export interface PresetPatternConfig {
+  symmetry?: number;
+  petals?: number;
+  spiralAmount?: number;
+  cellularAmount?: number;
+  scanlineAmount?: number;
+}
+
+export interface PresetSimulationConfig {
+  behaviors?: SimulationConfig[];
+  simStrength?: number;
+  simSpeed?: number;
+  simDensity?: number;
+  simDecay?: number;
+  simSpawnRate?: number;
+}
+
+export interface PresetPostConfig {
+  passes?: PostProcessingPresetConfig[];
+  postFeedback?: number;
+  postSmear?: number;
+  postDisplacement?: number;
+  postThreshold?: number;
+  postInvert?: number;
+  postEdge?: number;
+  postPosterize?: number;
+  postScanline?: number;
+  postDither?: number;
+}
+
+export interface PresetAudioConfig {
+  mapping?: AudioMappingPresetConfig;
+  audioAttack?: number;
+  audioRelease?: number;
+  audioSensitivity?: number;
+  audioNoiseGate?: number;
+  audioMinThreshold?: number;
+  audioMaxClamp?: number;
+}
+
+export interface PresetGlyphsConfig {
+  language?: string | string[];
+  categories?: GlyphCategoryId[];
+  rules?: GlyphRuleConfig[];
+  morphing?: GlyphMorphConfig;
+  animation?: GlyphAnimationConfig;
+}
+
+/**
+ * A look. Every group is optional; numeric fields inside a group are the
+ * defaults for the control of the same name. Flat presets (0.1 and 0.2
+ * shape, see `FlatPreset`) are accepted everywhere a preset is and are
+ * normalized to this shape on load. Flat is deprecated at 1.0.
+ */
 export interface AsciiPreset {
+  id: string;
+  name: string;
+  glyphSet: string[];
+  /** Effect and pattern plugins to enable. */
+  plugins?: PluginConfig[];
+  /** Slider metadata. Derived from the composition when absent. */
+  controls?: ControlDef[];
+  density?: number;
+  speed?: number;
+  trailAmount?: number;
+  glitchAmount?: number;
+  motion?: PresetMotionConfig;
+  pattern?: PresetPatternConfig;
+  simulation?: PresetSimulationConfig;
+  post?: PresetPostConfig;
+  audio?: PresetAudioConfig;
+  input?: InputMappingPresetConfig;
+  glyphs?: PresetGlyphsConfig;
+  layers?: LayerPresetConfig[];
+  source?: SourcePresetConfig;
+}
+
+/**
+ * The flat preset shape from 0.1 and 0.2. Still accepted by every entry
+ * point; `normalizePreset()` turns it into an `AsciiPreset`. Deprecated at 1.0.
+ */
+export interface FlatPreset {
   id: string;
   name: string;
   glyphSet: string[];
@@ -140,9 +238,9 @@ export interface AsciiPreset {
   source?: SourcePresetConfig;
   layers?: LayerPresetConfig[];
   postProcessing?: PostProcessingPresetConfig[];
-  /** @deprecated Use `plugins` array instead */
+  /** @deprecated Use `plugins` */
   effects?: EffectConfig[];
-  /** @deprecated Use `plugins` array instead */
+  /** @deprecated Use `plugins` */
   patterns?: PatternId[];
   controls: ControlDef[];
   density: number;
@@ -191,6 +289,9 @@ export interface AsciiPreset {
   glyphMorphing?: GlyphMorphConfig;
   glyphAnimation?: GlyphAnimationConfig;
 }
+
+/** Anything a preset entry point accepts. */
+export type PresetInput = AsciiPreset | FlatPreset;
 
 export interface GridDimensions {
   cols: number;

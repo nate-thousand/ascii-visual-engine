@@ -113,9 +113,9 @@ describe('ScriptAPI', () => {
     });
 
     expect(preset.id).toBe('custom');
-    expect(preset.motions?.[0].id).toBe('flowField');
-    expect(preset.simulations?.[0].id).toBe('particle');
-    expect(preset.glyphLanguage).toBe('organic');
+    expect(preset.motion?.behaviors?.[0].id).toBe('flowField');
+    expect(preset.simulation?.behaviors?.[0].id).toBe('particle');
+    expect(preset.glyphs?.language).toBe('organic');
   });
 
   it('spawnParticles enables simulation and fires noteOn', () => {

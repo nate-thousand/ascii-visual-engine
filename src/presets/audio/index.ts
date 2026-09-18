@@ -2,51 +2,38 @@ import type { AsciiPreset } from '../../core/types';
 import type { AudioMappingPresetConfig } from '../../audio/AudioTypes';
 import { withLiveControls } from '../controlCatalog';
 
-const sharedControls = [
-  { name: 'density', label: 'Density', min: 0.3, max: 2, default: 1, step: 0.1 },
-  { name: 'speed', label: 'Speed', min: 0.1, max: 3, default: 1, step: 0.1 },
-  { name: 'trailAmount', label: 'Trails', min: 0, max: 1, default: 0.35, step: 0.05 },
-  { name: 'glitchAmount', label: 'Glitch', min: 0, max: 1, default: 0.15, step: 0.05 },
-  { name: 'strength', label: 'Strength', min: 0, max: 1, default: 0.6, step: 0.05 },
-  { name: 'audioAttack', label: 'Audio Attack', min: 0.01, max: 1, default: 0.08, step: 0.01 },
-  { name: 'audioRelease', label: 'Audio Release', min: 0.01, max: 1, default: 0.25, step: 0.01 },
-  { name: 'audioSensitivity', label: 'Sensitivity', min: 0.1, max: 3, default: 1, step: 0.05 },
-  { name: 'audioNoiseGate', label: 'Noise Gate', min: 0, max: 0.2, default: 0.02, step: 0.005 },
-] as const;
-
 function baseAudioPreset(
   id: string,
   name: string,
-  audioMapping: AudioMappingPresetConfig,
+  mapping: AudioMappingPresetConfig,
   extra: Partial<AsciiPreset> = {},
 ): AsciiPreset {
   return withLiveControls({
     id,
     name,
     glyphSet: [' ', '.', ':', '-', '=', '+', '*', '#', '@'],
-    motionField: 'wave',
     plugins: [
       { id: 'wave', type: 'effect' },
       { id: 'burst', type: 'effect' },
       { id: 'trails', type: 'effect' },
       { id: 'radialSymmetry', type: 'pattern' },
     ],
-    patterns: ['radialSymmetry'],
-    motions: [{ id: 'flowField', weight: 0.5 }],
-    controls: [...sharedControls],
     density: 1,
     speed: 0.7,
     trailAmount: 0.35,
     glitchAmount: 0.1,
-    strength: 0.6,
-    audioAttack: 0.08,
-    audioRelease: 0.25,
-    audioSensitivity: 1,
-    audioNoiseGate: 0.02,
-    audioMinThreshold: 0,
-    audioMaxClamp: 1,
-    audioMapping,
     ...extra,
+    motion: { behaviors: [{ id: 'flowField', weight: 0.5 }], strength: 0.6, ...extra.motion },
+    audio: {
+      mapping,
+      audioAttack: 0.08,
+      audioRelease: 0.25,
+      audioSensitivity: 1,
+      audioNoiseGate: 0.02,
+      audioMinThreshold: 0,
+      audioMaxClamp: 1,
+      ...extra.audio,
+    },
   });
 }
 
@@ -76,8 +63,7 @@ export const audioBassPreset = baseAudioPreset('audioBass', 'Audio — Bass Reac
     { id: 'trails', type: 'effect' },
     { id: 'radialSymmetry', type: 'pattern' },
   ],
-  simulations: [{ id: 'particle', enabled: true }],
-  simSpawnRate: 0.3,
+  simulation: { behaviors: [{ id: 'particle', enabled: true }], simSpawnRate: 0.3 },
   glitchAmount: 0,
 });
 
@@ -115,7 +101,7 @@ export const audioVoicePreset = baseAudioPreset('audioVoice', 'Audio — Voice R
     { id: 'trails', type: 'effect' },
     { id: 'spiral', type: 'pattern' },
   ],
-  spiralAmount: 0.4,
+  pattern: { spiralAmount: 0.4 },
 });
 
 export const audioFullSpectrumPreset = baseAudioPreset('audioFullSpectrum', 'Audio — Full Spectrum', {
@@ -138,7 +124,6 @@ export const audioFullSpectrumPreset = baseAudioPreset('audioFullSpectrum', 'Aud
     { id: 'trails', type: 'effect' },
     { id: 'radialSymmetry', type: 'pattern' },
   ],
-  postProcessing: [{ id: 'feedback', enabled: true, amount: 0.5 }],
-  postFeedback: 0.5,
+  post: { passes: [{ id: 'feedback', enabled: true, amount: 0.5 }], postFeedback: 0.5 },
   glitchAmount: 0,
 });

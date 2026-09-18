@@ -159,8 +159,7 @@ export class InputManager {
 }
 
 export function resolvePresetInputMapping(preset: {
-  inputMapping?: InputMappingPresetConfig;
+  input?: InputMappingPresetConfig;
 }): InputMappingPresetConfig | null {
-  if (!preset.inputMapping) return null;
-  return preset.inputMapping;
+  return preset.input ?? null;
 }

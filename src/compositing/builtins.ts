@@ -7,10 +7,11 @@ export function resolvePresetLayers(preset: { layers?: LayerConfig[] }): LayerCo
 }
 
 export function resolvePresetPostProcessing(preset: {
-  postProcessing?: PostProcessingConfig[];
+  post?: { passes?: PostProcessingConfig[] };
 }): PostProcessingConfig[] {
-  if (!preset.postProcessing?.length) return [];
-  return preset.postProcessing.filter((p) => p.enabled !== false);
+  const passes = preset.post?.passes;
+  if (!passes?.length) return [];
+  return passes.filter((p) => p.enabled !== false);
 }
 
 export const POST_CONTROLS = [

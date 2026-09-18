@@ -1,4 +1,4 @@
-import type { GridState } from '../core/types';
+import type { GridState, PresetGlyphsConfig } from '../core/types';
 import type {
   Glyph,
   GlyphCategoryId,
@@ -63,7 +63,15 @@ export class GlyphRegistry {
     return this.enabled && this.activeLanguage !== null;
   }
 
-  applyPresetConfig(preset: GlyphPresetConfig & { glyphSet?: string[] }): void {
+  applyPresetConfig(input: { glyphSet?: string[]; glyphs?: PresetGlyphsConfig }): void {
+    const preset: GlyphPresetConfig & { glyphSet?: string[] } = {
+      glyphSet: input.glyphSet,
+      glyphLanguage: input.glyphs?.language,
+      glyphCategories: input.glyphs?.categories,
+      glyphRules: input.glyphs?.rules,
+      glyphMorphing: input.glyphs?.morphing,
+      glyphAnimation: input.glyphs?.animation,
+    };
     const langIds = normalizeLanguageIds(preset.glyphLanguage);
     let language: GlyphLanguageConfig | null = null;
 
@@ -209,11 +217,15 @@ function normalizeLanguageIds(
   return Array.isArray(input) ? input : [input];
 }
 
-export function resolvePresetGlyphSet(preset: {
+export function resolvePresetGlyphSet(input: {
   glyphSet?: string[];
-  glyphLanguage?: string | string[];
-  glyphCategories?: GlyphCategoryId[];
+  glyphs?: { language?: string | string[]; categories?: GlyphCategoryId[] };
 }): string[] {
+  const preset = {
+    glyphSet: input.glyphSet,
+    glyphLanguage: input.glyphs?.language,
+    glyphCategories: input.glyphs?.categories,
+  };
   if (preset.glyphLanguage) {
     const ids = normalizeLanguageIds(preset.glyphLanguage);
     const lang = ids.length === 1 ? getBuiltinLanguage(ids[0]) : null;

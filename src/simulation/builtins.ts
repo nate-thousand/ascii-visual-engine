@@ -37,8 +37,9 @@ export function listSimulationIds(): string[] {
 }
 
 export function resolvePresetSimulations(preset: {
-  simulations?: SimulationConfig[];
+  simulation?: { behaviors?: SimulationConfig[] };
 }): SimulationConfig[] {
-  if (!preset.simulations?.length) return [];
-  return preset.simulations.filter((s) => s.enabled !== false);
+  const behaviors = preset.simulation?.behaviors;
+  if (!behaviors?.length) return [];
+  return behaviors.filter((s) => s.enabled !== false);
 }

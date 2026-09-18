@@ -54,7 +54,6 @@ export interface CreatePresetOptions {
   motions?: string[];
   simulations?: string[];
   plugins?: AsciiPreset['plugins'];
-  patterns?: AsciiPreset['patterns'];
   controls?: AsciiPreset['controls'];
   density?: number;
   speed?: number;

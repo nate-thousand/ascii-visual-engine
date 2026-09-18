@@ -130,7 +130,7 @@ engine.setInputMapping(mapping);
 Presets can reference a device preset in the schema:
 
 ```typescript
-inputMapping: {
+input: {
   enabled: true,
   devicePreset: 'akaiMpkMini',
 }
@@ -236,5 +236,5 @@ Select a **Performance —** preset, enable the burst plugin, connect MIDI or ke
 - Generic framework — not tied to any specific product or controller brand beyond optional presets
 - Web MIDI only; no native Node MIDI in this milestone
 - Works alongside audio reactivity, source pipeline, simulation, motion, compositing, and post processing
-- Preset `setPreset()` reloads `inputMapping` configuration
+- Preset `setPreset()` reloads the `input` configuration
 - Panic clears mapper active notes, dispatches noteOff, and resets burst plugin state

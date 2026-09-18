@@ -3,16 +3,15 @@ import type { AudioMappingPresetConfig } from '../audio/AudioTypes';
 import { DEFAULT_AUDIO_SMOOTHING } from '../audio/AudioTypes';
 
 export function resolvePresetAudioMapping(
-  preset: { audioMapping?: AudioMappingPresetConfig },
+  preset: { audio?: { mapping?: AudioMappingPresetConfig } },
 ): AudioMappingPresetConfig | null {
-  if (!preset.audioMapping) return null;
-  return preset.audioMapping;
+  return preset.audio?.mapping ?? null;
 }
 
 export function buildAudioMappingFromPreset(
-  preset: { audioMapping?: AudioMappingPresetConfig },
+  preset: { audio?: { mapping?: AudioMappingPresetConfig } },
 ) {
-  const config = preset.audioMapping;
+  const config = preset.audio?.mapping;
   if (!config) return null;
   return {
     enabled: config.enabled !== false,

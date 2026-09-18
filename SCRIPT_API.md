@@ -32,12 +32,13 @@ createPreset({
   motions?: string[];         // e.g. ['flowField', 'breathing']
   simulations?: string[];     // e.g. ['particle', 'lsystem']
   plugins?: PluginConfig[];
-  patterns?: PluginConfig[];
   controls?: ControlDef[];
   layers?: LayerPresetConfig[];
   density?, speed?, trailAmount?, glitchAmount?, ...
 })
 ```
+
+Returns a nested `AsciiPreset` (see PRESET_SCHEMA.md): `motions` become `motion.behaviors`, `simulations` become `simulation.behaviors`, `glyphLanguage` becomes `glyphs.language`, on top of the base preset.
 
 ## Controls
 

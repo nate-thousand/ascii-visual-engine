@@ -1,5 +1,6 @@
 import type { AsciiPreset, ControlDef } from '../core/types';
 import { listLiveControls } from '../core/liveControls';
+import { getPresetValue } from '../core/presetShape';
 
 type ControlRange = Omit<ControlDef, 'name'>;
 
@@ -47,25 +48,24 @@ export const CONTROL_CATALOG: Record<string, ControlRange> = {
 
 /**
  * Control definitions for exactly the controls a preset's composition reads,
- * in catalog order. Defaults come from the preset's own flat field when it
+ * in catalog order. Defaults come from the preset's own group value when it
  * sets one, else from the catalog. Presets that describe their composition
  * and let this derive `controls` cannot declare a slider nothing reads.
  */
-export function liveControlDefs(
-  preset: Omit<AsciiPreset, 'controls'> & { controls?: ControlDef[] },
-): ControlDef[] {
-  const live = new Set(listLiveControls({ ...preset, controls: [] }));
+export function liveControlDefs(preset: AsciiPreset): ControlDef[] {
+  const live = new Set(listLiveControls(preset));
   const declared = new Map((preset.controls ?? []).map((c) => [c.name, c]));
   const defs: ControlDef[] = [];
   for (const [name, range] of Object.entries(CONTROL_CATALOG)) {
     if (!live.has(name)) continue;
-    const own = declared.get(name);
-    if (own) {
-      defs.push(own);
+    const own = getPresetValue(preset, name);
+    const declaredDef = declared.get(name);
+    if (declaredDef) {
+      // The engine starts from the preset's value, so the def's default follows it.
+      defs.push(own !== undefined ? { ...declaredDef, default: own } : declaredDef);
       continue;
     }
-    const flat = (preset as Record<string, unknown>)[name];
-    defs.push({ name, ...range, default: typeof flat === 'number' ? flat : range.default });
+    defs.push({ name, ...range, default: own ?? range.default });
   }
   return defs;
 }
@@ -75,8 +75,6 @@ export function liveControlDefs(
  * control definitions are kept for names the composition reads (an author's
  * range or default wins); names nothing reads are dropped.
  */
-export function withLiveControls(
-  preset: Omit<AsciiPreset, 'controls'> & { controls?: ControlDef[] },
-): AsciiPreset {
+export function withLiveControls(preset: AsciiPreset): AsciiPreset {
   return { ...preset, controls: liveControlDefs(preset) };
 }

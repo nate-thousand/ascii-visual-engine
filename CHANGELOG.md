@@ -9,8 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The API release. See ROADMAP.md section 2.
 
+### Changed
+
+- **Nested presets.** `AsciiPreset` groups its fields: `motion` (field, behaviors, motion knobs), `pattern`, `simulation` (behaviors, sim knobs), `post` (passes, post knobs), `audio` (mapping, analyzer knobs), `input`, `glyphs` (language, categories, rules, morphing, animation), plus top level `plugins`, `controls`, `layers`, `source`, and the four base values. Every group is optional; `{ id, name, glyphSet }` is a valid preset. A numeric field inside a group is the default for the control of the same name. `controls` is derived from the composition when absent. All 30 built ins are authored in the nested shape; the 0.2 flat versions are kept in `tests/fixtures/flat-presets.json` and `tests/preset-shape.test.ts` proves each normalizes to its nested form and renders the same frames.
+- The flat shape still works everywhere a preset is accepted (`setPreset`, the constructor, `createEngine`, scene import). `validatePreset()` normalizes flat input, warns once per preset id that flat is deprecated at 1.0, and returns the nested preset. `assertValidPreset()` now returns the normalized preset. Legacy `effects`, `patterns`, and `motionField` are folded into `plugins` and `motion` by normalization instead of by each subsystem resolver.
+- `GlyphRegistry.applyPresetConfig()` and `resolvePresetGlyphSet()` take `{ glyphSet, glyphs }`. The preset resolvers (`resolvePresetMotions`, `resolvePresetSimulations`, `resolvePresetPostProcessing`, `resolvePresetAudioMapping`, `resolvePresetInputMapping`, `resolvePresetPlugins`) read the nested groups.
+- `ScriptAPI.createPreset()` returns a nested preset; its option names are unchanged.
+- PRESET_SCHEMA.md rewritten for the nested shape with a flat to nested table; the 0.2 reference moved to `docs/PRESET_SCHEMA-0.2-flat.md`. Subsystem docs updated.
+
 ### Added
 
+- `normalizePreset`, `flattenPreset`, `isFlatPreset`, `getPresetValue`, `presetControlValues`, `CONTROL_GROUP`, `BASE_DEFAULTS`; types `FlatPreset`, `PresetInput`, `PresetMotionConfig`, `PresetPatternConfig`, `PresetSimulationConfig`, `PresetPostConfig`, `PresetAudioConfig`, `PresetGlyphsConfig`.
 - `createEngine(canvas, options)`: the host facade. Returns an `EngineHandle` with `start stop resize destroy`, `setPreset(preset | id)`, `setPresetById`, `getPreset`, `setControl`, `getControl`, `setGlyphSet`, `setColor`, `setBassGlyphScale`, `getLevel`, `loadSource`, `clearSource`, `enableKeyboardInput`, `disableKeyboardInput`, `getScriptEngine`, `on`, `off`, and `engine` (the underlying `AsciiEngine`). Options: `preset` (object or built in id), `width`, `height`, `autoStart`, `element`, `renderer`. Documented in API.md as the recommended entry point; README, BRIEF, and INTEGRATION quick starts use it. `AsciiEngine` is unchanged.
 
 ## Version 0.2.0 — 2026-09-17

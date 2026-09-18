@@ -346,6 +346,8 @@ interface EngineEventPayload {
 
 ### AsciiPreset
 
+The nested preset shape; see PRESET_SCHEMA.md for every field. `FlatPreset` is the deprecated 0.2 shape and `PresetInput` is either. Helpers: `normalizePreset(input)`, `flattenPreset(preset)`, `isFlatPreset(x)`, `getPresetValue(preset, name)`, `presetControlValues(preset)`, `CONTROL_GROUP`.
+
 See [PRESET_SCHEMA.md](./PRESET_SCHEMA.md) for the complete format.
 
 ### GridCell

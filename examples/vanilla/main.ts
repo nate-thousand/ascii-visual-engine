@@ -265,19 +265,20 @@ function buildPresetControls(preset: AsciiPreset): void {
   audioControlsEl.innerHTML = '';
 
   const live = new Set(listLiveControls(preset));
-  const declared = new Map(preset.controls.map((c) => [c.name, c]));
+  const controls = preset.controls ?? [];
+  const declared = new Map(controls.map((c) => [c.name, c]));
 
   const globals: ControlDef[] = ['density', 'speed'].map(
     (name) => declared.get(name) ?? { name, ...CONTROL_CATALOG[name] },
   );
-  const rest = preset.controls.filter(
+  const rest = controls.filter(
     (c) => !['density', 'speed'].includes(c.name) && live.has(c.name) && !isAudioControl(c.name),
   );
   for (const def of [...globals, ...rest]) {
     mountSlider(presetControlsEl, def, engine.getControl(def.name, def.default));
   }
 
-  const dropped = preset.controls.filter((c) => !live.has(c.name)).map((c) => c.name);
+  const dropped = controls.filter((c) => !live.has(c.name)).map((c) => c.name);
   if (dropped.length > 0) {
     const note = document.createElement('div');
     note.className = 'status';
@@ -285,7 +286,7 @@ function buildPresetControls(preset: AsciiPreset): void {
     presetControlsEl.appendChild(note);
   }
 
-  const audioDefs = preset.controls.filter((c) => isAudioControl(c.name) && live.has(c.name));
+  const audioDefs = controls.filter((c) => isAudioControl(c.name) && live.has(c.name));
   if (audioDefs.length > 0) {
     for (const def of audioDefs) {
       mountSlider(audioControlsEl, def, engine.getControl(def.name, def.default));

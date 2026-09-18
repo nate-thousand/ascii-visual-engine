@@ -94,7 +94,7 @@ export function listLiveControls(preset: AsciiPreset): string[] {
   const live = new Set<string>(GLOBAL_CONTROLS);
 
   // Glyph language classifies by motion strength (buildGlyphContext).
-  if (preset.glyphLanguage) live.add('strength');
+  if (preset.glyphs?.language) live.add('strength');
 
   for (const motion of resolvePresetMotions(preset)) {
     for (const c of consumersFor('motion', motion.id)) live.add(c);

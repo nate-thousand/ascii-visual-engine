@@ -26,7 +26,9 @@ import type {
   EngineEventPayload,
   GridState,
   NoteEvent,
+  PresetInput,
 } from './types';
+import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
 import type { EngineDebugState } from './debug';
 import {
@@ -93,7 +95,7 @@ const DEFAULT_PRESET: AsciiPreset = {
   id: 'basic',
   name: 'Basic',
   glyphSet: ['.', ':', '-', '=', '+', '*', '#'],
-  motionField: 'wave',
+  motion: { field: 'wave' },
   plugins: [
     { id: 'wave', type: 'effect' },
     { id: 'burst', type: 'effect' },
@@ -146,8 +148,7 @@ export class AsciiEngine {
   constructor(options: AsciiEngineOptions) {
     this.canvas = options.canvas;
     this.element = options.element;
-    this.preset = options.preset ?? DEFAULT_PRESET;
-    assertValidPreset(this.preset);
+    this.preset = assertValidPreset(options.preset ?? DEFAULT_PRESET);
 
     const width = options.width ?? window.innerWidth;
     const height = options.height ?? window.innerHeight;
@@ -160,7 +161,7 @@ export class AsciiEngine {
       element: this.element,
       width,
       height,
-      density: this.preset.density,
+      density: this.presetDefault('density'),
       glyphSet: this.glyphRegistry.getResolvedGlyphSet(),
       activeId: resolveRendererId(options.renderer),
     });
@@ -234,11 +235,12 @@ export class AsciiEngine {
     this.eventBus.clear();
   }
 
-  setPreset(preset: AsciiPreset): void {
-    assertValidPreset(preset);
+  /** Apply a look. Accepts the nested shape or the deprecated flat shape; the stored preset is always nested. */
+  setPreset(input: PresetInput): void {
+    const preset = assertValidPreset(input);
     this.preset = preset;
     this.initControls(preset);
-    this.rendererManager.setDensity(this.getControl('density', preset.density));
+    this.rendererManager.setDensity(this.getControl('density', this.presetDefault('density')));
     this.pluginManager.resetEffects();
     this.applyPresetPlugins(preset);
     this.applyPresetMotions(preset);
@@ -673,7 +675,7 @@ export class AsciiEngine {
   }
 
   applyGlyphLanguage(languageId: string): void {
-    this.glyphRegistry.applyPresetConfig({ glyphLanguage: languageId });
+    this.glyphRegistry.applyPresetConfig({ glyphs: { language: languageId } });
     this.rendererManager.setGlyphSet(this.glyphRegistry.getResolvedGlyphSet());
   }
 
@@ -691,19 +693,19 @@ export class AsciiEngine {
         .getEnabledByType('pattern')
         .map((plugin) => plugin.id),
       motions: this.motionManager.getEnabled().map((m) => m.id),
-      density: this.getControl('density', this.preset.density),
-      speed: this.getControl('speed', this.preset.speed),
-      glitchAmount: this.getControl('glitchAmount', this.preset.glitchAmount),
-      trailAmount: this.getControl('trailAmount', this.preset.trailAmount),
-      symmetry: this.getControl('symmetry', this.preset.symmetry ?? 6),
-      petals: this.getControl('petals', this.preset.petals ?? 5),
-      spiralAmount: this.getControl('spiralAmount', this.preset.spiralAmount ?? 0.5),
-      cellularAmount: this.getControl('cellularAmount', this.preset.cellularAmount ?? 0.5),
-      scanlineAmount: this.getControl('scanlineAmount', this.preset.scanlineAmount ?? 0.5),
-      strength: this.getControl('strength', this.preset.strength ?? 0.7),
-      randomness: this.getControl('randomness', this.preset.randomness ?? 0.3),
-      frequency: this.getControl('frequency', this.preset.frequency ?? 1),
-      amplitude: this.getControl('amplitude', this.preset.amplitude ?? 1),
+      density: this.getControl('density', this.presetDefault('density')),
+      speed: this.getControl('speed', this.presetDefault('speed')),
+      glitchAmount: this.getControl('glitchAmount', this.presetDefault('glitchAmount')),
+      trailAmount: this.getControl('trailAmount', this.presetDefault('trailAmount')),
+      symmetry: this.getControl('symmetry', this.presetDefault('symmetry')),
+      petals: this.getControl('petals', this.presetDefault('petals')),
+      spiralAmount: this.getControl('spiralAmount', this.presetDefault('spiralAmount')),
+      cellularAmount: this.getControl('cellularAmount', this.presetDefault('cellularAmount')),
+      scanlineAmount: this.getControl('scanlineAmount', this.presetDefault('scanlineAmount')),
+      strength: this.getControl('strength', this.presetDefault('strength')),
+      randomness: this.getControl('randomness', this.presetDefault('randomness')),
+      frequency: this.getControl('frequency', this.presetDefault('frequency')),
+      amplitude: this.getControl('amplitude', this.presetDefault('amplitude')),
       lastNoteOn: this.lastNoteOn,
       fps: this.lastFps,
       time: this.time,
@@ -949,61 +951,37 @@ export class AsciiEngine {
     }
   }
 
+  /** Every engine default. Preset group values override these; source and performance values are engine state. */
+  private static readonly CONTROL_DEFAULTS: Record<string, number> = {
+    ...BASE_DEFAULTS,
+    symmetry: 6,
+    petals: 5,
+    spiralAmount: 0.5,
+    cellularAmount: 0.5,
+    scanlineAmount: 0.5,
+    ...DEFAULT_MOTION_CONTROLS,
+    ...DEFAULT_SOURCE_CONTROLS,
+    ...DEFAULT_SIMULATION_CONTROLS,
+    ...DEFAULT_POST_CONTROLS,
+    ...DEFAULT_AUDIO_SMOOTHING_CONTROLS,
+    ...DEFAULT_PERFORMANCE_CONTROLS,
+  };
+
+  /** A preset's own default for a control, else the engine default. */
+  private presetDefault(name: string): number {
+    return getPresetValue(this.preset, name) ?? AsciiEngine.CONTROL_DEFAULTS[name] ?? 0;
+  }
+
   private initControls(preset: AsciiPreset): void {
     this.controlValues.clear();
 
-    for (const control of preset.controls) {
+    for (const control of preset.controls ?? []) {
       this.controlValues.set(control.name, control.default);
     }
 
-    this.controlValues.set('density', preset.density);
-    this.controlValues.set('speed', preset.speed);
-    this.controlValues.set('trailAmount', preset.trailAmount);
-    this.controlValues.set('glitchAmount', preset.glitchAmount);
-    this.controlValues.set('symmetry', preset.symmetry ?? 6);
-    this.controlValues.set('petals', preset.petals ?? 5);
-    this.controlValues.set('spiralAmount', preset.spiralAmount ?? 0.5);
-    this.controlValues.set('cellularAmount', preset.cellularAmount ?? 0.5);
-    this.controlValues.set('scanlineAmount', preset.scanlineAmount ?? 0.5);
-
-    for (const [key, value] of Object.entries(DEFAULT_MOTION_CONTROLS)) {
-      const presetValue = preset[key as keyof AsciiPreset];
-      this.controlValues.set(
-        key,
-        typeof presetValue === 'number' ? presetValue : value,
-      );
-    }
-
-    for (const [key, value] of Object.entries(DEFAULT_SOURCE_CONTROLS)) {
-      this.controlValues.set(key, value);
-    }
-
-    for (const [key, value] of Object.entries(DEFAULT_SIMULATION_CONTROLS)) {
-      const presetValue = preset[key as keyof AsciiPreset];
-      this.controlValues.set(
-        key,
-        typeof presetValue === 'number' ? presetValue : value,
-      );
-    }
-
-    for (const [key, value] of Object.entries(DEFAULT_POST_CONTROLS)) {
-      const presetValue = preset[key as keyof AsciiPreset];
-      this.controlValues.set(
-        key,
-        typeof presetValue === 'number' ? presetValue : value,
-      );
-    }
-
-    for (const [key, value] of Object.entries(DEFAULT_AUDIO_SMOOTHING_CONTROLS)) {
-      const presetValue = preset[key as keyof AsciiPreset];
-      this.controlValues.set(
-        key,
-        typeof presetValue === 'number' ? presetValue : value,
-      );
-    }
-
-    for (const [key, value] of Object.entries(DEFAULT_PERFORMANCE_CONTROLS)) {
-      this.controlValues.set(key, value);
+    const values = presetControlValues(preset);
+    for (const [key, fallback] of Object.entries(AsciiEngine.CONTROL_DEFAULTS)) {
+      this.controlValues.set(key, values[key] ?? fallback);
     }
   }
 
@@ -1060,7 +1038,7 @@ export class AsciiEngine {
   }
 
   private applyPresetAudioMapping(preset: AsciiPreset): void {
-    const mapping = resolveAudioMappingPreset(preset.audioMapping);
+    const mapping = resolveAudioMappingPreset(preset.audio?.mapping);
     if (mapping) {
       this.audioMapper.setMapping(mapping);
       if (this.audioInput.isConnected()) {
@@ -1075,8 +1053,8 @@ export class AsciiEngine {
   }
 
   private applyPresetInputMapping(preset: AsciiPreset): void {
-    if (preset.inputMapping) {
-      this.inputManager.applyPresetConfig(preset.inputMapping);
+    if (preset.input) {
+      this.inputManager.applyPresetConfig(preset.input);
     }
   }
 
@@ -1236,11 +1214,11 @@ export class AsciiEngine {
       cols: grid.cols,
       rows: grid.rows,
       audioAmplitude: this.lastAudioFeatures?.amplitude ?? 0,
-      motionStrength: this.getControl('strength', this.preset.strength ?? 0.7),
+      motionStrength: this.getControl('strength', this.presetDefault('strength')),
       simulationEnergy: simDebug.totalParticles > 0
         ? Math.min(1, simDebug.totalParticles / Math.max(grid.cells.length, 1))
         : 0,
-      density: this.getControl('density', this.preset.density),
+      density: this.getControl('density', this.presetDefault('density')),
     };
   }
 
@@ -1253,9 +1231,9 @@ export class AsciiEngine {
       glyphLanguageActive: this.glyphRegistry.isEnabled(),
       time: this.time,
       dt,
-      speed: this.getControl('speed', this.preset.speed),
-      glitchAmount: this.getControl('glitchAmount', this.preset.glitchAmount),
-      trailAmount: this.getControl('trailAmount', this.preset.trailAmount),
+      speed: this.getControl('speed', this.presetDefault('speed')),
+      glitchAmount: this.getControl('glitchAmount', this.presetDefault('glitchAmount')),
+      trailAmount: this.getControl('trailAmount', this.presetDefault('trailAmount')),
       getControl: (name, fallback) => this.getControl(name, fallback),
     };
   }
@@ -1348,7 +1326,7 @@ export class AsciiEngine {
     this.performanceManager.markPhase('input');
     this.updateInput();
 
-    const trailAmount = this.getControl('trailAmount', this.preset.trailAmount);
+    const trailAmount = this.getControl('trailAmount', this.presetDefault('trailAmount'));
 
     // A recorded frame owns the grid during playback; the live stages would
     // overwrite it before it is rendered.

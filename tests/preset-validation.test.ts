@@ -22,22 +22,29 @@ describe('validatePreset', () => {
   });
 
   it('reports missing required fields by name', () => {
-    const p = clone(basicPreset) as Partial<AsciiPreset>;
+    const p = clone(basicPreset) as Partial<AsciiPreset> & { density?: unknown };
     delete p.glyphSet;
-    delete p.density;
+    p.density = 'thick';
     const r = validatePreset(p);
     expect(r.ok).toBe(false);
     expect(r.errors.join('\n')).toMatch(/glyphSet must be a non-empty array/);
     expect(r.errors.join('\n')).toMatch(/density must be a finite number/);
   });
 
-  it('rejects a bad motionField and bad plugin types', () => {
-    const p = clone(basicPreset) as Record<string, unknown>;
-    p.motionField = 'spiral';
-    (p.plugins as unknown[]).push({ id: 'wave', type: 'shader' });
-    const r = validatePreset(p);
-    expect(r.errors.some(e => /motionField must be one of/.test(e))).toBe(true);
+  it('rejects a bad motion field and bad plugin types, nested or flat', () => {
+    const nested = clone(basicPreset) as Record<string, unknown>;
+    nested.motion = { field: 'spiral' };
+    (nested.plugins as unknown[]).push({ id: 'wave', type: 'shader' });
+    const r = validatePreset(nested);
+    expect(r.errors.some(e => /motion\.field must be one of/.test(e))).toBe(true);
     expect(r.errors.some(e => /plugins\[\d+\]\.type must be one of/.test(e))).toBe(true);
+    expect(r.warnings.some(e => /flat preset shape is deprecated/.test(e))).toBe(false);
+
+    const flat = clone(basicPreset) as Record<string, unknown>;
+    flat.motionField = 'spiral';
+    const f = validatePreset(flat);
+    expect(f.errors.some(e => /motion\.field must be one of/.test(e))).toBe(true);
+    expect(f.warnings.some(e => /flat preset shape is deprecated/.test(e))).toBe(true);
   });
 
   it('rejects controls with min greater than max, warns on out-of-range defaults', () => {

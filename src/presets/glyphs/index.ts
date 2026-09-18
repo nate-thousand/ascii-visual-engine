@@ -5,35 +5,32 @@ import { withLiveControls } from '../controlCatalog';
 function glyphPreset(
   id: string,
   name: string,
-  glyphLanguage: string,
+  language: string,
   extra: Partial<AsciiPreset> = {},
 ): AsciiPreset {
-  const categories = extra.glyphCategories;
+  const categories = extra.glyphs?.categories;
   const glyphSet = categories?.length
     ? resolveGlyphSetFromCategories(categories)
     : ['.', ':', '-', '=', '+', '*', '#', '@'];
 
   const { controls: _ignored, ...rest } = extra;
-  const composed: Omit<AsciiPreset, 'controls'> = {
+  const composed: AsciiPreset = {
     id,
     name,
     glyphSet,
-    glyphLanguage,
-    motionField: 'noise',
     plugins: [
       { id: 'noise', type: 'effect' },
       { id: 'burst', type: 'effect' },
       { id: 'trails', type: 'effect' },
       { id: 'radialSymmetry', type: 'pattern' },
     ],
-    patterns: ['radialSymmetry'],
-    motions: [{ id: 'organicGrowth', weight: 0.5 }],
     density: 1,
     speed: 0.8,
-    strength: 0.7,
     trailAmount: 0.5,
     glitchAmount: 0.1,
     ...rest,
+    motion: { behaviors: [{ id: 'organicGrowth', weight: 0.5 }], strength: 0.7, ...extra.motion },
+    glyphs: { language, ...extra.glyphs },
   };
 
   // Sliders are derived from what the composition reads, so a glyph preset
@@ -42,15 +39,14 @@ function glyphPreset(
 }
 
 export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Glyph — Organic Bloom', 'organicBloom', {
-  glyphCategories: ['organic', 'unicodeDecorative'],
+  glyphs: { categories: ['organic', 'unicodeDecorative'] },
   plugins: [
     { id: 'burst', type: 'effect' },
     { id: 'trails', type: 'effect' },
     { id: 'radialSymmetry', type: 'pattern' },
     { id: 'cellular', type: 'pattern' },
   ],
-  patterns: ['radialSymmetry', 'cellular'],
-  motions: [{ id: 'organicGrowth', weight: 0.7 }, { id: 'breathing', weight: 0.3 }],
+  motion: { behaviors: [{ id: 'organicGrowth', weight: 0.7 }, { id: 'breathing', weight: 0.3 }] },
   speed: 0.55,
   trailAmount: 0.4,
   glitchAmount: 0,
@@ -61,15 +57,14 @@ export const digitalForestPreset = glyphPreset(
   'Glyph — Digital Forest',
   'digitalForest',
   {
-    glyphCategories: ['organic', 'architecture', 'terminal'],
+    glyphs: { categories: ['organic', 'architecture', 'terminal'] },
     plugins: [
       { id: 'noise', type: 'effect' },
       { id: 'trails', type: 'effect' },
       { id: 'grid', type: 'pattern' },
       { id: 'cellular', type: 'pattern' },
     ],
-    patterns: ['grid', 'cellular'],
-    motions: [{ id: 'flowField', weight: 0.6 }],
+    motion: { behaviors: [{ id: 'flowField', weight: 0.6 }] },
     speed: 0.45,
     trailAmount: 0.35,
     glitchAmount: 0,
@@ -77,15 +72,13 @@ export const digitalForestPreset = glyphPreset(
 );
 
 export const crtTerminalPreset = glyphPreset('glyphCrtTerminal', 'Glyph — CRT Terminal', 'crtTerminal', {
-  glyphCategories: ['terminal', 'noise'],
-  motionField: 'wave',
+  glyphs: { categories: ['terminal', 'noise'] },
   plugins: [
     { id: 'wave', type: 'effect' },
     { id: 'glitch', type: 'effect' },
     { id: 'scanline', type: 'pattern' },
   ],
-  patterns: ['scanline'],
-  scanlineAmount: 0.8,
+  pattern: { scanlineAmount: 0.8 },
   trailAmount: 0.3,
   glitchAmount: 0.18,
 });
@@ -95,7 +88,7 @@ export const corruptedBroadcastPreset = glyphPreset(
   'Glyph — Corrupted Broadcast',
   'corruptedBroadcast',
   {
-    glyphCategories: ['noise', 'terminal', 'abstract'],
+    glyphs: { categories: ['noise', 'terminal', 'abstract'] },
     plugins: [
       { id: 'glitch', type: 'effect' },
       { id: 'burst', type: 'effect' },
@@ -103,20 +96,18 @@ export const corruptedBroadcastPreset = glyphPreset(
     ],
     trailAmount: 0.25,
     glitchAmount: 0.45,
-    motions: [{ id: 'curlNoise', weight: 0.5 }],
+    motion: { behaviors: [{ id: 'curlNoise', weight: 0.5 }] },
   },
 );
 
 export const flowFieldPreset = glyphPreset('glyphFlowField', 'Glyph — Flow Field', 'flowField', {
-  glyphCategories: ['fluid', 'particle', 'minimal'],
+  glyphs: { categories: ['fluid', 'particle', 'minimal'] },
   plugins: [
     { id: 'wave', type: 'effect' },
     { id: 'trails', type: 'effect' },
     { id: 'spiral', type: 'pattern' },
   ],
-  patterns: ['spiral'],
-  motions: [{ id: 'flowField', weight: 0.8 }],
-  flowStrength: 0.7,
+  motion: { behaviors: [{ id: 'flowField', weight: 0.8 }], flowStrength: 0.7 },
   trailAmount: 0.45,
   glitchAmount: 0,
 });
@@ -126,9 +117,8 @@ export const particleNebulaPreset = glyphPreset(
   'Glyph — Particle Nebula',
   'particleNebula',
   {
-    glyphCategories: ['particle', 'unicodeDecorative', 'abstract'],
-    simulations: [{ id: 'particle', enabled: true }],
-    simSpawnRate: 0.5,
+    glyphs: { categories: ['particle', 'unicodeDecorative', 'abstract'] },
+    simulation: { behaviors: [{ id: 'particle', enabled: true }], simSpawnRate: 0.5 },
     plugins: [
       { id: 'burst', type: 'effect' },
       { id: 'trails', type: 'effect' },
@@ -142,24 +132,23 @@ export const abstractGeometryPreset = glyphPreset(
   'Glyph — Abstract Geometry',
   'abstractGeometry',
   {
-    glyphCategories: ['geometric', 'abstract', 'technical'],
+    glyphs: { categories: ['geometric', 'abstract', 'technical'] },
     plugins: [
       { id: 'wave', type: 'effect' },
       { id: 'grid', type: 'pattern' },
       { id: 'spiral', type: 'pattern' },
     ],
-    patterns: ['grid', 'spiral'],
-    symmetry: 8,
+    pattern: { symmetry: 8 },
   },
 );
 
 export const minimalZenPreset = glyphPreset('glyphMinimalZen', 'Glyph — Minimal Zen', 'minimalZen', {
-  glyphCategories: ['minimal'],
+  glyphs: { categories: ['minimal'] },
   plugins: [
     { id: 'trails', type: 'effect' },
     { id: 'wave', type: 'effect' },
   ],
-  motions: [{ id: 'breathing', weight: 0.9 }],
+  motion: { behaviors: [{ id: 'breathing', weight: 0.9 }] },
   density: 0.65,
   speed: 0.4,
   trailAmount: 0.35,

@@ -11,7 +11,6 @@ function performancePreset(
     id,
     name,
     glyphSet: [' ', '.', ':', '-', '=', '+', '*', '#', '@'],
-    motionField: 'wave',
     plugins: [
       { id: 'wave', type: 'effect' },
       { id: 'burst', type: 'effect' },
@@ -19,22 +18,13 @@ function performancePreset(
       { id: 'trails', type: 'effect' },
       { id: 'radialSymmetry', type: 'pattern' },
     ],
-    patterns: ['radialSymmetry'],
     // breathing reads strength, so the device presets' strength knob is live
-    motions: [{ id: 'flowField', weight: 0.4 }, { id: 'breathing', weight: 0.3 }],
-    inputMapping: { enabled: true, devicePreset },
-    controls: [
-      { name: 'density', label: 'Density', min: 0.3, max: 2, default: 1, step: 0.1 },
-      { name: 'speed', label: 'Speed', min: 0.1, max: 3, default: 1, step: 0.1 },
-      { name: 'trailAmount', label: 'Trails', min: 0, max: 1, default: 0.4, step: 0.05 },
-      { name: 'glitchAmount', label: 'Glitch', min: 0, max: 1, default: 0.15, step: 0.05 },
-      { name: 'strength', label: 'Strength', min: 0, max: 1, default: 0.7, step: 0.05 },
-    ],
+    motion: { behaviors: [{ id: 'flowField', weight: 0.4 }, { id: 'breathing', weight: 0.3 }], strength: 0.7 },
+    input: { enabled: true, devicePreset },
     density: 1,
     speed: 1,
     trailAmount: 0.4,
     glitchAmount: 0.15,
-    strength: 0.7,
     ...extra,
   });
 }
@@ -50,15 +40,16 @@ export const performanceAkaiPreset = performancePreset(
   'Performance — Akai MPK Mini',
   'akaiMpkMini',
   {
-    simulations: [{ id: 'particle', enabled: true }],
-    simSpawnRate: 0.4,
+    simulation: { behaviors: [{ id: 'particle', enabled: true }], simSpawnRate: 0.4 },
     // Akai knobs 7 and 8 drive feedback and smear
-    postProcessing: [
-      { id: 'feedback', enabled: true, amount: 0.3 },
-      { id: 'smear', enabled: true, amount: 0.2 },
-    ],
-    postFeedback: 0.3,
-    postSmear: 0.2,
+    post: {
+      passes: [
+        { id: 'feedback', enabled: true, amount: 0.3 },
+        { id: 'smear', enabled: true, amount: 0.2 },
+      ],
+      postFeedback: 0.3,
+      postSmear: 0.2,
+    },
   },
 );
 

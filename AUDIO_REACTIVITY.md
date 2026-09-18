@@ -144,16 +144,18 @@ Event: `engine.on('audio', (features) => { ... })`
 ```typescript
 const preset: AsciiPreset = {
   // ...
-  audioMapping: {
-    enabled: true,
-    smoothing: { attack: 0.35, release: 0.6, sensitivity: 0.8 },
-    mappings: [
-      { feature: 'amplitude', target: { type: 'control', control: 'trailAmount', amount: 0.7, min: 0.1, max: 0.9 } },
-      { feature: 'bass', target: { type: 'control', control: 'density', amount: 0.4, min: 0.6, max: 1.6 } },
-    ],
+  audio: {
+    mapping: {
+      enabled: true,
+      smoothing: { attack: 0.35, release: 0.6, sensitivity: 0.8 },
+      mappings: [
+        { feature: 'amplitude', target: { type: 'control', control: 'trailAmount', amount: 0.7, min: 0.1, max: 0.9 } },
+        { feature: 'bass', target: { type: 'control', control: 'density', amount: 0.4, min: 0.6, max: 1.6 } },
+      ],
+    },
+    audioAttack: 0.35,
+    audioRelease: 0.6,
   },
-  audioAttack: 0.35,
-  audioRelease: 0.6,
 };
 ```
 
@@ -203,7 +205,7 @@ await engine.connectAudio({ type: 'analyser', analyser, audioContext: ctx });
 - Generic framework — not tied to any specific product or MIDI
 - CPU analysis only; no WebGL audio shaders
 - Base control values are snapshotted on connect and restored on disconnect
-- Preset `setPreset()` reloads `audioMapping` configuration
+- Preset `setPreset()` reloads the `audio.mapping` configuration
 - Works alongside source, simulation, motion, compositing, post processing, and MIDI/keyboard input pipelines
 
 See also: [MIDI_AND_INPUT.md](./MIDI_AND_INPUT.md) for hardware and keyboard performance controls.

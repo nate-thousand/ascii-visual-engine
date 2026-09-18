@@ -426,7 +426,7 @@ setPreset(preset)
      ├── pluginManager.resetEffects()
      ├── resolvePresetPlugins(preset)
      │     ├── Use preset.plugins if defined
-     │     └── Else migrate legacy effects + patterns + motionField
+     │     └── Flat presets normalized first (normalizePreset folds effects, patterns, motionField into plugins and motion)
      ├── pluginManager.setEnabledIds(ids)
      └── emit('preset', preset)
 ```

@@ -45,8 +45,7 @@ const engine = new AsciiEngine({ canvas, preset: myPreset });
 engine.registerGlyphLanguage(myLanguage);
 engine.setPreset({
   ...myPreset,
-  glyphLanguage: 'neonGarden',
-  glyphCategories: ['organic', 'unicodeDecorative'],
+  glyphs: { language: 'neonGarden', categories: ['organic', 'unicodeDecorative'] },
 });
 ```
 
@@ -59,16 +58,17 @@ export const myGlyphPreset: AsciiPreset = {
   id: 'myGlyphPreset',
   name: 'My Glyph Preset',
   glyphSet: ['.', '*', '#'],  // fallback for renderer init
-  glyphLanguage: 'neonGarden',
-  glyphCategories: ['organic', 'unicodeDecorative'],
-  glyphMorphing: { enabled: true, speed: 1 },
-  glyphAnimation: { enabled: true, kinds: ['breathing'] },
-  motionField: 'noise',
+  glyphs: {
+    language: 'neonGarden',
+    categories: ['organic', 'unicodeDecorative'],
+    morphing: { enabled: true, speed: 1 },
+    animation: { enabled: true, kinds: ['breathing'] },
+  },
+  motion: { field: 'noise' },
   plugins: [
     { id: 'burst', type: 'effect' },
     { id: 'radialSymmetry', type: 'pattern' },
   ],
-  controls: [/* ... */],
   density: 1,
   speed: 1,
   trailAmount: 0.4,
@@ -144,7 +144,7 @@ glyphAnimation: {
 Combine two or more built-in languages:
 
 ```typescript
-glyphLanguage: ['organicBloom', 'crtTerminal']
+glyphs: { language: ['organicBloom', 'crtTerminal'] }
 ```
 
 The composer merges categories and role maps. Use for hybrid aesthetics like organic growth on a CRT screen.
@@ -186,9 +186,9 @@ console.log(state?.role, state?.character, state?.unicode);
 
 ## Backward compatibility
 
-Presets with only `glyphSet` (no `glyphLanguage`) behave exactly as before — brightness maps to the glyph ramp in patterns, sources, and motion effects.
+Presets with only `glyphSet` (no `glyphs.language`) behave exactly as before: brightness maps to the glyph ramp in patterns, sources, and motion effects.
 
-Adding `glyphLanguage` activates semantic selection. Keep `glyphSet` populated for renderer initialization and legacy tooling.
+Adding `glyphs.language` activates semantic selection. Keep `glyphSet` populated for renderer initialization and legacy tooling.
 
 ---
 

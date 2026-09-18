@@ -86,34 +86,9 @@ export function listPluginIds(): string[] {
   ];
 }
 
-const LEGACY_PATTERN_IDS: Record<string, string> = {
-  wave: 'wavePattern',
-};
-
+/** Enabled plugin ids. Legacy `effects`, `patterns`, and `motionField` are folded into `plugins` by `normalizePreset()`. */
 export function resolvePresetPlugins(preset: {
   plugins?: { id: string; type: string; enabled?: boolean }[];
-  motionField?: string;
-  effects?: { type: string; enabled?: boolean }[];
-  patterns?: string[];
 }): string[] {
-  if (preset.plugins?.length) {
-    return preset.plugins
-      .filter((p) => p.enabled !== false)
-      .map((p) => p.id);
-  }
-
-  const ids = new Set<string>();
-
-  if (preset.motionField === 'noise') ids.add('noise');
-  if (preset.motionField === 'wave') ids.add('wave');
-
-  for (const effect of preset.effects ?? []) {
-    if (effect.enabled !== false) ids.add(effect.type);
-  }
-
-  for (const pattern of preset.patterns ?? []) {
-    ids.add(LEGACY_PATTERN_IDS[pattern] ?? pattern);
-  }
-
-  return Array.from(ids);
+  return (preset.plugins ?? []).filter((p) => p.enabled !== false).map((p) => p.id);
 }

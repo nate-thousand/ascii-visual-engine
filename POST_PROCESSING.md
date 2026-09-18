@@ -111,13 +111,15 @@ post.process(grid, glyphSet, time, dt, getControl);
 ```typescript
 const preset: AsciiPreset = {
   // ...
-  postProcessing: [
-    { id: 'feedback', enabled: true, amount: 0.75 },
-    { id: 'smear', enabled: true, amount: 0.35 },
-    { id: 'threshold', enabled: false },
-  ],
-  postFeedback: 0.75,
-  postSmear: 0.35,
+  post: {
+    passes: [
+      { id: 'feedback', enabled: true, amount: 0.75 },
+      { id: 'smear', enabled: true, amount: 0.35 },
+      { id: 'threshold', enabled: false },
+    ],
+    postFeedback: 0.75,
+    postSmear: 0.35,
+  },
 };
 ```
 

@@ -66,7 +66,7 @@ describe('GlyphRegistry', () => {
   });
 
   it('registers and enables builtin languages', () => {
-    registry.applyPresetConfig({ glyphLanguage: 'organicBloom', glyphSet: ['.'] });
+    registry.applyPresetConfig({ glyphs: { language: 'organicBloom' }, glyphSet: ['.'] });
     expect(registry.isEnabled()).toBe(true);
     expect(registry.getActiveLanguage()?.id).toBe('organicBloom');
     expect(registry.getResolvedGlyphSet().length).toBeGreaterThan(5);
@@ -74,7 +74,7 @@ describe('GlyphRegistry', () => {
 
   it('composes multiple languages', () => {
     registry.applyPresetConfig({
-      glyphLanguage: ['organicBloom', 'crtTerminal'],
+      glyphs: { language: ['organicBloom', 'crtTerminal'] },
       glyphSet: ['.'],
     });
     expect(registry.isEnabled()).toBe(true);
@@ -82,7 +82,7 @@ describe('GlyphRegistry', () => {
   });
 
   it('selects glyphs by semantic role', () => {
-    registry.applyPresetConfig({ glyphLanguage: 'organicBloom', glyphSet: ['.'] });
+    registry.applyPresetConfig({ glyphs: { language: 'organicBloom' }, glyphSet: ['.'] });
     const grid = makeGrid();
     registry.applyToGrid(grid, { time: 1, cols: 8, rows: 6, density: 1 });
 

@@ -2,10 +2,9 @@ import type { AsciiPreset } from '../core/types';
 import type { InputMappingPresetConfig } from './InputTypes';
 
 export function resolvePresetInputMapping(
-  preset: { inputMapping?: InputMappingPresetConfig },
+  preset: { input?: InputMappingPresetConfig },
 ): InputMappingPresetConfig | null {
-  if (!preset.inputMapping) return null;
-  return preset.inputMapping;
+  return preset.input ?? null;
 }
 
 export {

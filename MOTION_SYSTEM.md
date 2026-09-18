@@ -115,21 +115,25 @@ Exposed via `engine.setControl()` / preset fields:
 ```typescript
 {
   id: 'ambient',
-  motions: [
-    { id: 'flowField', weight: 0.6, priority: 10 },
-    { id: 'breathing', weight: 0.8, priority: 18 },
-    { id: 'wave', weight: 0.4, priority: 5 },
-  ],
-  strength: 0.5,
-  flowStrength: 0.6,
+  motion: {
+    behaviors: [
+      { id: 'flowField', weight: 0.6, priority: 10 },
+      { id: 'breathing', weight: 0.8, priority: 18 },
+      { id: 'wave', weight: 0.4, priority: 5 },
+    ],
+    strength: 0.5,
+    flowStrength: 0.6,
+  },
   // ...
 }
 ```
 
-Legacy presets without `motions` array fall back to `motionField`:
+A preset with `motion.field` and no behaviors gets the legacy set:
 
-- `wave` → enables `wave` motion
-- `noise` → enables `curlNoise` + `brownian`
+- `wave` enables the `wave` motion
+- `noise` enables `curlNoise` and `brownian`
+
+Flat presets (`motions`, `motionField`, top level `strength` and friends) are normalized into this group on load.
 
 ---
 

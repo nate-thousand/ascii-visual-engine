@@ -49,18 +49,18 @@ export function listMotionIds(): string[] {
 }
 
 export function resolvePresetMotions(preset: {
-  motions?: MotionConfig[];
-  motionField?: string;
+  motion?: { behaviors?: MotionConfig[]; field?: string };
 }): MotionConfig[] {
-  if (preset.motions?.length) {
-    return preset.motions.filter((m) => m.enabled !== false);
+  const behaviors = preset.motion?.behaviors;
+  if (behaviors?.length) {
+    return behaviors.filter((m) => m.enabled !== false);
   }
 
   const configs: MotionConfig[] = [];
-  if (preset.motionField === 'wave') {
+  if (preset.motion?.field === 'wave') {
     configs.push({ id: 'wave', weight: 1, priority: 5 });
   }
-  if (preset.motionField === 'noise') {
+  if (preset.motion?.field === 'noise') {
     configs.push({ id: 'curlNoise', weight: 0.8, priority: 35 });
     configs.push({ id: 'brownian', weight: 0.4, priority: 40 });
   }
