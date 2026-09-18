@@ -99,7 +99,7 @@ The only work that turns "local is better" into "the live site is better".
 
 Decisions 2 through 6. Each verifiable in the harness.
 
-- [ ] **Facade.** `createEngine(canvas, options)` returning the twelve host methods plus `on`, typed, documented in API.md as the recommended entry point. `AsciiEngine` stays exported for power users
+- [x] **Facade.** `createEngine(canvas, options)` returning `EngineHandle`: the host methods plus `on`/`off`, `loadSource`/`clearSource`, and `engine` for the rest. Documented in API.md as the recommended entry point; README, BRIEF, INTEGRATION quick starts use it. On `release/0.3.0`, `tests/create-engine.test.ts`, consumer smoke covers it through `dist/`. `getLevel()` reads the engine's own audio amplitude (the roadmap's `getLevel` came from the sound engine's API; hosts that have their own analysis use `setBassGlyphScale`)
 - [ ] **Nested presets.** Group the 59 flat fields (`motion`, `simulation`, `audio`, `glyphs`, `post`, `layers`, `controls`); every group optional; `validatePreset()` normalizes flat input to the nested shape and warns once that flat is deprecated at 1.0. All 30 built ins converted; the flat originals stay as fixtures in a compatibility test
 - [ ] **HiDPI.** Scale the Canvas 2D backing store by `devicePixelRatio` (capped at 2) so glyphs are crisp on Retina. No reference to `devicePixelRatio` exists in `src/` today
 - [ ] **`PointerInput` plugin.** Pointer position to normalized coordinates, tap to `noteOn`; off by default; registered like `KeyboardInput`. No pointer or touch handling exists in `src/` today
@@ -150,7 +150,7 @@ In this order. No host drives it (decision 8).
 | Version | Contents | Status |
 | --- | --- | --- |
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
-| 0.2.0 | Stabilization pass, preset validation, demo show chrome, GitHub and vendored copy consolidated | In progress on `release/0.2.0` |
-| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Next |
+| 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
+| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | In progress on `release/0.3.0`; facade done |
 | 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Planned |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |

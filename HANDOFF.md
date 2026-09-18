@@ -4,7 +4,8 @@ Written 2026-09-17 when engine development moved out of the portfolio chat into 
 
 ## Where things stand
 
-- Branch `release/0.2.0`, eight commits ahead of `origin/main`, working tree clean. Nothing pushed, nothing tagged, nothing deployed. The user has said: local design work until they say otherwise.
+- `release/0.2.0` is complete at `12376f6` (eight commits ahead of `origin/main`); tag `v0.2.0` there when the user says so. Nothing pushed, nothing tagged, nothing deployed.
+- `release/0.3.0` branches from it and carries the 0.3.0 API work; `package.json` says 0.3.0. First item done: `createEngine()` facade.
 - 0.2.0 is the consolidation release: local stabilization work + GitHub main (CI, snapshot and smoke tests, SECURITY, INTEGRATION) + the platform monorepo's vendored additions (`setColor`, `setGlyphSet`, `setBassGlyphScale`, GIF export options, source strength, softened threshold).
 - 2026-09-18: engine state ownership fixed (source, playback, quality scaling own the grid or their base values; `blendWeight` removed), `listLiveControls()` added, glyph presets derive their controls, demo rebuilt as an eight section harness. See the CHANGELOG 0.2.0 section and ROADMAP "Engine state ownership and harness rebuild".
 - Verified: typecheck clean (library and demo), 205 tests, `npm run build` and `npm run build:demo` succeed, no console errors, panel clean at 375px, canvas source visible under pattern presets, playback holds a frame, quality scaling survives preset switches.
@@ -22,7 +23,7 @@ Harness only, hosts own UI. Eight sections by subsystem. Preset sliders generate
 
 1. Keep working the local design until the user says push. All 30 presets now derive `controls` from their composition (`withLiveControls()`); the harness's "declared but unread" note only fires for host authored presets.
 2. When the user says so: `git push -u origin release/0.2.0`, PR or merge to main, `git tag v0.2.0`, push the tag. Then deploy `dist-demo/` (hosting unknown; ask).
-3. Start 0.3.0 from `ROADMAP.md` section 2: facade `createEngine()`, nested presets with flat normalization, HiDPI, `PointerInput`, frame budget in BENCHMARKS.md.
+3. Continue 0.3.0 from `ROADMAP.md` section 2 in order: nested presets with flat normalization, HiDPI, `PointerInput`, frame budget in BENCHMARKS.md, engine state, preset loader and export, params, effect tests.
 
 ## Related
 

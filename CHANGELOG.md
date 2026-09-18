@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased (0.3.0)
+
+The API release. See ROADMAP.md section 2.
+
+### Added
+
+- `createEngine(canvas, options)`: the host facade. Returns an `EngineHandle` with `start stop resize destroy`, `setPreset(preset | id)`, `setPresetById`, `getPreset`, `setControl`, `getControl`, `setGlyphSet`, `setColor`, `setBassGlyphScale`, `getLevel`, `loadSource`, `clearSource`, `enableKeyboardInput`, `disableKeyboardInput`, `getScriptEngine`, `on`, `off`, and `engine` (the underlying `AsciiEngine`). Options: `preset` (object or built in id), `width`, `height`, `autoStart`, `element`, `renderer`. Documented in API.md as the recommended entry point; README, BRIEF, and INTEGRATION quick starts use it. `AsciiEngine` is unchanged.
+
 ## Version 0.2.0 — 2026-09-17
 
 Consolidation release: the local stabilization work, GitHub main, and the platform's vendored copy brought together on one branch.

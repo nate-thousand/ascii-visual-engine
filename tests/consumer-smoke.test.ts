@@ -55,6 +55,18 @@ describe('Consumer smoke (dist bundle)', () => {
     },
   );
 
+  it.skipIf(!distExists)('createEngine works through the dist bundle', async () => {
+    const mod = await import(pathToFileURL(distPath).href);
+    expect(mod.createEngine).toBeTypeOf('function');
+    const { advanceFrames } = stubAnimationFrame();
+    const handle = mod.createEngine(createMockCanvas(320, 240), { preset: 'glyphCrtTerminal', width: 320, height: 240 });
+    advanceFrames(3);
+    expect(handle.getPreset().id).toBe('glyphCrtTerminal');
+    handle.setControl('speed', 0.5);
+    expect(handle.getControl('speed')).toBe(0.5);
+    handle.destroy();
+  });
+
   it('dist artifact exists when running test:all', () => {
     if (process.env.REQUIRE_DIST === '1') {
       expect(distExists, `Missing ${distPath}. Run npm run build first.`).toBe(true);

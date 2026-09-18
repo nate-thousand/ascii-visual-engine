@@ -29,16 +29,10 @@ npm link ascii-visual-engine
 ```
 
 ```typescript
-import { AsciiEngine, getPreset } from 'ascii-visual-engine';
+import { createEngine } from 'ascii-visual-engine';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-
-const engine = new AsciiEngine({
-  canvas,
-  preset: getPreset('basic'),
-  width: window.innerWidth,
-  height: window.innerHeight,
-});
+const engine = createEngine(canvas, { preset: 'basic' });
 
 engine.on('frame', ({ fps }) => {
   // optional telemetry
@@ -46,7 +40,7 @@ engine.on('frame', ({ fps }) => {
 });
 
 engine.setControl('speed', 0.8);
-engine.noteOn({ x: 0.5, y: 0.5, intensity: 1 });
+engine.engine.noteOn({ x: 0.5, y: 0.5, intensity: 1 }); // anything past the handle lives on .engine
 
 window.addEventListener('resize', () => {
   engine.resize(window.innerWidth, window.innerHeight);
@@ -65,9 +59,9 @@ TypeScript types ship with the package — no separate `@types` package.
 If you only need **load preset → animate → respond to input**, you need:
 
 1. A `<canvas>` element
-2. `AsciiEngine` + one preset from `getPreset()` or `listPresets()`
+2. `createEngine(canvas, { preset })` with a preset id from `listPresets()` or a preset object
 3. Optional: `engine.setControl()` for sliders
-4. Optional: `engine.noteOn()` for touch/click/MIDI-mapped events
+4. Optional: `engine.engine.noteOn()` for touch/click/MIDI-mapped events
 5. `engine.destroy()` on teardown
 
 You do **not** need to import motion, simulation, scripting, or performance subsystems directly — presets configure those through the engine.

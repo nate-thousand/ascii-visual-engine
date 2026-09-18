@@ -97,27 +97,17 @@ npm run build
 Minimal usage:
 
 ```typescript
-import { AsciiEngine, getPreset } from 'ascii-visual-engine';
+import { createEngine } from 'ascii-visual-engine';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const engine = createEngine(canvas, { preset: 'glyphOrganicBloom' });
 
-const engine = new AsciiEngine({
-  canvas,
-  preset: getPreset('glyphOrganicBloom'),
-  width: window.innerWidth,
-  height: window.innerHeight,
-});
-
-engine.on('frame', ({ fps }) => {
-  console.log('FPS:', fps);
-});
-
-window.addEventListener('resize', () => {
-  engine.resize(window.innerWidth, window.innerHeight);
-});
+engine.setControl('speed', 0.8);
+engine.on('frame', ({ fps }) => console.log('FPS:', fps));
+window.addEventListener('resize', () => engine.resize(window.innerWidth, window.innerHeight));
 ```
 
-TypeScript types are included — no `@types` package required.
+`createEngine()` returns the host surface: lifecycle, preset and control setters, glyph and color overrides, source loading, keyboard input, the script engine, and `on`/`off`. The full `AsciiEngine` is on `engine.engine` for anything past that, and `new AsciiEngine(options)` still works. TypeScript types are included; no `@types` package required.
 
 ---
 

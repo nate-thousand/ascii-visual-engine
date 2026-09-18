@@ -4,7 +4,7 @@
 
 **Who it is for.** Nate's own instruments first. Plantasonic and Signal 9 mount it through `@plantasonic/platform`. The vanilla demo at `examples/vanilla` is the harness used to exercise the engine; hosts own their UI.
 
-**Status.** v0.2.0 on `release/0.2.0`, 2026-09-17: local stabilization work, GitHub main, and the platform's vendored copy consolidated. Not on npm; hosts pin a git tag. The live site at visual-engine.xyz is the older June build and is currently broken until this is deployed. See ROADMAP.md.
+**Status.** v0.2.0 is complete on `release/0.2.0` (2026-09-18, untagged). 0.3.0 API work is under way on `release/0.3.0`, starting with the `createEngine()` facade. Not on npm; hosts pin a git tag. The live site at visual-engine.xyz is the older June build and is currently broken until this is deployed. See ROADMAP.md.
 
 ---
 
@@ -65,15 +65,14 @@ One grid, many inputs. Anything that can produce a number per cell (a pattern, a
 ## How it is used
 
 ```typescript
-import { AsciiEngine, getPreset } from 'ascii-visual-engine';
+import { createEngine } from 'ascii-visual-engine';
 
-const engine = new AsciiEngine({ canvas: document.querySelector('canvas')! });
-engine.setPreset(getPreset('glyphOrganicBloom'));
-engine.start();
-
+const engine = createEngine(document.querySelector('canvas')!, { preset: 'glyphOrganicBloom' });
 engine.setControl('speed', 0.8);
-engine.on('note', ({ note, velocity }) => { /* host reacts */ });
+engine.on('noteOn', (note) => { /* host reacts */ });
 ```
+
+`createEngine()` is the host facade (decision 2): lifecycle, preset and control setters, glyph and color overrides, source loading, keyboard input, script engine, `on`/`off`. The full `AsciiEngine` sits on `engine.engine`.
 
 Presets are plain objects. `setPreset()` validates the shape and throws with every problem listed, so a preset loaded from JSON fails loudly instead of breaking mid frame.
 

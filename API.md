@@ -10,9 +10,46 @@ import { AsciiEngine, /* ... */ } from 'ascii-visual-engine';
 
 ---
 
+## createEngine (recommended entry point)
+
+```typescript
+const engine = createEngine(canvas, options?: CreateEngineOptions): EngineHandle
+```
+
+Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything past the handle is on `engine.engine`.
+
+#### CreateEngineOptions
+
+| Property | Type | Default | Description |
+| --- | --- | --- | --- |
+| `preset` | `AsciiPreset \| string` | built in default | Initial look, as an object or a built in id. Unknown ids warn and use the default |
+| `width`, `height` | `number` | window size | Canvas size in CSS pixels |
+| `autoStart` | `boolean` | `true` | Start the loop on creation |
+| `element` | `HTMLElement` | none | Target for the DOM text renderer |
+| `renderer` | `'canvas' \| 'dom' \| 'offscreen-canvas'` | `'canvas'` | Starting renderer |
+
+#### EngineHandle
+
+| Method | Description |
+| --- | --- |
+| `start()`, `stop()`, `resize(w, h)`, `destroy()` | Lifecycle |
+| `setPreset(preset \| id)`, `setPresetById(id)`, `getPreset()` | Look. Unknown ids warn and keep the current look |
+| `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
+| `setGlyphSet(glyphs)` | Override glyph characters, bypassing the glyph language |
+| `setColor(color)` | Canvas foreground color |
+| `setBassGlyphScale(level)` | Host supplied bass level (0 to 1) for per glyph scale pulses |
+| `getLevel()` | Audio amplitude (0 to 1) from the engine's own audio input; 0 without audio |
+| `loadSource(id, input)`, `clearSource()` | Pixel sources: `image` (File or URL), `video` (`{ file }` or `{ src }`), `webcam` (`{ facingMode }`), `canvas` (`{ canvas }`) |
+| `enableKeyboardInput()`, `disableKeyboardInput()` | Computer keyboard notes, off by default |
+| `getScriptEngine()` | The sandboxed script runtime |
+| `on(event, listener)`, `off(event, listener)` | Typed events; `on` returns the unsubscribe function |
+| `engine` | The underlying `AsciiEngine` |
+
+---
+
 ## AsciiEngine
 
-Primary entry point. Manages lifecycle, presets, controls, plugins, rendering, and events.
+The full engine. `createEngine()` wraps it; construct it directly when you need the whole surface from the start.
 
 ### Constructor
 

@@ -1,5 +1,5 @@
 import {
-  AsciiEngine,
+  createEngine,
   listPresets,
   listLiveControls,
   CONTROL_CATALOG,
@@ -9,6 +9,7 @@ import {
   listPostPassIds,
   warnUnknownPreset,
   type AsciiPreset,
+  type AsciiEngine,
   type ControlDef,
   type EngineDebugState,
   type Plugin,
@@ -174,13 +175,15 @@ if (requestedPreset && bootPreset.id !== requestedPreset) {
 // Engine
 // ---------------------------------------------------------------------------
 
-const engine = new AsciiEngine({
-  canvas,
+// The harness goes through the host facade to boot, then drives the full
+// engine underneath it, the way a power user host would.
+const handle = createEngine(canvas, {
   element: domOutput,
   preset: bootPreset,
   width: window.innerWidth,
   height: window.innerHeight,
 });
+const engine = handle.engine;
 
 engine.registerScripts(galleryScripts);
 engine.getScriptEngine().setHotReload(import.meta.env.DEV);
@@ -980,7 +983,7 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('resize', () => {
-  engine.resize(window.innerWidth, window.innerHeight);
+  handle.resize(window.innerWidth, window.innerHeight);
 });
 
 // ---------------------------------------------------------------------------
