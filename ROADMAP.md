@@ -81,7 +81,7 @@ The only work that turns "local is better" into "the live site is better".
 
 - [x] **Reconcile with GitHub.** `origin/main` has nine commits not here. Keep from GitHub: `.github/workflows/ci.yml`, `SECURITY.md`, `INTEGRATION.md`, `tests/visual-snapshot.test.ts`, `tests/consumer-smoke.test.ts`, `tests/pattern-system.test.ts`, `tests/helpers/mockCanvas.ts`. Keep from local: the demo show chrome (`examples/vanilla/*`), preset tuning, README, BRIEF, this roadmap. Resolve `src/core/validate.ts` and `tests/preset-validation.test.ts` by picking one implementation (GitHub's is older and in CI; local's is stricter and covers optional numeric fields). Done on `release/0.2.0`: local won, GitHub's extra cases merged into one test file, 189 tests pass
 - [x] **Fold in the platform's vendored copy.** `plantasonic-platform/packages/visual-engine` (0.1.0 plus edits) adds `setColor()`, `setGlyphSet()`, `setBassGlyphScale()` and small edits in `ExportManager`, `GifExporter`, `SourceManager`, `SourceSampler`, `RendererManager`, `GlyphRegistry`, `ThresholdPass`. Done with `tests/host-controls.test.ts`
-- [ ] Commit as `0.2.0` on `release/0.2.0` with the CHANGELOG Unreleased section promoted
+- [x] Commit as `0.2.0` on `release/0.2.0` with the CHANGELOG Unreleased section promoted
 - [ ] Deploy `dist-demo/` to visual-engine.xyz and confirm the live page shows the six looks and Lab, not the raw harness
 - [ ] Tag `v0.2.0` on GitHub
 

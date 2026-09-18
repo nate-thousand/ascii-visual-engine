@@ -4,7 +4,7 @@
 
 **Who it is for.** Nate's own instruments first. Plantasonic and Signal 9 mount it through `@plantasonic/platform`. The vanilla demo at `examples/vanilla` is the public face of the engine itself and the harness used to test it.
 
-**Status.** v0.1.0 shipped 2026-06-28. Library plus live demo. Not on npm. Local working tree is ahead of the June release (demo show chrome, hero preset tuning, preset validation). The live site at visual-engine.xyz is the older June build and is currently broken. See ROADMAP.md.
+**Status.** v0.2.0 on `release/0.2.0`, 2026-09-17: local stabilization work, GitHub main, and the platform's vendored copy consolidated. Not on npm; hosts pin a git tag. The live site at visual-engine.xyz is the older June build and is currently broken until this is deployed. See ROADMAP.md.
 
 ---
 
