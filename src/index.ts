@@ -1,6 +1,8 @@
 // Core
 export { AsciiEngine } from './core/AsciiEngine';
 export { createEngine } from './core/createEngine';
+export { resolvePixelRatio, MAX_PIXEL_RATIO } from './renderers/pixelRatio';
+export type { PixelRatioOption } from './renderers/pixelRatio';
 export type { CreateEngineOptions, EngineHandle } from './core/createEngine';
 export { EventBus } from './core/EventBus';
 export type {

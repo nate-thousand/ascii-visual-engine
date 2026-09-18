@@ -4,6 +4,7 @@ import { Trails } from '../effects/Trails';
 import { GridBuffer } from './GridBuffer';
 import type { RenderContext, RenderFrame, Renderer } from './Renderer';
 import { clearCanvas, drawGridToCanvas } from './canvasDrawing';
+import { resolvePixelRatio, type PixelRatioOption } from './pixelRatio';
 
 export function isOffscreenCanvasSupported(): boolean {
   return typeof OffscreenCanvas !== 'undefined';
@@ -18,6 +19,7 @@ export interface OffscreenCanvasRendererOptions {
   fontFamily?: string;
   color?: string;
   backgroundColor?: string;
+  pixelRatio?: PixelRatioOption;
 }
 
 export class OffscreenCanvasRenderer implements Renderer {
@@ -36,6 +38,7 @@ export class OffscreenCanvasRenderer implements Renderer {
   private color: string;
   private backgroundColor: string;
   private trailsEffect = new Trails();
+  private pixelRatio: number;
 
   constructor(options: OffscreenCanvasRendererOptions) {
     this.displayCanvas = options.canvas;
@@ -48,6 +51,7 @@ export class OffscreenCanvasRenderer implements Renderer {
     this.fontFamily = options.fontFamily ?? 'monospace';
     this.color = options.color ?? '#00ff88';
     this.backgroundColor = options.backgroundColor ?? '#000000';
+    this.pixelRatio = resolvePixelRatio(options.pixelRatio);
 
     this.grid = new GridBuffer({
       width: options.width,
@@ -88,8 +92,23 @@ export class OffscreenCanvasRenderer implements Renderer {
     this.applyDisplayCanvasSize();
   }
 
+  setPixelRatio(ratio: number): void {
+    const next = resolvePixelRatio(ratio);
+    if (next === this.pixelRatio) return;
+    this.pixelRatio = next;
+    this.initDrawingSurface();
+    this.applyDisplayCanvasSize();
+  }
+
+  getPixelRatio(): number {
+    return this.pixelRatio;
+  }
+
   render(frame: RenderFrame, _context: RenderContext): void {
     const drawCtx = this.getDrawContext();
+    // The display context is shared with the canvas renderer; own its transform for this frame.
+    const r = this.usingOffscreen ? 1 : this.pixelRatio;
+    this.displayCtx.setTransform(r, 0, 0, r, 0, 0);
     const { cellWidth, cellHeight } = this.grid.getDimensions();
     const width = this.grid.getWidth();
     const height = this.grid.getHeight();
@@ -109,7 +128,8 @@ export class OffscreenCanvasRenderer implements Renderer {
     });
 
     if (this.usingOffscreen && this.offscreen) {
-      this.displayCtx.clearRect(0, 0, width, height);
+      // Both surfaces are in device pixels; the display context is at identity.
+      this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
       this.displayCtx.drawImage(this.offscreen, 0, 0);
     }
   }
@@ -145,10 +165,12 @@ export class OffscreenCanvasRenderer implements Renderer {
     const width = this.grid.getWidth();
     const height = this.grid.getHeight();
 
+    const r = this.pixelRatio;
     if (isOffscreenCanvasSupported()) {
-      this.offscreen = new OffscreenCanvas(width, height);
+      this.offscreen = new OffscreenCanvas(Math.round(width * r), Math.round(height * r));
       this.offscreenCtx = this.offscreen.getContext('2d');
       if (this.offscreenCtx) {
+        this.offscreenCtx.setTransform(r, 0, 0, r, 0, 0);
         this.usingOffscreen = true;
         this.fallbackCtx = null;
         return;
@@ -174,9 +196,12 @@ export class OffscreenCanvasRenderer implements Renderer {
   private applyDisplayCanvasSize(): void {
     const width = this.grid.getWidth();
     const height = this.grid.getHeight();
-    this.displayCanvas.width = width;
-    this.displayCanvas.height = height;
+    const r = this.pixelRatio;
+    this.displayCanvas.width = Math.round(width * r);
+    this.displayCanvas.height = Math.round(height * r);
     this.displayCanvas.style.width = `${width}px`;
     this.displayCanvas.style.height = `${height}px`;
+    // Drawing straight to the display (no OffscreenCanvas) happens in CSS pixels.
+    this.displayCtx.setTransform(this.usingOffscreen ? 1 : r, 0, 0, this.usingOffscreen ? 1 : r, 0, 0);
   }
 }

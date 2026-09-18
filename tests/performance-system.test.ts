@@ -26,6 +26,7 @@ function createMockCanvas(): HTMLCanvasElement {
     textBaseline: 'top',
     fillRect: vi.fn(),
     fillText: vi.fn(),
+    setTransform: vi.fn(),
     clearRect: vi.fn(),
     measureText,
     save: vi.fn(),

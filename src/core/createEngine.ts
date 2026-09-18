@@ -15,6 +15,8 @@ export interface CreateEngineOptions {
   element?: HTMLElement;
   /** Renderer to start with. Default `canvas`. */
   renderer?: 'canvas' | 'dom' | 'offscreen-canvas';
+  /** Canvas backing store scale. `auto` (default) follows devicePixelRatio, capped at 2. */
+  pixelRatio?: number | 'auto';
 }
 
 /**
@@ -27,8 +29,11 @@ export interface EngineHandle {
   start(): void;
   /** Stop the loop, keep state. */
   stop(): void;
-  /** Resize the grid to a new CSS pixel size. */
+  /** Resize the grid to a new CSS pixel size. Re-reads devicePixelRatio when the ratio is `auto`. */
   resize(width: number, height: number): void;
+  /** Pin the backing store scale (0.5 to 2) or return to `auto`. */
+  setPixelRatio(ratio: number | 'auto'): void;
+  getPixelRatio(): number;
   /** Stop and release everything. The handle is dead afterwards. */
   destroy(): void;
 
@@ -99,6 +104,7 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     width: options.width,
     height: options.height,
     autoStart: options.autoStart,
+    pixelRatio: options.pixelRatio,
   });
 
   return {
@@ -106,6 +112,8 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     start: () => engine.start(),
     stop: () => engine.stop(),
     resize: (width, height) => engine.resize(width, height),
+    setPixelRatio: (ratio) => engine.setPixelRatio(ratio),
+    getPixelRatio: () => engine.getPixelRatio(),
     destroy: () => engine.destroy(),
 
     setPreset: (preset) => {

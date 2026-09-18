@@ -54,6 +54,7 @@ const sourceReadout = $<HTMLPreElement>('source-readout');
 
 const rendererModeSelect = $<HTMLSelectElement>('renderer-mode');
 const rendererWarning = $<HTMLDivElement>('renderer-warning');
+const pixelRatioSelect = $<HTMLSelectElement>('pixel-ratio');
 const rendererReadout = $<HTMLPreElement>('renderer-readout');
 
 const startMicrophoneBtn = $<HTMLButtonElement>('start-microphone');
@@ -539,6 +540,12 @@ rendererModeSelect.addEventListener('change', () => {
 updateOutputVisibility(engine.getActiveRendererId());
 rendererModeSelect.value = engine.getActiveRendererId() ?? 'canvas';
 
+pixelRatioSelect.addEventListener('change', () => {
+  const v = pixelRatioSelect.value;
+  handle.setPixelRatio(v === 'auto' ? 'auto' : parseFloat(v));
+  refreshReadouts();
+});
+
 // ---------------------------------------------------------------------------
 // Audio
 // ---------------------------------------------------------------------------
@@ -671,7 +678,8 @@ function reportExport(result: { ok: boolean; error?: string }, fallback: string)
 }
 
 $('export-png').addEventListener('click', async () => {
-  reportExport(await engine.exportPNG({ pixelRatio: 2 }), 'PNG export failed');
+  // The canvas is already at device resolution.
+  reportExport(await engine.exportPNG(), 'PNG export failed');
 });
 $('export-svg').addEventListener('click', () => {
   reportExport(engine.exportSVG({ transparent: true }), 'SVG export failed');
@@ -873,6 +881,7 @@ function refreshReadouts(): void {
     rendererReadout.textContent = [
       `active:      ${rd.activeRendererId ?? 'none'} (${rd.activeRendererName ?? ''})`,
       `render time: ${rd.renderTimeMs.toFixed(2)} ms`,
+      `pixel ratio: ${rd.pixelRatio} (device ${window.devicePixelRatio}), backing ${canvas.width}x${canvas.height}`,
       `live switch: ${rd.supportsLiveSwitch}`,
       `offscreen:   ${rd.offscreenSupported ? 'supported' : 'unsupported'}`,
       `warning:     ${rd.switchWarning ?? 'none'}`,

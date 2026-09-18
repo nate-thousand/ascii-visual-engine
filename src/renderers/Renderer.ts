@@ -30,6 +30,8 @@ export interface RendererDebugState {
   supportsLiveSwitch: boolean;
   switchWarning: string | null;
   offscreenSupported: boolean;
+  /** Backing store scale of the active renderer (1 for DOM). */
+  pixelRatio: number;
   cellCount: number;
   drawCalls: number;
   renderTimeMs: number;
@@ -58,4 +60,7 @@ export interface Renderer {
   isAvailable(): boolean;
   supportsLiveSwitch(): boolean;
   getSwitchWarning(): string | null;
+  /** Backing store scale for raster renderers; absent on renderers without one. */
+  setPixelRatio?(ratio: number): void;
+  getPixelRatio?(): number;
 }

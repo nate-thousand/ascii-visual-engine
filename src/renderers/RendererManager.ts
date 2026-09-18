@@ -8,6 +8,7 @@ import type {
   RendererId,
   RendererSwitchResult,
 } from './Renderer';
+import type { PixelRatioOption } from './pixelRatio';
 import { isOffscreenCanvasSupported } from './OffscreenCanvasRenderer';
 
 export interface RendererManagerOptions {
@@ -18,6 +19,8 @@ export interface RendererManagerOptions {
   density: number;
   glyphSet: string[];
   activeId?: RendererId;
+  /** Backing store scale for raster renderers. `auto` follows devicePixelRatio, capped at 2. */
+  pixelRatio?: PixelRatioOption;
 }
 
 export class RendererManager {
@@ -171,6 +174,18 @@ export class RendererManager {
     this.getActiveRenderer()?.render(frame, wrapped);
   }
 
+  /** Apply a backing store scale to every raster renderer. */
+  setPixelRatio(ratio: number): void {
+    for (const renderer of this.renderers.values()) {
+      renderer.setPixelRatio?.(ratio);
+    }
+  }
+
+  /** The active renderer's backing store scale; 1 for renderers without one. */
+  getPixelRatio(): number {
+    return this.getActiveRenderer()?.getPixelRatio?.() ?? 1;
+  }
+
   getDebugState(): RendererDebugState {
     const active = this.getActiveRenderer();
     return {
@@ -181,6 +196,7 @@ export class RendererManager {
       supportsLiveSwitch: active?.supportsLiveSwitch() ?? false,
       switchWarning: this.lastSwitchWarning ?? active?.getSwitchWarning() ?? null,
       offscreenSupported: isOffscreenCanvasSupported(),
+      pixelRatio: this.getPixelRatio(),
       cellCount: this.lastRenderMetrics.cellCount,
       drawCalls: this.lastRenderMetrics.drawCalls,
       renderTimeMs: this.lastRenderMetrics.renderTimeMs,

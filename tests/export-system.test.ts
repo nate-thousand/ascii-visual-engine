@@ -68,6 +68,9 @@ function createMockCanvas(): HTMLCanvasElement {
     textBaseline: 'top',
     fillRect: vi.fn(),
     fillText: vi.fn(),
+    setTransform: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
     clearRect: vi.fn(),
     drawImage: vi.fn(),
     getImageData: vi.fn(() => ({

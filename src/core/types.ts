@@ -6,6 +6,11 @@ export interface AsciiEngineOptions {
   width?: number;
   height?: number;
   autoStart?: boolean;
+  /**
+   * Canvas backing store scale. `auto` (default) follows `devicePixelRatio`,
+   * capped at 2, and is re-read on `resize()`. A number pins it.
+   */
+  pixelRatio?: number | 'auto';
 }
 
 export interface NoteEvent {

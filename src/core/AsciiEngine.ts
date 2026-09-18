@@ -5,6 +5,7 @@ import {
   resolveRendererId,
   type RendererId,
 } from '../renderers';
+import { resolvePixelRatio } from '../renderers/pixelRatio';
 import {
   PluginManager,
   PatternPlugin,
@@ -144,11 +145,13 @@ export class AsciiEngine {
   private lastNoteOn: NoteEvent | null = null;
   private bassGlyphScale = 0;
   private bassGlyphScaleSmoothed = 0;
+  private pixelRatioOption: number | 'auto' = 'auto';
 
   constructor(options: AsciiEngineOptions) {
     this.canvas = options.canvas;
     this.element = options.element;
     this.preset = assertValidPreset(options.preset ?? DEFAULT_PRESET);
+    this.pixelRatioOption = options.pixelRatio ?? 'auto';
 
     const width = options.width ?? window.innerWidth;
     const height = options.height ?? window.innerHeight;
@@ -164,6 +167,7 @@ export class AsciiEngine {
       density: this.presetDefault('density'),
       glyphSet: this.glyphRegistry.getResolvedGlyphSet(),
       activeId: resolveRendererId(options.renderer),
+      pixelRatio: this.pixelRatioOption,
     });
 
     this.pluginManager.setEngine(this);
@@ -637,8 +641,23 @@ export class AsciiEngine {
   off = this.eventBus.off.bind(this.eventBus);
 
   resize(width: number, height: number): void {
+    // A window dragged to another screen changes devicePixelRatio; auto follows it.
+    if (this.pixelRatioOption === 'auto') {
+      this.rendererManager.setPixelRatio(resolvePixelRatio('auto'));
+    }
     this.rendererManager.resize(width, height);
     this.eventBus.emit('resize', { width, height });
+  }
+
+  /** Pin the canvas backing store scale (clamped to 0.5 to 2), or `auto` to follow devicePixelRatio. */
+  setPixelRatio(ratio: number | 'auto'): void {
+    this.pixelRatioOption = ratio;
+    this.rendererManager.setPixelRatio(resolvePixelRatio(ratio));
+  }
+
+  /** The active renderer's backing store scale. */
+  getPixelRatio(): number {
+    return this.rendererManager.getPixelRatio();
   }
 
   setColor(color: string): void {
@@ -923,6 +942,7 @@ export class AsciiEngine {
     density: number;
     glyphSet: string[];
     activeId: RendererId;
+    pixelRatio: number | 'auto';
   }): void {
     for (const renderer of createBuiltInRenderers(options)) {
       this.rendererManager.registerRenderer(renderer);

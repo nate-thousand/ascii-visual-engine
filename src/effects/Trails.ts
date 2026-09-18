@@ -17,6 +17,10 @@ export class Trails implements Effect {
     if (trailAmount <= 0) return;
     const alpha = Math.min(0.98, 0.12 + trailAmount * 0.86);
     ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+    // The context may be scaled for HiDPI; fade the whole backing store.
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.restore();
   }
 }

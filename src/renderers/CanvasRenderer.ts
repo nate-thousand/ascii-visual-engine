@@ -4,6 +4,7 @@ import { Trails } from '../effects/Trails';
 import { GridBuffer } from './GridBuffer';
 import type { RenderContext, RenderFrame, Renderer } from './Renderer';
 import { clearCanvas, drawGridToCanvas } from './canvasDrawing';
+import { resolvePixelRatio, type PixelRatioOption } from './pixelRatio';
 
 export interface CanvasRendererOptions {
   canvas: HTMLCanvasElement;
@@ -14,6 +15,8 @@ export interface CanvasRendererOptions {
   fontFamily?: string;
   color?: string;
   backgroundColor?: string;
+  /** Backing store scale. `auto` follows devicePixelRatio, capped at 2. */
+  pixelRatio?: PixelRatioOption;
 }
 
 export class CanvasRenderer implements Renderer {
@@ -28,6 +31,7 @@ export class CanvasRenderer implements Renderer {
   private color: string;
   private backgroundColor: string;
   private trailsEffect = new Trails();
+  private pixelRatio: number;
 
   constructor(options: CanvasRendererOptions) {
     this.canvas = options.canvas;
@@ -39,6 +43,7 @@ export class CanvasRenderer implements Renderer {
     this.fontFamily = options.fontFamily ?? 'monospace';
     this.color = options.color ?? '#00ff88';
     this.backgroundColor = options.backgroundColor ?? '#000000';
+    this.pixelRatio = resolvePixelRatio(options.pixelRatio);
 
     this.grid = new GridBuffer({
       width: options.width,
@@ -89,8 +94,22 @@ export class CanvasRenderer implements Renderer {
     this.applyCanvasSize();
   }
 
+  setPixelRatio(ratio: number): void {
+    const next = resolvePixelRatio(ratio);
+    if (next === this.pixelRatio) return;
+    this.pixelRatio = next;
+    this.applyCanvasSize();
+  }
+
+  getPixelRatio(): number {
+    return this.pixelRatio;
+  }
+
   render(frame: RenderFrame, context: RenderContext): void {
     const start = performance.now();
+    // The canvas and its context are shared with the offscreen renderer, which
+    // may have left the transform at identity; own it for this frame.
+    this.ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     const { cols, rows, cellWidth, cellHeight } = this.grid.getDimensions();
     const gridState = this.grid.getGridState(frame.time);
     const cells = gridState.cells;
@@ -152,13 +171,20 @@ export class CanvasRenderer implements Renderer {
     return null;
   }
 
+  /**
+   * The grid and every draw call live in CSS pixels; the backing store is
+   * scaled by the pixel ratio so glyphs are crisp on HiDPI screens.
+   */
   private applyCanvasSize(): void {
     const width = this.grid.getWidth();
     const height = this.grid.getHeight();
-    this.canvas.width = width;
-    this.canvas.height = height;
+    const r = this.pixelRatio;
+    this.canvas.width = Math.round(width * r);
+    this.canvas.height = Math.round(height * r);
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
+    // Setting width or height reset the transform.
+    this.ctx.setTransform(r, 0, 0, r, 0, 0);
   }
 }
 

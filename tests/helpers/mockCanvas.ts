@@ -10,6 +10,7 @@ export function createMockCanvas(width = 800, height = 600): HTMLCanvasElement {
       fillRectStyles.push(this.fillStyle);
     }),
     fillText: vi.fn(),
+    setTransform: vi.fn(),
     clearRect: vi.fn(),
     save: vi.fn(),
     restore: vi.fn(),

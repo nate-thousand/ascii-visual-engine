@@ -14,8 +14,8 @@ export function createBuiltInRenderers(options: RendererManagerOptions): Rendere
   };
 
   const renderers: Renderer[] = [
-    new CanvasRenderer({ canvas: options.canvas, ...shared }),
-    new OffscreenCanvasRenderer({ canvas: options.canvas, ...shared }),
+    new CanvasRenderer({ canvas: options.canvas, pixelRatio: options.pixelRatio, ...shared }),
+    new OffscreenCanvasRenderer({ canvas: options.canvas, pixelRatio: options.pixelRatio, ...shared }),
     new WebGLRendererStub(shared),
   ];
 

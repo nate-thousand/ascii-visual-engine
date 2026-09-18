@@ -25,6 +25,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `preset` | `AsciiPreset \| string` | built in default | Initial look, as an object or a built in id. Unknown ids warn and use the default |
 | `width`, `height` | `number` | window size | Canvas size in CSS pixels |
 | `autoStart` | `boolean` | `true` | Start the loop on creation |
+| `pixelRatio` | `'auto' \| number` | `'auto'` | Backing store scale; auto follows `devicePixelRatio`, capped at 2 |
 | `element` | `HTMLElement` | none | Target for the DOM text renderer |
 | `renderer` | `'canvas' \| 'dom' \| 'offscreen-canvas'` | `'canvas'` | Starting renderer |
 
@@ -32,7 +33,8 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 
 | Method | Description |
 | --- | --- |
-| `start()`, `stop()`, `resize(w, h)`, `destroy()` | Lifecycle |
+| `start()`, `stop()`, `resize(w, h)`, `destroy()` | Lifecycle. `resize` re-reads `devicePixelRatio` when the ratio is `auto` |
+| `setPixelRatio(ratio \| 'auto')`, `getPixelRatio()` | Canvas backing store scale, 0.5 to 2 |
 | `setPreset(preset \| id)`, `setPresetById(id)`, `getPreset()` | Look. Unknown ids warn and keep the current look |
 | `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
 | `setGlyphSet(glyphs)` | Override glyph characters, bypassing the glyph language |
@@ -526,16 +528,23 @@ Pluggable output backends — canvas, DOM text, offscreen canvas, WebGL stub. Se
 | `getRendererManager()` | Direct manager access |
 | `setActiveRenderer(id)` | Switch renderer at runtime |
 | `getActiveRendererId()` | Current renderer id |
+| `setPixelRatio(ratio \| 'auto')` | Backing store scale for the canvas renderers, clamped to 0.5 to 2. `auto` follows `devicePixelRatio` and is re-read on `resize()` |
+| `getPixelRatio()` | The active renderer's scale (1 for DOM) |
 
 ### Engine options
 
 ```typescript
 new AsciiEngine({
   canvas,
-  element,   // optional — DOM renderer target
-  renderer: 'canvas' | 'dom' | 'offscreen-canvas' | 'webgl',
+  element,   // optional, DOM renderer target
+  renderer: 'canvas' | 'dom' | 'offscreen-canvas',
+  pixelRatio: 'auto' | number,   // default 'auto': devicePixelRatio capped at 2
 });
 ```
+
+### HiDPI
+
+The grid, every draw call, and every size the engine reports are in CSS pixels. The canvas renderers scale their backing store by the pixel ratio (`canvas.width = cssWidth * ratio`) and set the context transform to match, so glyphs are crisp on Retina screens without any host work. The cap of 2 keeps 3x and 4x screens from paying four to sixteen times the fill for no visible gain in a glyph grid. `exportPNG()` returns the canvas at its backing store resolution; pass `pixelRatio` there only to scale further.
 
 ---
 

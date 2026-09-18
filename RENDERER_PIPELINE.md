@@ -101,13 +101,18 @@ manager.destroy();
 | `setActiveRenderer(id)` | Switch backend at runtime |
 | `getActiveRendererId()` | Current renderer id |
 
+### HiDPI
+
+`CanvasRenderer` and `OffscreenCanvasRenderer` take `pixelRatio` (`'auto'` or a number, clamped to 0.5 to 2). The grid stays in CSS pixels; the backing store is `cssSize * ratio` and the context transform is set to the ratio, so `drawGridToCanvas` and the dirty region tracker never see device pixels. Both renderers share one canvas element and its context, so each re-applies its transform at the top of `render()`. `Trails.applyFade` resets the transform while it fades so the fade covers the whole backing store. The engine re-resolves `auto` on `resize()`, which is when a window has usually moved to a screen with a different ratio.
+
 ### Engine options
 
 ```typescript
 const engine = new AsciiEngine({
   canvas,                              // required for canvas/offscreen backends
   element: document.getElementById('output'), // optional, for DOM renderer
-  renderer: 'canvas',                  // 'canvas' | 'dom' | 'offscreen-canvas' | 'webgl'
+  renderer: 'canvas',                  // 'canvas' | 'dom' | 'offscreen-canvas'
+  pixelRatio: 'auto',                  // or a number, 0.5 to 2
   preset,
   width,
   height,
