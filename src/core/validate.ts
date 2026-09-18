@@ -7,6 +7,7 @@ import { POST_CONTROLS } from '../compositing/builtins';
 import { AUDIO_SMOOTHING_CONTROLS } from '../audio/AudioTypes';
 import { PERFORMANCE_CONTROLS } from '../performance/PerformanceTypes';
 import { listSimulationIds } from '../simulation/builtins';
+import { listPatternIds } from '../patterns';
 import type { AsciiPreset } from './types';
 
 /** Control names wired through AsciiEngine.setControl / getControl. */
@@ -201,6 +202,13 @@ export function validatePreset(input: unknown): PresetValidationResult {
     });
   }
 
+  if (Array.isArray(p.patterns)) {
+    const known = new Set<string>(listPatternIds());
+    p.patterns.forEach((id, i) => {
+      if (!isNonEmptyString(id) || !known.has(id)) errors.push(`${where}: patterns[${i}] "${String(id)}" is not a known pattern id`);
+    });
+  }
+
   return { ok: errors.length === 0, errors, warnings };
 }
 
@@ -212,7 +220,9 @@ const warnedPresetIds = new Set<string>();
 export function assertValidPreset(input: unknown): asserts input is AsciiPreset {
   const result = validatePreset(input);
   if (!result.ok) {
-    throw new Error(`[AsciiEngine] Invalid preset:\n  - ${result.errors.join('\n  - ')}`);
+    const id = (input as { id?: unknown })?.id;
+    const label = typeof id === 'string' && id ? ` "${id}"` : '';
+    throw new Error(`[AsciiEngine] Invalid preset${label}:\n  - ${result.errors.join('\n  - ')}`);
   }
   const id = (input as AsciiPreset).id;
   if (result.warnings.length && !warnedPresetIds.has(id)) {

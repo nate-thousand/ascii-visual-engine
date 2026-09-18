@@ -115,6 +115,16 @@ describe('SourceManager', () => {
 });
 
 describe('WebcamSource', () => {
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { mediaDevices: undefined },
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, 'navigator');
+  });
   it('fails gracefully when camera API is unavailable', async () => {
     const source = new WebcamSource();
     const original = navigator.mediaDevices;
@@ -163,3 +173,4 @@ describe('ImageSource sample', () => {
     source.destroy();
   });
 });
+

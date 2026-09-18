@@ -145,6 +145,7 @@ export class AsciiEngine {
     this.canvas = options.canvas;
     this.element = options.element;
     this.preset = options.preset ?? DEFAULT_PRESET;
+    assertValidPreset(this.preset);
 
     const width = options.width ?? window.innerWidth;
     const height = options.height ?? window.innerHeight;

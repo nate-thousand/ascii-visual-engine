@@ -87,4 +87,14 @@ describe('assertValidPreset', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
   });
+
+  it('rejects unknown legacy pattern ids', () => {
+    const result = validatePreset({ ...basicPreset, patterns: ['wave', 'notARealPattern' as never] });
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((e) => e.includes('notARealPattern'))).toBe(true);
+  });
+
+  it('throws from assertValidPreset with the preset id and field in the message', () => {
+    expect(() => assertValidPreset({ ...basicPreset, speed: Number.POSITIVE_INFINITY })).toThrow(/Invalid preset "basic".*speed/s);
+  });
 });
