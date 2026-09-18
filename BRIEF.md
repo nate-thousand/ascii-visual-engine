@@ -25,7 +25,7 @@ One grid, many inputs. Anything that can produce a number per cell (a pattern, a
 | Renderers | Canvas 2D (working), DOM, offscreen canvas; live switching with grid state preserved; WebGL is a stub |
 | Compositing | Multi layer with blend modes and masks; post passes: feedback, smear, threshold, dither and more |
 | Audio | Web Audio input, FFT, feature extraction, audio to control and note mapping, smoothing controls |
-| MIDI and input | Web MIDI, MIDI learn, keyboard performance mapping, device presets (Akai, Launchkey, QWERTY) |
+| MIDI and input | Web MIDI, MIDI learn, keyboard performance mapping, pointer (mouse, touch, pen) input, device presets (Akai, Launchkey, QWERTY) |
 | Glyph language | Categories, semantic roles, morphing, animation; eleven glyph libraries |
 | Export | PNG, SVG, GIF, ASCII text, JSON scene; frame recording with scrub and step |
 | Scripting | Safe public `ScriptAPI` over presets, controls, simulations, layers, events; script gallery in the demo |

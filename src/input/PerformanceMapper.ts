@@ -219,6 +219,15 @@ export class PerformanceMapper {
     this.learnCallback = null;
   }
 
+  /** MIDI and keyboard notes place by pitch; pointer events carry their own position. */
+  private toNoteEvent(event: InputEvent, velocity: number): NoteEvent {
+    const mapped = mapMidiToNoteEvent(event.note!, velocity, event.channel, event.source);
+    if (event.x !== undefined && event.y !== undefined) {
+      return { ...mapped, x: event.x, y: event.y, data: { ...mapped.data, pointer: true } };
+    }
+    return mapped;
+  }
+
   private handleNoteOn(engine: PerformanceEngineBridge, event: InputEvent): void {
     if (event.note === undefined) return;
     this.activeNotes.add(event.note);
@@ -231,12 +240,7 @@ export class PerformanceMapper {
 
     if (this.config.defaultNoteOn !== false) {
       engine.enablePlugin('burst');
-      engine.noteOn(mapMidiToNoteEvent(
-        event.note,
-        event.velocity ?? 100,
-        event.channel,
-        event.source,
-      ));
+      engine.noteOn(this.toNoteEvent(event, event.velocity ?? 100));
     }
   }
 
@@ -253,7 +257,7 @@ export class PerformanceMapper {
     }
 
     if (this.config.defaultNoteOff !== false) {
-      engine.noteOff(mapMidiToNoteEvent(event.note, 0, event.channel, event.source));
+      engine.noteOff(this.toNoteEvent(event, 0));
     }
   }
 

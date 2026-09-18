@@ -1,6 +1,6 @@
 import type { NoteEvent } from '../core/types';
 
-export type InputSource = 'midi' | 'keyboard';
+export type InputSource = 'midi' | 'keyboard' | 'pointer';
 
 export type InputEventType =
   | 'noteOn'
@@ -19,6 +19,9 @@ export interface InputEvent {
   value?: number;
   pitchBend?: number;
   pressure?: number;
+  /** Normalized position for pointer events; when present it wins over the note derived position. */
+  x?: number;
+  y?: number;
   timestamp: number;
 }
 
@@ -143,6 +146,8 @@ export type DevicePresetId =
 export interface InputDebugState {
   midiConnected: boolean;
   keyboardEnabled: boolean;
+  pointerEnabled: boolean;
+  pointer: { x: number; y: number; down: boolean; pointers: number; pressure: number };
   deviceId: string | null;
   deviceName: string | null;
   error: string | null;

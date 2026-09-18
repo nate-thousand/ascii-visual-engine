@@ -8,12 +8,14 @@ import type {
 } from './InputTypes';
 import { MidiInput } from './MidiInput';
 import { KeyboardInput } from './KeyboardInput';
+import { PointerInput, type PointerInputOptions, type PointerState, type PointerTarget } from './PointerInput';
 import { PerformanceMapper, type PerformanceEngineBridge } from './PerformanceMapper';
 import { getDevicePresetMapping } from './devicePresets';
 
 export class InputManager {
   private midi = new MidiInput();
   private keyboard = new KeyboardInput();
+  private pointer = new PointerInput();
   private mapper = new PerformanceMapper();
   private lastEvent: InputEvent | null = null;
   private engine: PerformanceEngineBridge | null = null;
@@ -28,6 +30,7 @@ export class InputManager {
     };
     this.midi.setMessageHandler(handler);
     this.keyboard.setMessageHandler(handler);
+    this.pointer.setMessageHandler(handler);
   }
 
   setEngine(engine: PerformanceEngineBridge): void {
@@ -58,6 +61,22 @@ export class InputManager {
 
   isKeyboardEnabled(): boolean {
     return this.keyboard.isEnabled();
+  }
+
+  enablePointer(target: PointerTarget, options?: PointerInputOptions): void {
+    this.pointer.enable(target, options);
+  }
+
+  disablePointer(): void {
+    this.pointer.disable();
+  }
+
+  isPointerEnabled(): boolean {
+    return this.pointer.isEnabled();
+  }
+
+  getPointerState(): PointerState {
+    return this.pointer.getState();
   }
 
   setMapping(config: InputMappingConfig): void {
@@ -113,6 +132,7 @@ export class InputManager {
       this.mapper.panic(this.engine);
     }
     this.keyboard.releaseAll();
+    this.pointer.releaseAll();
   }
 
   processQueuedEvents(): void {
@@ -123,6 +143,9 @@ export class InputManager {
     for (const event of this.keyboard.drainQueue()) {
       this.mapper.handleEvent(this.engine, event);
     }
+    for (const event of this.pointer.drainQueue()) {
+      this.mapper.handleEvent(this.engine, event);
+    }
   }
 
   getDebugState(): InputDebugState {
@@ -131,6 +154,8 @@ export class InputManager {
     return {
       midiConnected: midiState.connected,
       keyboardEnabled: this.keyboard.isEnabled(),
+      pointerEnabled: this.pointer.isEnabled(),
+      pointer: this.pointer.getState(),
       deviceId: midiState.deviceId,
       deviceName: midiState.deviceName,
       error: midiState.error,
@@ -153,6 +178,7 @@ export class InputManager {
 
   destroy(): void {
     this.keyboard.disable();
+    this.pointer.disable();
     this.midi.destroy();
     this.engine = null;
   }

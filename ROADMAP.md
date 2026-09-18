@@ -102,7 +102,7 @@ Decisions 2 through 6. Each verifiable in the harness.
 - [x] **Facade.** `createEngine(canvas, options)` returning `EngineHandle`: the host methods plus `on`/`off`, `loadSource`/`clearSource`, and `engine` for the rest. Documented in API.md as the recommended entry point; README, BRIEF, INTEGRATION quick starts use it. On `release/0.3.0`, `tests/create-engine.test.ts`, consumer smoke covers it through `dist/`. `getLevel()` reads the engine's own audio amplitude (the roadmap's `getLevel` came from the sound engine's API; hosts that have their own analysis use `setBassGlyphScale`)
 - [x] **Nested presets.** Groups `motion`, `pattern`, `simulation`, `post`, `audio`, `input`, `glyphs`, plus top level `plugins`, `controls`, `layers`, `source`, base values; every group optional; `validatePreset()` normalizes flat input and warns once that flat is deprecated at 1.0. All 30 built ins converted; `tests/fixtures/flat-presets.json` holds the 0.2 originals and `tests/preset-shape.test.ts` proves normalize(flat) equals the converted preset and renders identical frames
 - [x] **HiDPI.** Canvas and offscreen renderers scale the backing store by `devicePixelRatio` (capped at 2) behind a context transform; grid and draw calls stay in CSS pixels. `pixelRatio` option on the engine and facade, `setPixelRatio`, `getPixelRatio`, re-read on resize. `tests/hidpi.test.ts`
-- [ ] **`PointerInput` plugin.** Pointer position to normalized coordinates, tap to `noteOn`; off by default; registered like `KeyboardInput`. No pointer or touch handling exists in `src/` today
+- [x] **`PointerInput` plugin.** Pointer Events on the canvas or any element; normalized position in `getPointerState()` and debug state; press to `noteOn` at that position, release to `noteOff`, per pointer; off by default; registered like `KeyboardInput` through the same queue and mapper. `tests/pointer-input.test.ts`
 - [ ] **Frame budget.** Measure every hero preset at 1920x1080 default density; anything under 60 fps gets fixed or its default density lowered. Record numbers in BENCHMARKS.md
 - [ ] Engine state: an explicit `idle | running | destroyed` state with guards, replacing the single `destroyed` flag
 - [ ] Preset loader: `loadPresetFromUrl()` using `validatePreset()`; `exportPreset()` from current engine state, so a harness session can be saved as a preset
@@ -151,6 +151,6 @@ In this order. No host drives it (decision 8).
 | --- | --- | --- |
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
 | 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
-| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | In progress on `release/0.3.0`; facade, nested presets, HiDPI done |
+| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | In progress on `release/0.3.0`; facade, nested presets, HiDPI, PointerInput done |
 | 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Planned |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |

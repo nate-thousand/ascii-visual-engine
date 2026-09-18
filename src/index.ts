@@ -299,6 +299,7 @@ export {
   InputManager,
   MidiInput,
   KeyboardInput,
+  PointerInput,
   PerformanceMapper,
   resolveInputMappingPreset,
   resolvePresetInputMapping,
@@ -307,6 +308,10 @@ export {
   mapMidiToNoteEvent,
 } from './input';
 export type {
+  PointerInputOptions,
+  PointerState,
+  PointerTarget,
+  PointerLike,
   InputEvent,
   InputMappingConfig,
   InputMappingPresetConfig,

@@ -70,6 +70,7 @@ const disconnectMidiBtn = $<HTMLButtonElement>('disconnect-midi');
 const inputPanicBtn = $<HTMLButtonElement>('input-panic');
 const midiErrorEl = $<HTMLDivElement>('midi-error');
 const keyboardInputToggle = $<HTMLInputElement>('keyboard-input-toggle');
+const pointerInputToggle = $<HTMLInputElement>('pointer-input-toggle');
 const learnControlSelect = $<HTMLSelectElement>('learn-control');
 const startLearnBtn = $<HTMLButtonElement>('start-learn');
 const clearLearnedBtn = $<HTMLButtonElement>('clear-learned');
@@ -643,6 +644,12 @@ keyboardInputToggle.addEventListener('change', () => {
   refreshReadouts();
 });
 
+pointerInputToggle.addEventListener('change', () => {
+  if (pointerInputToggle.checked) handle.enablePointerInput();
+  else handle.disablePointerInput();
+  refreshReadouts();
+});
+
 startLearnBtn.addEventListener('click', () => {
   const control = learnControlSelect.value;
   if (!control) {
@@ -913,6 +920,7 @@ function refreshReadouts(): void {
     inputReadout.textContent = [
       `midi:     ${id.midiConnected ? (id.deviceName ?? 'connected') : 'off'}`,
       `keyboard: ${id.keyboardEnabled ? 'on' : 'off'}`,
+      `pointer:  ${id.pointerEnabled ? `${id.pointer.x.toFixed(2)}, ${id.pointer.y.toFixed(2)} ${id.pointer.down ? `down x${id.pointer.pointers} p=${id.pointer.pressure.toFixed(2)}` : 'up'}` : 'off'}`,
       `learn:    ${id.learnMode ? (id.learnTarget ?? 'active') : 'off'}`,
       `notes:    ${id.activeNotes.join(', ') || 'none'}`,
       `error:    ${id.error ?? 'none'}`,

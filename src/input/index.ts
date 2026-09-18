@@ -32,6 +32,8 @@ export {
 } from './InputTypes';
 export { MidiInput, type MidiInputState } from './MidiInput';
 export { KeyboardInput } from './KeyboardInput';
+export { PointerInput } from './PointerInput';
+export type { PointerInputOptions, PointerState, PointerTarget, PointerLike } from './PointerInput';
 export {
   PerformanceMapper,
   resolveInputMappingPreset,

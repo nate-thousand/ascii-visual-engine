@@ -1,6 +1,7 @@
 import { AsciiEngine } from './AsciiEngine';
 import type { AsciiPreset, EngineEventMap, EngineEventName } from './types';
 import type { ScriptEngine } from '../scripting/ScriptEngine';
+import type { PointerInputOptions, PointerState } from '../input/PointerInput';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -66,6 +67,11 @@ export interface EngineHandle {
   /** Computer keyboard notes (A to L) on the engine's own listener. Off by default. */
   enableKeyboardInput(): void;
   disableKeyboardInput(): void;
+  /** Mouse, touch, and pen on the canvas: press is a `noteOn` at that spot. Off by default. */
+  enablePointerInput(options?: PointerInputOptions): void;
+  disablePointerInput(): void;
+  /** Normalized pointer position and press state. */
+  getPointerState(): PointerState;
 
   /** The sandboxed script runtime. */
   getScriptEngine(): ScriptEngine;
@@ -139,6 +145,9 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
 
     enableKeyboardInput: () => engine.enableKeyboardInput(),
     disableKeyboardInput: () => engine.disableKeyboardInput(),
+    enablePointerInput: (options) => engine.enablePointerInput(undefined, options),
+    disablePointerInput: () => engine.disablePointerInput(),
+    getPointerState: () => engine.getPointerState(),
 
     getScriptEngine: () => engine.getScriptEngine(),
 

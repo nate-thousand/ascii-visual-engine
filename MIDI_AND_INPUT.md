@@ -15,14 +15,14 @@ When no input is connected, the engine behaves exactly as before — audio, rend
 ## Architecture
 
 ```
-MidiInput ──┐
-            ├──► InputManager ──► PerformanceMapper ──► engine controls / noteOn / layers / plugins
-KeyboardInput ┘
+MidiInput ─────┐
+KeyboardInput ─┼──► InputManager ──► PerformanceMapper ──► engine controls / noteOn / layers / plugins
+PointerInput ──┘
 ```
 
 Each frame (when input is active):
 
-1. `MidiInput` and `KeyboardInput` enqueue normalized `InputEvent` objects
+1. `MidiInput`, `KeyboardInput`, and `PointerInput` enqueue normalized `InputEvent` objects
 2. `InputManager.processQueuedEvents()` drains queues into `PerformanceMapper`
 3. `PerformanceMapper` applies CC, pitch bend, aftertouch, and note mappings
 
@@ -66,6 +66,18 @@ QWERTY piano layout for note input without hardware:
 - Default velocity: 100 (configurable on `KeyboardInput`)
 - Stuck-note prevention: `keyup`, window blur, and `engine.inputPanic()` release all active keys
 - Enable with `engine.enableKeyboardInput()` / disable with `engine.disableKeyboardInput()`
+
+---
+
+## Pointer
+
+Mouse, touch, and pen on one element through Pointer Events. Off by default; the plugin is registered like the keyboard and shares its queue and mapper.
+
+- `engine.enablePointerInput(target?, options?)` listens on the engine's canvas unless `target` is given; `disablePointerInput()` removes the listeners and releases held pointers. The facade has `enablePointerInput(options?)` and `disablePointerInput()`.
+- Position is normalized across the target's client rect: `engine.getPointerState()` returns `{ x, y, down, pointers, pressure }`, updated on every move. It is in `getDebugState().input.pointer` as well.
+- A press is a `noteOn` at that position (`x`, `y` on the `InputEvent`, note id `1000 + pointerId`, velocity from pressure, 127 for a mouse) and the release the matching `noteOff`. Pens and multi touch work per pointer. `PerformanceMapper` uses the event's own position instead of deriving one from the note number.
+- Options: `tapToNote` (default true; false only tracks position) and `captureTouch` (default true; sets `touch-action: none` on the target while enabled so touches do not scroll, restored on disable).
+- `inputPanic()` releases held pointers too.
 
 ---
 
@@ -171,6 +183,9 @@ Learned mappings persist in `localStorage` under key `ascii-visual-engine:input-
 | `resetInputMapping()` | Reset to preset device mapping |
 | `enableKeyboardInput()` | Enable QWERTY keyboard notes |
 | `disableKeyboardInput()` | Disable keyboard input |
+| `enablePointerInput(target?, options?)` | Pointer notes and position on the canvas or another element |
+| `disablePointerInput()` | Remove pointer listeners |
+| `getPointerState()` | `{ x, y, down, pointers, pressure }` |
 | `startInputLearn(target, callback?)` | Enter MIDI learn mode |
 | `cancelInputLearn()` | Exit learn mode without binding |
 | `inputPanic()` | All notes off — clears stuck notes |
@@ -188,7 +203,7 @@ Learned mappings persist in `localStorage` under key `ascii-visual-engine:input-
 
 ```typescript
 const { input } = engine.getDebugState();
-// midiConnected, keyboardEnabled, deviceName, learnMode, activeNotes, mappingCount, learnedCount
+// midiConnected, keyboardEnabled, pointerEnabled, pointer, deviceName, learnMode, activeNotes, mappingCount, learnedCount
 ```
 
 ---

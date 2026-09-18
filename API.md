@@ -43,6 +43,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `getLevel()` | Audio amplitude (0 to 1) from the engine's own audio input; 0 without audio |
 | `loadSource(id, input)`, `clearSource()` | Pixel sources: `image` (File or URL), `video` (`{ file }` or `{ src }`), `webcam` (`{ facingMode }`), `canvas` (`{ canvas }`) |
 | `enableKeyboardInput()`, `disableKeyboardInput()` | Computer keyboard notes, off by default |
+| `enablePointerInput(options?)`, `disablePointerInput()`, `getPointerState()` | Mouse, touch, and pen on the canvas: press is a `noteOn` at the pointer position. Off by default |
 | `getScriptEngine()` | The sandboxed script runtime |
 | `on(event, listener)`, `off(event, listener)` | Typed events; `on` returns the unsubscribe function |
 | `engine` | The underlying `AsciiEngine` |
@@ -728,6 +729,9 @@ Web MIDI and keyboard input mapped to visual parameters. See [MIDI_AND_INPUT.md]
 | `resetInputMapping()` | Reset to preset device mapping |
 | `enableKeyboardInput()` | Enable QWERTY keyboard note input |
 | `disableKeyboardInput()` | Disable keyboard input |
+| `enablePointerInput(target?, options?)` | Mouse, touch, and pen: press is a `noteOn` at the pointer position. Off by default. See MIDI_AND_INPUT.md |
+| `disablePointerInput()` | Remove pointer listeners |
+| `getPointerState()` | Normalized `{ x, y, down, pointers, pressure }` |
 | `startInputLearn(target, callback?)` | Enter MIDI learn mode for a target |
 | `cancelInputLearn()` | Exit learn mode without binding |
 | `inputPanic()` | All notes off — clear stuck notes |

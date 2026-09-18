@@ -71,6 +71,9 @@ import {
   type MidiDeviceInfo,
   type PerformanceTarget,
   type LearnedMapping,
+  type PointerInputOptions,
+  type PointerState,
+  type PointerTarget,
 } from '../input';
 import { getPreset, type PresetId } from '../presets';
 import { GlyphRegistry } from '../glyphs';
@@ -506,6 +509,29 @@ export class AsciiEngine {
 
   isKeyboardInputEnabled(): boolean {
     return this.inputManager.isKeyboardEnabled();
+  }
+
+  /**
+   * Mouse, touch, and pen on the canvas (or another element): position is
+   * exposed normalized, a press is a `noteOn` at that position. Off by default.
+   */
+  enablePointerInput(target?: PointerTarget, options?: PointerInputOptions): void {
+    this.inputManager.enablePointer(target ?? this.canvas, options);
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+  }
+
+  disablePointerInput(): void {
+    this.inputManager.disablePointer();
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+  }
+
+  isPointerInputEnabled(): boolean {
+    return this.inputManager.isPointerEnabled();
+  }
+
+  /** Normalized position and press state of the pointer, updated every event. */
+  getPointerState(): PointerState {
+    return this.inputManager.getPointerState();
   }
 
   startInputLearn(target: PerformanceTarget, callback?: (mapping: LearnedMapping) => void): void {
