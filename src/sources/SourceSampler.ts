@@ -181,7 +181,9 @@ export class SourceSampler {
     contrastAmount = 1,
     edgeAmount = 0,
     blend = 1,
+    getControl?: (name: string, fallback?: number) => number,
   ): void {
+    const strength = getControl?.('strength', 1) ?? 1;
     for (const cell of grid.cells) {
       const nx = cell.x / Math.max(cols - 1, 1);
       const ny = cell.y / Math.max(rows - 1, 1);
@@ -197,7 +199,8 @@ export class SourceSampler {
       );
       const char = mapBrightnessToGlyph(sample.brightness, glyphSet);
       cell.char = char;
-      cell.brightness = clamp01(cell.brightness * (1 - blend) + sample.brightness * blend);
+      const blended = clamp01(cell.brightness * (1 - blend) + sample.brightness * blend);
+      cell.brightness = clamp01(blended * strength);
       cell.phase = sample.brightness;
     }
   }

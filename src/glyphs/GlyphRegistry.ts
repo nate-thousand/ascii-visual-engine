@@ -110,6 +110,13 @@ export class GlyphRegistry {
     return this.resolvedGlyphSet;
   }
 
+  /** Override active glyph characters (e.g. emoji set for video-to-ASCII). */
+  setResolvedGlyphSet(glyphs: string[]): void {
+    if (glyphs.length === 0) return;
+    this.resolvedGlyphSet = [...glyphs];
+    this.atlas.clear();
+  }
+
   getActiveLanguage(): GlyphLanguageConfig | null {
     return this.activeLanguage;
   }

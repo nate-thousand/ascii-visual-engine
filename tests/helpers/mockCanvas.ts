@@ -11,6 +11,11 @@ export function createMockCanvas(width = 800, height = 600): HTMLCanvasElement {
     }),
     fillText: vi.fn(),
     clearRect: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    translate: vi.fn(),
+    scale: vi.fn(),
+    rotate: vi.fn(),
     canvas: { width, height },
   };
 

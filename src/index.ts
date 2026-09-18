@@ -193,6 +193,10 @@ export {
   gridToSvg,
   exportSvg,
   exportPngScreenshot,
+  encodeGif,
+  exportGifFromCanvases,
+  captureCanvasBlob,
+  downloadBlob,
   SCENE_FORMAT_VERSION,
 } from './export';
 export type {
@@ -203,6 +207,7 @@ export type {
   RecordingStatus,
   PlaybackStatus,
   ExportDebugState,
+  GifExportOptions,
 } from './export';
 export type { AsciiSceneDocument } from './export/SceneFormat';
 export { RecordingSession, PlaybackSession, TimelineRecorder } from './recording';

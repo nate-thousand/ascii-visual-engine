@@ -138,6 +138,13 @@ export class RendererManager {
     this.getActiveRenderer()?.setGlyphSet(glyphSet);
   }
 
+  setColor(color: string): void {
+    for (const renderer of this.renderers.values()) {
+      const withColor = renderer as Renderer & { setColor?: (value: string) => void };
+      withColor.setColor?.(color);
+    }
+  }
+
   importGridState(state: GridState): void {
     this.getActiveRenderer()?.importGridState(state);
   }

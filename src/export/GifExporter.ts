@@ -160,8 +160,24 @@ export async function exportGifFromCanvases(
     const frameRate = options.frameRate ?? 15;
     const delayMs = 1000 / frameRate;
     const frames: ImageData[] = [];
+    const targetW = options.width ?? canvases[0]?.width ?? 0;
+    const targetH = options.height ?? canvases[0]?.height ?? 0;
 
-    for (const canvas of canvases) {
+    for (const source of canvases) {
+      let canvas = source;
+      if (targetW > 0 && targetH > 0 && (source.width !== targetW || source.height !== targetH)) {
+        const scaled = document.createElement('canvas');
+        scaled.width = targetW;
+        scaled.height = targetH;
+        const sctx = scaled.getContext('2d');
+        if (!sctx) continue;
+        if (options.transparent) {
+          sctx.clearRect(0, 0, targetW, targetH);
+        }
+        sctx.drawImage(source, 0, 0, targetW, targetH);
+        canvas = scaled;
+      }
+
       const ctx = canvas.getContext('2d');
       if (!ctx) continue;
       frames.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
@@ -169,7 +185,7 @@ export async function exportGifFromCanvases(
 
     const bytes = encodeGif(frames, frames.map(() => delayMs), options.loop !== false);
     const blob = new Blob([new Uint8Array(bytes)], { type: 'image/gif' });
-    const filename = `ascii-animation-${Date.now()}.gif`;
+    const filename = options.filename ?? `ascii-animation-${Date.now()}.gif`;
     downloadBlob(filename, blob);
     return { ok: true, format: 'gif', blob, filename };
   } catch (err) {

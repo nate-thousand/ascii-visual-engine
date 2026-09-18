@@ -63,7 +63,13 @@ export class ExportManager {
       return { ok: false, format: 'gif', error: 'No recorded frames. Start recording first.' };
     }
 
-    const canvases = await blobsToCanvases(pngFrames.map((f) => f.png!));
+    await waitForRecordedFrameBlobs(pngFrames);
+    const readyFrames = pngFrames.filter((f) => f.png);
+    if (readyFrames.length === 0) {
+      return { ok: false, format: 'gif', error: 'Recorded frames are still processing.' };
+    }
+
+    const canvases = await blobsToCanvases(readyFrames.map((f) => f.png!));
     const result = await exportGifFromCanvases(canvases, options);
     this.markExport('gif');
     return result;
@@ -213,4 +219,15 @@ async function blobsToCanvases(blobs: Blob[]): Promise<HTMLCanvasElement[]> {
     canvases.push(canvas);
   }
   return canvases;
+}
+
+async function waitForRecordedFrameBlobs(
+  frames: { png?: Blob }[],
+  timeoutMs = 8000,
+): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (frames.every((frame) => frame.png)) return;
+    await new Promise((resolve) => window.setTimeout(resolve, 16));
+  }
 }

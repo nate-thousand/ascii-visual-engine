@@ -31,7 +31,7 @@ One grid, many inputs. Anything that can produce a number per cell (a pattern, a
 | Scripting | Safe public `ScriptAPI` over presets, controls, simulations, layers, events; script gallery in the demo |
 | Performance | Frame profiler, quality presets, object pooling, glyph cache, dirty region rendering, spatial grid for boids |
 | Presets | 30 built in across basic, motion, simulation, compositing, audio, performance, and glyph families |
-| Tests | 171 passing (vitest) |
+| Tests | 189 passing (vitest) |
 | Build | ESM 284 KB, CJS 213 KB, TypeScript declarations |
 
 ## What it is not
@@ -83,7 +83,7 @@ Presets are plain objects. `setPreset()` validates the shape and throws with eve
 ```bash
 npm install
 npm run dev          # demo at http://localhost:5173
-npm test             # 171 tests
+npm test             # 189 tests
 npm run build        # library to dist/
 npm run build:demo   # static demo to dist-demo/
 ```

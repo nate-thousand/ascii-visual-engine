@@ -121,6 +121,18 @@ Emits a custom application event. Delivered to `custom` event listeners.
 
 Resizes canvas and rebuilds character grid. Emits `resize` event.
 
+#### `setColor(color: string): void`
+
+Sets the glyph colour on every registered renderer that supports it. Any CSS colour string.
+
+#### `setGlyphSet(glyphs: string[]): void`
+
+Overrides the resolved glyph set directly and disables the glyph language, so the host chooses the characters (for example an emoji set for video to ASCII). An empty array is ignored. Calling `setPreset()` restores preset driven glyphs.
+
+#### `setBassGlyphScale(level: number): void`
+
+Sets a normalized bass level (clamped to 0 to 1). Each frame the engine smooths toward it and applies a per glyph random scale pulse to every cell; at 0 every cell settles back to scale 1. Intended to be fed from an audio analyzer's bass band.
+
 #### `getPreset(): AsciiPreset`
 
 Returns the currently active preset object.

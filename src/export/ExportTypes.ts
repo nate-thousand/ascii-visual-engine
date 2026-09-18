@@ -62,6 +62,9 @@ export interface GifExportOptions {
   maxFrames?: number;
   loop?: boolean;
   transparent?: boolean;
+  width?: number;
+  height?: number;
+  filename?: string;
 }
 
 export interface RecordedFrame {

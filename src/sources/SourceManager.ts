@@ -123,6 +123,7 @@ export class SourceManager {
       getControl('sourceContrast', 1),
       getControl('sourceEdge', 0.3),
       getControl('sourceBlend', 1),
+      getControl,
     );
     return true;
   }
