@@ -100,7 +100,7 @@ export class DomRenderer implements Renderer {
   }
 
   getSwitchWarning(): string | null {
-    return 'DOM renderer does not support trail fade — trails appear as full rewrites.';
+    return 'DOM renderer has no trail fade; trails appear as full rewrites.';
   }
 
   private applyElementStyles(): void {

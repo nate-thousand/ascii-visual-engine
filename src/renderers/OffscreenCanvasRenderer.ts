@@ -156,7 +156,7 @@ export class OffscreenCanvasRenderer implements Renderer {
 
   getSwitchWarning(): string | null {
     if (!isOffscreenCanvasSupported()) {
-      return 'OffscreenCanvas is unavailable — falling back to standard Canvas 2D drawing.';
+      return 'OffscreenCanvas is unavailable; drawing with Canvas 2D instead.';
     }
     return null;
   }

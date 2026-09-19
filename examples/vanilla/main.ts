@@ -68,6 +68,7 @@ const sourceReadout = $<HTMLPreElement>('source-readout');
 const rendererModeSelect = $<HTMLSelectElement>('renderer-mode');
 const rendererWarning = $<HTMLDivElement>('renderer-warning');
 const pixelRatioSelect = $<HTMLSelectElement>('pixel-ratio');
+const pixelRatioRow = $<HTMLDivElement>('pixel-ratio-row');
 const rendererReadout = $<HTMLPreElement>('renderer-readout');
 
 const startMicrophoneBtn = $<HTMLButtonElement>('start-microphone');
@@ -652,6 +653,8 @@ function updateOutputVisibility(rendererId: RendererId | null): void {
   const useDom = rendererId === 'dom';
   canvas.style.display = useDom ? 'none' : 'block';
   domOutput.style.display = useDom ? 'block' : 'none';
+  // The pixel ratio scales the canvas backing store; text has none.
+  pixelRatioRow.hidden = useDom;
 }
 
 rendererModeSelect.addEventListener('change', () => {

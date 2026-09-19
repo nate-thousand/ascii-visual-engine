@@ -150,7 +150,7 @@ describe('OffscreenCanvasRenderer', () => {
 
     expect(renderer.isAvailable()).toBe(true);
     expect(renderer.isUsingOffscreen()).toBe(false);
-    expect(renderer.getSwitchWarning()).toContain('falling back');
+    expect(renderer.getSwitchWarning()).toContain('Canvas 2D instead');
 
     renderer.render({ trailAmount: 0, time: 0 }, {
       engine: {} as never,

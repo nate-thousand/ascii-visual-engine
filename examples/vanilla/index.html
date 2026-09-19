@@ -403,13 +403,15 @@
             <option value="dom">DOM text</option>
           </select>
           <div class="note" id="renderer-warning"></div>
-          <label for="pixel-ratio">Pixel ratio</label>
-          <select id="pixel-ratio">
-            <option value="auto">Auto (device, capped at 2)</option>
-            <option value="1">1</option>
-            <option value="1.5">1.5</option>
-            <option value="2">2</option>
-          </select>
+          <div id="pixel-ratio-row">
+            <label for="pixel-ratio">Pixel ratio</label>
+            <select id="pixel-ratio">
+              <option value="auto">Auto (device, capped at 2)</option>
+              <option value="1">1</option>
+              <option value="1.5">1.5</option>
+              <option value="2">2</option>
+            </select>
+          </div>
           <pre id="renderer-readout" class="readout"></pre>
         </div>
       </details>
