@@ -102,6 +102,9 @@ const fpsGraphCanvas = $<HTMLCanvasElement>('fps-graph');
 const fpsGraphCtx = fpsGraphCanvas.getContext('2d')!;
 const performanceReadout = $<HTMLPreElement>('performance-readout');
 const runBenchBtn = $<HTMLButtonElement>('run-bench');
+const seedInput = $<HTMLInputElement>('seed-input');
+const applySeedBtn = $<HTMLButtonElement>('apply-seed');
+const fixedTimestepSelect = $<HTMLSelectElement>('fixed-timestep');
 const benchOutput = $<HTMLPreElement>('bench-output');
 
 const scriptSelect = $<HTMLSelectElement>('script-select');
@@ -871,6 +874,20 @@ fpsTargetSlider.addEventListener('input', () => {
   engine.setControl('fpsTarget', val);
 });
 
+applySeedBtn.addEventListener('click', () => {
+  const raw = seedInput.value.trim();
+  if (!raw) return;
+  const asNumber = Number(raw);
+  handle.setSeed(Number.isFinite(asNumber) && raw !== '' ? asNumber : raw);
+  refreshReadouts();
+});
+
+fixedTimestepSelect.addEventListener('change', () => {
+  const v = fixedTimestepSelect.value;
+  handle.setFixedTimestep(v ? parseInt(v, 10) : null);
+  refreshReadouts();
+});
+
 runBenchBtn.addEventListener('click', async () => {
   runBenchBtn.disabled = true;
   benchOutput.hidden = false;
@@ -1072,6 +1089,7 @@ function refreshReadouts(): void {
       `frame:       ${p.frameTimeMs.toFixed(2)} ms, slowest ${p.slowestPhase ?? 'none'} ${p.slowestPhaseMs.toFixed(2)} ms`,
       `update:      ${p.updateTimeMs.toFixed(2)} ms, render ${p.renderTimeMs.toFixed(2)} ms`,
       `quality:     ${p.quality}${p.adaptiveQuality ? ' (adaptive)' : ''}`,
+      `seed:        ${state.seed}${state.fixedTimestep ? `, fixed ${state.fixedTimestep} fps` : ''}`,
       `glyphs:      ${p.glyphCount}, particles ${p.particleCount}, draw calls ${p.drawCalls}`,
       `dirty cells: ${p.render.dirtyCells}${p.render.partialUpdate ? ' (partial)' : ''}`,
       `glyph cache: ${p.glyphAtlasHits} hits / ${p.glyphAtlasMisses} miss`,

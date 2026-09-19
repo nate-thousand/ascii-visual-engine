@@ -26,6 +26,8 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `width`, `height` | `number` | window size | Canvas size in CSS pixels |
 | `autoStart` | `boolean` | `true` | Start the loop on creation |
 | `pixelRatio` | `'auto' \| number` | `'auto'` | Backing store scale; auto follows `devicePixelRatio`, capped at 2 |
+| `seed` | `number \| string` | fresh per engine | Seed for every random stream |
+| `fixedTimestep` | `number` | off | Constant frame step in fps instead of the measured frame time |
 | `element` | `HTMLElement` | none | Target for the DOM text renderer |
 | `renderer` | `'canvas' \| 'dom' \| 'offscreen-canvas'` | `'canvas'` | Starting renderer |
 
@@ -572,6 +574,10 @@ new AsciiEngine({
 });
 ```
 
+### Reproducibility
+
+Every subsystem that randomizes (glitch, bursts without a position, brownian motion, particle spawns, boids, cellular automata, reaction diffusion, glyph animation flicker) draws from its own named stream derived from the engine seed (`engine.getRandom(name)`, a `Random` reseeded in place by `setSeed()`), so enabling one plugin never shifts another's sequence. With the same seed, the same preset, and `fixedTimestep` set (constant `dt` regardless of the clock), two engines produce identical frames; without a seed each engine gets a fresh one. `setSeed()` also resets simulations and effects so the replay starts clean. The scene document carries `seed` and `applySceneDocument()` restores it. `getDebugState().seed` and `.fixedTimestep`. Third party plugins call `engine.getRandom('myPlugin')` in `initialize()` instead of `Math.random()`.
+
 ### HiDPI
 
 The grid, every draw call, and every size the engine reports are in CSS pixels. The canvas renderers scale their backing store by the pixel ratio (`canvas.width = cssWidth * ratio`) and set the context transform to match, so glyphs are crisp on Retina screens without any host work. The cap of 2 keeps 3x and 4x screens from paying four to sixteen times the fill for no visible gain in a glyph grid. `exportPNG()` returns the canvas at its backing store resolution; pass `pixelRatio` there only to scale further.
@@ -762,6 +768,7 @@ Web MIDI and keyboard input mapped to visual parameters. See [MIDI_AND_INPUT.md]
 | `disablePointerInput()` | Remove pointer listeners |
 | `getPointerState()` | Normalized `{ x, y, down, pointers, pressure }` |
 | `getTempo()` | The engine tempo: MIDI clock, else audio beat detection, else `NO_TEMPO` |
+| `setSeed(seed)`, `getSeed()`, `setFixedTimestep(fps \| null)` | Reproducibility: same seed, preset, and fixed timestep replay a look frame for frame |
 | `startInputLearn(target, callback?)` | Enter MIDI learn mode for a target |
 | `cancelInputLearn()` | Exit learn mode without binding |
 | `inputPanic()` | All notes off — clear stuck notes |

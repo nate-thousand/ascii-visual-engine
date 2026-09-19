@@ -121,15 +121,17 @@ describe('preset shape', () => {
   });
 
   it('a flat preset and its nested form render the same frames', () => {
-    const frames = stubAnimationFrame();
-    vi.spyOn(Math, 'random').mockReturnValue(0.42);
     const run = (preset: unknown) => {
+      // A fresh clock per run so both engines see the same frames.
+      vi.unstubAllGlobals();
+      const frames = stubAnimationFrame();
       const engine = new AsciiEngine({
         canvas: createMockCanvas(320, 240),
         preset: preset as FlatPreset,
         width: 320,
         height: 240,
         autoStart: true,
+        seed: 1,
       });
       frames.advanceFrames(4);
       const fp = gridFingerprint(engine.getRendererManager().getGridState(0).cells);

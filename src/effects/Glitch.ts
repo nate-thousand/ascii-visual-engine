@@ -1,10 +1,17 @@
 import type { Effect, EffectContext } from '../core/types';
+import type { AsciiEngine } from '../core/AsciiEngine';
+import { Random } from '../core/Random';
 import { ParamStore, type ParamDef, type Parameterized } from '../plugins/ParamStore';
 
 const GLITCH_CHARS = '@#$%&!?<>{}[]|\\/~';
 
 export class Glitch implements Effect, Parameterized {
   readonly type = 'glitch' as const;
+  private random = new Random('glitch');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('glitch');
+  }
 
   readonly params = new ParamStore<'rate' | 'symbolShare'>([
     { name: 'rate', label: 'Rate', min: 0, max: 1, default: 0.28, step: 0.01 },
@@ -35,14 +42,14 @@ export class Glitch implements Effect, Parameterized {
     const symbolShare = this.params.get('symbolShare');
 
     for (const cell of grid.cells) {
-      if (Math.random() < chance) {
-        if (Math.random() < symbolShare) {
+      if (this.random.next() < chance) {
+        if (this.random.next() < symbolShare) {
           cell.char =
-            GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+            GLITCH_CHARS[this.random.int(GLITCH_CHARS.length)];
         } else {
-          cell.char = glyphSet[Math.floor(Math.random() * glyphSet.length)];
+          cell.char = glyphSet[this.random.int(glyphSet.length)];
         }
-        cell.brightness = Math.random();
+        cell.brightness = this.random.next();
       }
     }
   }

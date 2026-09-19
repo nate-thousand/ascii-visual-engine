@@ -5,6 +5,7 @@ import { Glitch } from '../src/effects/Glitch';
 import { GlyphBurst } from '../src/effects/GlyphBurst';
 import { Trails } from '../src/effects/Trails';
 import type { EffectContext, GridCell, GridState } from '../src/core/types';
+import { Random } from '../src/core/Random';
 
 function makeGrid(cols = 12, rows = 8): GridState {
   const cells: GridCell[] = [];
@@ -199,15 +200,16 @@ describe('GlyphBurst', () => {
     expect(center(c)).toBeCloseTo(center(d) * (0.2 / 1.4), 6);
   });
 
-  it('random position when the note has none; reset drops every burst', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.25);
+  it('seeded position when the note has none; reset drops every burst', () => {
     const burst = new GlyphBurst();
     burst.onNoteOn({});
     const grid = makeGrid(21, 21);
     burst.update(ctx(grid, { dt: 0.001 }));
     const brightest = grid.cells.reduce((m, c) => (c.burst > m.burst ? c : m));
-    expect(brightest.x).toBe(5);
-    expect(brightest.y).toBe(5);
+    // The effect's own default stream, before an engine assigns one.
+    const expected = new Random('burst');
+    expect(brightest.x).toBe(Math.round(expected.next() * 20));
+    expect(brightest.y).toBe(Math.round(expected.next() * 20));
     burst.reset();
     const after = makeGrid(21, 21);
     burst.update(ctx(after, { dt: 0.001 }));

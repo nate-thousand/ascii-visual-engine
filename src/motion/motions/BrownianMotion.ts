@@ -1,5 +1,6 @@
 import type { Motion, MotionContext } from '../Motion';
 import type { AsciiEngine } from '../../core/AsciiEngine';
+import { Random } from '../../core/Random';
 import { clamp01 } from '../motionMath';
 
 export class BrownianMotion implements Motion {
@@ -11,7 +12,11 @@ export class BrownianMotion implements Motion {
 
   private offsets: Float32Array | null = null;
 
-  initialize(_engine: AsciiEngine): void {}
+  private random = new Random('brownian');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('brownian');
+  }
 
   update(dt: number, ctx: MotionContext): void {
     const { scratch, grid, getControl } = ctx;
@@ -28,8 +33,8 @@ export class BrownianMotion implements Motion {
 
     for (let i = 0; i < size; i++) {
       const ix = i * 2;
-      off[ix] = off[ix] * (1 - decay) + (Math.random() - 0.5) * jitter;
-      off[ix + 1] = off[ix + 1] * (1 - decay) + (Math.random() - 0.5) * jitter;
+      off[ix] = off[ix] * (1 - decay) + (this.random.next() - 0.5) * jitter;
+      off[ix + 1] = off[ix + 1] * (1 - decay) + (this.random.next() - 0.5) * jitter;
       scratch.dx[i] = off[ix];
       scratch.dy[i] = off[ix + 1];
       scratch.vx[i] = off[ix] * 0.1;

@@ -1,4 +1,6 @@
 import type { Effect, EffectContext, NoteEvent } from '../core/types';
+import type { AsciiEngine } from '../core/AsciiEngine';
+import { Random } from '../core/Random';
 import { ParamStore, type ParamDef, type Parameterized } from '../plugins/ParamStore';
 
 interface ActiveBurst {
@@ -35,12 +37,17 @@ export class GlyphBurst implements Effect, Parameterized {
     this.params.resetParams();
   }
   private bursts: ActiveBurst[] = [];
+  private random = new Random('burst');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('burst');
+  }
 
   onNoteOn(event: NoteEvent): void {
     const intensity = event.intensity ?? 1;
     this.bursts.push({
-      x: event.x ?? Math.random(),
-      y: event.y ?? Math.random(),
+      x: event.x ?? this.random.next(),
+      y: event.y ?? this.random.next(),
       intensity,
       age: 0,
       maxAge: this.params.get('life') + intensity * 0.7,

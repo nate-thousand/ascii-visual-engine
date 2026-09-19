@@ -23,7 +23,7 @@ Harness only, hosts own UI. Eight sections by subsystem. Preset sliders generate
 
 1. Keep working the local design until the user says push. All 30 presets now derive `controls` from their composition (`withLiveControls()`); the harness's "declared but unread" note only fires for host authored presets.
 2. When the user says so: `git push -u origin release/0.2.0`, PR or merge to main, `git tag v0.2.0`, push the tag. Then deploy `dist-demo/` (hosting unknown; ask).
-3. Roadmap sections 2 and 4 are complete; section 3 / 0.4.0 has begun on the same branch (beat detection and MIDI clock done; next deterministic seeds, preset morphing, video recording, input recording). The 0.3.0 and 0.4.0 work are both unreleased on `release/0.3.0`; decide at tag time whether 0.3.0 gets its own tag at `46801ad` (section 4 hygiene) with 0.4.0 continuing after, or everything ships together. Note: `npm ci` runs the `prepare` build unless `--ignore-scripts`; CI uses that flag.
+3. Roadmap sections 2 and 4 are complete; section 3 / 0.4.0 has begun on the same branch (beat detection, MIDI clock, deterministic seeds done; next preset morphing, video recording, input recording). The 0.3.0 and 0.4.0 work are both unreleased on `release/0.3.0`; decide at tag time whether 0.3.0 gets its own tag at `46801ad` (section 4 hygiene) with 0.4.0 continuing after, or everything ships together. Note: `npm ci` runs the `prepare` build unless `--ignore-scripts`; CI uses that flag.
 
 ## Related
 

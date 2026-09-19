@@ -1,4 +1,5 @@
 import type { GridState, PresetGlyphsConfig } from '../core/types';
+import type { Random } from '../core/Random';
 import type {
   Glyph,
   GlyphCategoryId,
@@ -20,6 +21,11 @@ export class GlyphRegistry {
   private generator = new GlyphGenerator();
   private morpher = new GlyphMorpher();
   private animator = new GlyphAnimator();
+
+  /** Seeded stream for glyph animation flicker. */
+  setRandom(random: Random): void {
+    this.animator.setRandom(random);
+  }
   private composer = new GlyphComposer();
 
   private languages = new Map<string, GlyphLanguageConfig>();

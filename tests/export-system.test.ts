@@ -46,6 +46,7 @@ function createMockEngineBridge() {
     getControl: (name: string, fallback = 0) =>
       (basicPreset as Record<string, number>)[name] ?? fallback,
     getControls: () => ({ density: 1, speed: 1 }),
+    getSeed: () => 7,
     getActiveRendererId: () => 'canvas',
     getInputMapping: () => ({ enabled: false }),
     getAudioMapping: () => ({ enabled: false, mappings: [] }),

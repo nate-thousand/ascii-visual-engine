@@ -1,4 +1,5 @@
 import type { AsciiEngine } from '../../core/AsciiEngine';
+import { Random } from '../../core/Random';
 import type { Simulation, SimulationContext } from '../Simulation';
 import { clamp01, estimateBytes, stampCell } from '../simulationUtils';
 
@@ -15,7 +16,11 @@ export class CellularAutomataSimulation implements Simulation {
   private stepAccumulator = 0;
   private useCustom = true;
 
-  initialize(_engine: AsciiEngine): void {}
+  private random = new Random('cellularAutomata');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('cellularAutomata');
+  }
 
   update(dt: number, ctx: SimulationContext): void {
     const { grid, glyphSet, getControl } = ctx;
@@ -40,7 +45,7 @@ export class CellularAutomataSimulation implements Simulation {
         let next = alive ? 0 : 0;
 
         if (this.useCustom) {
-          if (!alive && (neighbors === 2 || neighbors === 3) && Math.random() < density) next = 255;
+          if (!alive && (neighbors === 2 || neighbors === 3) && this.random.next() < density) next = 255;
           else if (alive && neighbors >= 2 && neighbors <= 4) next = Math.max(0, this.current![idx] - Math.floor(decay * 40));
           else if (alive && neighbors < 2) next = Math.max(0, this.current![idx] - 80);
           else if (alive && neighbors > 4) next = Math.max(0, this.current![idx] - 60);
@@ -62,7 +67,7 @@ export class CellularAutomataSimulation implements Simulation {
   reset(): void {
     if (!this.current) return;
     for (let i = 0; i < this.current.length; i++) {
-      this.current[i] = Math.random() < 0.25 ? 255 : 0;
+      this.current[i] = this.random.next() < 0.25 ? 255 : 0;
     }
     if (this.next) this.next.fill(0);
   }

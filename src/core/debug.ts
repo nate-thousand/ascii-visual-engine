@@ -13,6 +13,8 @@ import type { PerformanceDebugState } from '../performance/PerformanceTypes';
 
 export interface EngineDebugState {
   state: import('./types').EngineState;
+  seed: number;
+  fixedTimestep: number | null;
   tempo: import('./tempo').TempoState;
   preset: string;
   effects: string[];

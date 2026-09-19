@@ -1,4 +1,5 @@
 import type { AsciiEngine } from '../../core/AsciiEngine';
+import { Random } from '../../core/Random';
 import type { Simulation, SimulationContext } from '../Simulation';
 import { estimateBytes, stampCell } from '../simulationUtils';
 
@@ -21,7 +22,11 @@ export class BoidsSimulation implements Simulation {
   private initialized = false;
   private neighborBuffer: number[] = [];
 
-  initialize(_engine: AsciiEngine): void {}
+  private random = new Random('boids');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('boids');
+  }
 
   update(dt: number, ctx: SimulationContext): void {
     const { grid, glyphSet, getControl } = ctx;
@@ -176,18 +181,18 @@ export class BoidsSimulation implements Simulation {
     this.boids = [];
     for (let i = 0; i < BOID_COUNT; i++) {
       this.boids.push({
-        x: Math.random(),
-        y: Math.random(),
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2,
+        x: this.random.next(),
+        y: this.random.next(),
+        vx: (this.random.next() - 0.5) * 0.2,
+        vy: (this.random.next() - 0.5) * 0.2,
       });
     }
     this.initialized = true;
   }
 
   private updatePredator(dt: number, speed: number): void {
-    this.predator.vx += (Math.random() - 0.5) * dt * 0.5;
-    this.predator.vy += (Math.random() - 0.5) * dt * 0.5;
+    this.predator.vx += (this.random.next() - 0.5) * dt * 0.5;
+    this.predator.vy += (this.random.next() - 0.5) * dt * 0.5;
     this.predator.x += this.predator.vx * dt * speed;
     this.predator.y += this.predator.vy * dt * speed;
     if (this.predator.x < 0.1 || this.predator.x > 0.9) this.predator.vx *= -1;

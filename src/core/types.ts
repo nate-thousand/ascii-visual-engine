@@ -11,6 +11,19 @@ export interface AsciiEngineOptions {
    * capped at 2, and is re-read on `resize()`. A number pins it.
    */
   pixelRatio?: number | 'auto';
+  /**
+   * Seed for every random stream (glitch, bursts, brownian motion, particle
+   * spawns, boids, cellular automata, reaction diffusion, glyph animation).
+   * Default: a fresh seed per engine. Same seed, same preset, and a fixed
+   * timestep reproduce a look exactly.
+   */
+  seed?: number | string;
+  /**
+   * Run the loop at a constant step of this many frames per second instead of
+   * the measured frame time, so every frame advances the same amount. Off by
+   * default (frame time is clamped to 50 ms).
+   */
+  fixedTimestep?: number;
 }
 
 export interface NoteEvent {
@@ -349,6 +362,8 @@ export interface EffectContext {
 
 export interface Effect {
   readonly type: EffectType;
+  /** Called once with the engine, before the first update; a place to fetch a random stream. */
+  initialize?(engine: import('./AsciiEngine').AsciiEngine): void;
   update(ctx: EffectContext): void;
   onNoteOn?(event: NoteEvent): void;
   onNoteOff?(event: NoteEvent): void;

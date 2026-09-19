@@ -26,6 +26,7 @@ export function buildSceneDocument(engine: ExportEngineBridge, name?: string): A
     inputMapping: cloneJson(engine.getInputMapping()),
     audioMapping: cloneJson(engine.getAudioMapping()),
     glyphSet: [...engine.getResolvedGlyphSet()],
+    seed: engine.getSeed(),
     grid: cloneGridState(engine.getGridState()),
     camera: {
       width: engine.getGridState().width,

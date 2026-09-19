@@ -30,7 +30,9 @@ export class EffectPlugin implements Plugin, Parameterized {
     this.phase = meta.phase;
   }
 
-  initialize(_engine: AsciiEngine): void {}
+  initialize(engine: AsciiEngine): void {
+    this.effect.initialize?.(engine);
+  }
 
   update(_deltaTime: number, context: PluginContext): void {
     if (!this.enabled) return;

@@ -5,6 +5,8 @@ export { ParamStore, isParameterized } from './plugins/ParamStore';
 export type { ParamDef, Parameterized } from './plugins/ParamStore';
 export { resolvePixelRatio, MAX_PIXEL_RATIO } from './renderers/pixelRatio';
 export { NO_TEMPO, tempoAngle } from './core/tempo';
+export { Random, hashString, deriveSeed, normalizeSeed } from './core/Random';
+export type { Seed } from './core/Random';
 export type { TempoState, TempoSource } from './core/tempo';
 export type { PixelRatioOption } from './renderers/pixelRatio';
 export type { CreateEngineOptions, EngineHandle } from './core/createEngine';

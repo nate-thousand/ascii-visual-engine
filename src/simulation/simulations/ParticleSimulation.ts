@@ -1,4 +1,5 @@
 import type { AsciiEngine } from '../../core/AsciiEngine';
+import { Random } from '../../core/Random';
 import type { Simulation, SimulationContext } from '../Simulation';
 import {
   countActiveParticles,
@@ -17,7 +18,11 @@ export class ParticleSimulation implements Simulation {
   private particles: ParticleSlot[] = createParticleBuffer(CAPACITY);
   private spawnAccumulator = 0;
 
-  initialize(_engine: AsciiEngine): void {}
+  private random = new Random('particle');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('particle');
+  }
 
   update(dt: number, ctx: SimulationContext): void {
     const { grid, glyphSet, getControl } = ctx;
@@ -85,16 +90,16 @@ export class ParticleSimulation implements Simulation {
       const p = this.particles[i];
       if (p.active) continue;
       p.active = true;
-      p.x = 0.3 + Math.random() * 0.4;
-      p.y = 0.8 + Math.random() * 0.15;
-      p.vx = (Math.random() - 0.5) * 0.4;
-      p.vy = -(0.3 + Math.random() * 0.6);
-      p.ax = (Math.random() - 0.5) * 0.2;
-      p.ay = -0.15 - Math.random() * 0.2;
-      p.maxLife = 1.5 + Math.random() * 2;
+      p.x = 0.3 + this.random.next() * 0.4;
+      p.y = 0.8 + this.random.next() * 0.15;
+      p.vx = (this.random.next() - 0.5) * 0.4;
+      p.vy = -(0.3 + this.random.next() * 0.6);
+      p.ax = (this.random.next() - 0.5) * 0.2;
+      p.ay = -0.15 - this.random.next() * 0.2;
+      p.maxLife = 1.5 + this.random.next() * 2;
       p.life = p.maxLife;
-      p.size = 0.5 + Math.random() * 1.5;
-      p.glyph = Math.floor(Math.random() * 4);
+      p.size = 0.5 + this.random.next() * 1.5;
+      p.glyph = this.random.int(4);
       return;
     }
   }

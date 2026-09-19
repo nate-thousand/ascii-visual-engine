@@ -7,7 +7,7 @@ import { getPreset } from '../src/presets';
 import { createMockCanvas, stubAnimationFrame, gridFingerprint } from './helpers/mockCanvas';
 
 function make(presetId: Parameters<typeof getPreset>[0] = 'glyphOrganicBloom') {
-  const engine = new AsciiEngine({ canvas: createMockCanvas(320, 240), preset: getPreset(presetId), width: 320, height: 240, autoStart: false });
+  const engine = new AsciiEngine({ canvas: createMockCanvas(320, 240), preset: getPreset(presetId), width: 320, height: 240, autoStart: false, seed: 1 });
   engine.getPerformanceManager().setAdaptiveQuality(false);
   return engine;
 }

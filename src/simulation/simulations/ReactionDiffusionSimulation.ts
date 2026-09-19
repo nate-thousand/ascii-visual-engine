@@ -1,4 +1,5 @@
 import type { AsciiEngine } from '../../core/AsciiEngine';
+import { Random } from '../../core/Random';
 import type { Simulation, SimulationContext } from '../Simulation';
 import { clamp01, estimateBytes, stampCell } from '../simulationUtils';
 
@@ -16,7 +17,11 @@ export class ReactionDiffusionSimulation implements Simulation {
   private size = 0;
   private stepAccumulator = 0;
 
-  initialize(_engine: AsciiEngine): void {}
+  private random = new Random('reactionDiffusion');
+
+  initialize(engine: AsciiEngine): void {
+    this.random = engine.getRandom('reactionDiffusion');
+  }
 
   update(dt: number, ctx: SimulationContext): void {
     const { grid, glyphSet, getControl } = ctx;
@@ -74,8 +79,8 @@ export class ReactionDiffusionSimulation implements Simulation {
       }
     }
     for (let i = 0; i < 8; i++) {
-      const rx = Math.floor(Math.random() * this.cols);
-      const ry = Math.floor(Math.random() * this.rows);
+      const rx = this.random.int(this.cols);
+      const ry = this.random.int(this.rows);
       this.b[ry * this.cols + rx] = 1;
     }
   }

@@ -22,6 +22,8 @@ export interface AsciiSceneDocument {
   inputMapping: InputMappingConfig;
   audioMapping: AudioMappingConfig;
   glyphSet: string[];
+  /** Engine seed at export; applying the scene reseeds so the look replays. */
+  seed?: number;
   grid?: GridState;
   camera?: {
     width: number;

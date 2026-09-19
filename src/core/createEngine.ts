@@ -21,6 +21,10 @@ export interface CreateEngineOptions {
   renderer?: 'canvas' | 'dom' | 'offscreen-canvas';
   /** Canvas backing store scale. `auto` (default) follows devicePixelRatio, capped at 2. */
   pixelRatio?: number | 'auto';
+  /** Seed for every random stream; same seed, preset, and fixed timestep replay a look exactly. */
+  seed?: number | string;
+  /** Constant frame step in frames per second instead of the measured frame time. */
+  fixedTimestep?: number;
 }
 
 /**
@@ -38,6 +42,11 @@ export interface EngineHandle {
   /** Pin the backing store scale (0.5 to 2) or return to `auto`. */
   setPixelRatio(ratio: number | 'auto'): void;
   getPixelRatio(): number;
+  /** Reseed every random stream; simulations and effects restart from it. */
+  setSeed(seed: number | string): void;
+  getSeed(): number;
+  /** Constant frame step in frames per second, or null to follow the clock. */
+  setFixedTimestep(fps: number | null): void;
   /** Stop and release everything. The handle is dead afterwards; `start()` then throws. */
   destroy(): void;
   /** `idle` (constructed or stopped), `running`, or `destroyed`. */
@@ -127,6 +136,8 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     height: options.height,
     autoStart: options.autoStart,
     pixelRatio: options.pixelRatio,
+    seed: options.seed,
+    fixedTimestep: options.fixedTimestep,
   });
 
   return {
@@ -136,6 +147,9 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     resize: (width, height) => engine.resize(width, height),
     setPixelRatio: (ratio) => engine.setPixelRatio(ratio),
     getPixelRatio: () => engine.getPixelRatio(),
+    setSeed: (seed) => engine.setSeed(seed),
+    getSeed: () => engine.getSeed(),
+    setFixedTimestep: (fps) => engine.setFixedTimestep(fps),
     destroy: () => engine.destroy(),
     getState: () => engine.getState(),
 

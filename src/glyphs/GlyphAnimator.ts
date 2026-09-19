@@ -1,8 +1,14 @@
+import { Random } from '../core/Random';
 import type { Glyph, GlyphAnimationConfig, GlyphAnimationKind, GlyphCellState } from './Glyph';
 import { clamp01, glyphUnicode } from './Glyph';
 
 export class GlyphAnimator {
   private time = 0;
+  private random = new Random('glyphAnimation');
+
+  setRandom(random: Random): void {
+    this.random = random;
+  }
 
   reset(): void {
     this.time = 0;
@@ -45,10 +51,10 @@ export class GlyphAnimator {
           break;
         }
         case 'randomize': {
-          if (Math.random() < 0.02 * amount) {
+          if (this.random.next() < 0.02 * amount) {
             const pool = glyph?.metadata?.pool as string[] | undefined;
             if (pool?.length) {
-              state.character = pool[Math.floor(Math.random() * pool.length)];
+              state.character = pool[this.random.int(pool.length)];
             }
           }
           break;
@@ -71,8 +77,8 @@ export class GlyphAnimator {
           break;
         }
         case 'corruption': {
-          if (Math.random() < 0.04 * amount) {
-            state.character = String.fromCharCode(33 + Math.floor(Math.random() * 90));
+          if (this.random.next() < 0.04 * amount) {
+            state.character = String.fromCharCode(33 + this.random.int(90));
             state.unicode = glyphUnicode(state.character);
           }
           break;

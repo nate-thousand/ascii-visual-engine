@@ -32,6 +32,7 @@ import type {
 } from './types';
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
 import { NO_TEMPO, type TempoState } from './tempo';
+import { Random, deriveSeed } from './Random';
 import { exportPreset, loadPresetFromUrl, type ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
@@ -117,6 +118,11 @@ const DEFAULT_PRESET: AsciiPreset = {
   glitchAmount: 0.1,
 };
 
+/** A seed that differs per engine when none is given: reproducibility is opt in. */
+function freshSeed(): number {
+  return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+}
+
 export class AsciiEngine {
   private canvas: HTMLCanvasElement;
   private element: HTMLElement | undefined;
@@ -153,12 +159,18 @@ export class AsciiEngine {
   private bassGlyphScale = 0;
   private bassGlyphScaleSmoothed = 0;
   private pixelRatioOption: number | 'auto' = 'auto';
+  private rootRandom: Random;
+  private randomStreams = new Map<string, Random>();
+  private fixedDt: number | null = null;
 
   constructor(options: AsciiEngineOptions) {
     this.canvas = options.canvas;
     this.element = options.element;
     this.preset = assertValidPreset(options.preset ?? DEFAULT_PRESET);
     this.pixelRatioOption = options.pixelRatio ?? 'auto';
+    this.rootRandom = new Random(options.seed ?? freshSeed());
+    this.fixedDt = options.fixedTimestep && options.fixedTimestep > 0 ? 1 / options.fixedTimestep : null;
+    this.glyphRegistry.setRandom(this.getRandom('glyphAnimation'));
 
     const width = options.width ?? window.innerWidth;
     const height = options.height ?? window.innerHeight;
@@ -206,6 +218,45 @@ export class AsciiEngine {
     if (options.autoStart !== false) {
       this.start();
     }
+  }
+
+  /**
+   * The random stream for a named subsystem, derived from the engine seed.
+   * Built ins use `glitch`, `burst`, `brownian`, `particle`, `boids`,
+   * `cellularAutomata`, `reactionDiffusion`, and `glyphAnimation`; third party
+   * plugins pick their own name. The same object is returned every time, and
+   * `setSeed()` reseeds it in place.
+   */
+  getRandom(name: string): Random {
+    let stream = this.randomStreams.get(name);
+    if (!stream) {
+      stream = this.rootRandom.fork(name);
+      this.randomStreams.set(name, stream);
+    }
+    return stream;
+  }
+
+  /** Reseed every random stream. Combined with the same preset and a fixed timestep, frames replay exactly. */
+  setSeed(seed: number | string): void {
+    this.rootRandom.reseed(seed);
+    for (const [name, stream] of this.randomStreams) {
+      stream.reseed(deriveSeed(this.rootRandom.getSeed(), name));
+    }
+    this.simulationManager.resetAll();
+    this.pluginManager.resetEffects();
+  }
+
+  getSeed(): number {
+    return this.rootRandom.getSeed();
+  }
+
+  /** Constant frame step in frames per second, or null to follow the clock. */
+  setFixedTimestep(fps: number | null): void {
+    this.fixedDt = fps && fps > 0 ? 1 / fps : null;
+  }
+
+  getFixedTimestep(): number | null {
+    return this.fixedDt ? 1 / this.fixedDt : null;
   }
 
   /** `idle`, `running`, or `destroyed`. */
@@ -803,6 +854,8 @@ export class AsciiEngine {
   getDebugState(): EngineDebugState {
     return {
       state: this.state,
+      seed: this.getSeed(),
+      fixedTimestep: this.getFixedTimestep(),
       tempo: this.getTempo(),
       preset: this.preset.id,
       effects: this.pluginManager
@@ -934,6 +987,7 @@ export class AsciiEngine {
     if (doc.renderer) {
       this.setActiveRenderer(doc.renderer as RendererId);
     }
+    if (doc.seed !== undefined) this.setSeed(doc.seed);
     if (doc.grid) {
       this.rendererManager.importGridState(doc.grid);
     }
@@ -1460,7 +1514,7 @@ export class AsciiEngine {
   private tick = (now: number): void => {
     if (this.state !== 'running') return;
 
-    const dt = Math.min((now - this.lastTime) / 1000, 0.05);
+    const dt = this.fixedDt ?? Math.min((now - this.lastTime) / 1000, 0.05);
     this.lastTime = now;
     this.time += dt;
 

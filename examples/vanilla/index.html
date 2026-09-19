@@ -497,6 +497,18 @@
           <label class="check"><input type="checkbox" id="adaptive-quality" checked /> Adaptive quality</label>
           <label class="check"><input type="checkbox" id="dirty-rendering" checked /> Dirty region rendering</label>
           <label class="check"><input type="checkbox" id="spatial-grid" /> Spatial grid (boids)</label>
+          <div class="sub">Reproducibility</div>
+          <label for="seed-input">Seed</label>
+          <div class="row">
+            <input type="text" id="seed-input" placeholder="any number or word" style="flex: 2; min-width: 0; background: #111; color: #00ff88; border: 1px solid rgba(0,255,136,0.3); border-radius: 4px; padding: 5px 8px; font-family: inherit; font-size: 12px;" />
+            <button type="button" id="apply-seed">Reseed</button>
+          </div>
+          <label for="fixed-timestep">Fixed timestep</label>
+          <select id="fixed-timestep">
+            <option value="">Off (follow the clock)</option>
+            <option value="30">30 fps</option>
+            <option value="60">60 fps</option>
+          </select>
           <label for="fps-target">FPS target <span class="value" id="fps-target-value">60</span></label>
           <input type="range" id="fps-target" min="30" max="120" step="15" value="60" />
           <canvas id="fps-graph" width="300" height="40"></canvas>

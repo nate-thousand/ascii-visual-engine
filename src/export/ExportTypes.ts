@@ -108,6 +108,7 @@ export interface ExportEngineBridge {
   getPreset(): import('../core/types').AsciiPreset;
   getControl(name: string, fallback?: number): number;
   getControls(): Record<string, number>;
+  getSeed(): number;
   getActiveRendererId(): string | null;
   getInputMapping(): import('../input/InputTypes').InputMappingConfig;
   getAudioMapping(): import('../audio/AudioTypes').AudioMappingConfig;
