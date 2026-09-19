@@ -6,6 +6,8 @@ export type { ParamDef, Parameterized } from './plugins/ParamStore';
 export { resolvePixelRatio, MAX_PIXEL_RATIO } from './renderers/pixelRatio';
 export { NO_TEMPO, tempoAngle } from './core/tempo';
 export { Random, hashString, deriveSeed, normalizeSeed } from './core/Random';
+export { PresetMorph, NO_MORPH, resolveEasing } from './core/PresetMorph';
+export type { MorphOptions, MorphState, MorphEasing, MorphStep } from './core/PresetMorph';
 export type { Seed } from './core/Random';
 export type { TempoState, TempoSource } from './core/tempo';
 export type { PixelRatioOption } from './renderers/pixelRatio';

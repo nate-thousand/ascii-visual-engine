@@ -394,6 +394,8 @@ export type EngineEventMap = {
   /** Every transition, with the new state. */
   state: EngineState;
   preset: AsciiPreset;
+  /** Start, structural switch, and end (or cancel, with `active: false`) of a `morphTo()`. */
+  morph: import('./PresetMorph').MorphState;
   control: { name: string; value: number };
   pattern: { id: PatternId; enabled: boolean };
   plugin: { id: string; type: PluginType; enabled: boolean };

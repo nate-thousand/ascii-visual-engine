@@ -184,4 +184,18 @@ describe('quality scaling is engine state', () => {
     expect(engine.getControl('density', 1)).toBeCloseTo(1.5 * (low / base), 6);
     engine.destroy();
   });
+
+  it('source and performance control values survive setPreset, matching their managers', () => {
+    stubAnimationFrame();
+    const engine = makeEngine('glyphOrganicBloom');
+    engine.setControl('fpsTarget', 30);
+    engine.setControl('sourceBlend', 0.4);
+    engine.setControl('adaptiveQuality', 0);
+    engine.setPreset(getPreset('glyphCrtTerminal'));
+    expect(engine.getControl('fpsTarget')).toBe(30);
+    expect(engine.getControl('sourceBlend')).toBe(0.4);
+    expect(engine.getControl('adaptiveQuality')).toBe(0);
+    expect(engine.getDebugState().performance.adaptiveQuality).toBe(false);
+    engine.destroy();
+  });
 });

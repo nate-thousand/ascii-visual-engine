@@ -5,6 +5,7 @@ import type { PointerInputOptions, PointerState } from '../input/PointerInput';
 import type { ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
 import type { TempoState } from './tempo';
+import type { MorphOptions, MorphState } from './PresetMorph';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -58,6 +59,12 @@ export interface EngineHandle {
   setPresetById(id: string): void;
   /** The active preset. */
   getPreset(): AsciiPreset;
+  /** Blend into another look over `duration` seconds; the structure switches at `switchAt`. Resolves `true` at the end, `false` if cancelled. */
+  morphTo(preset: AsciiPreset | string, options?: MorphOptions): Promise<boolean>;
+  /** Stop a morph where it is. */
+  cancelMorph(): void;
+  /** Progress of the current morph; `active: false` when none is running. */
+  getMorphState(): MorphState;
   /** The current look as a preset, ready to save or hand back to `setPreset()`. */
   exportPreset(options?: ExportPresetOptions): AsciiPreset;
   /** Fetch, validate, and apply a preset JSON file. */
@@ -159,6 +166,9 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     },
     setPresetById: (id) => engine.setPresetById(id),
     getPreset: () => engine.getPreset(),
+    morphTo: (preset, options) => engine.morphTo(preset, options),
+    cancelMorph: () => engine.cancelMorph(),
+    getMorphState: () => engine.getMorphState(),
     exportPreset: (options) => engine.exportPreset(options),
     loadPresetFromUrl: (url, init) => engine.loadPresetFromUrl(url, init),
 

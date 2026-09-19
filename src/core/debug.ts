@@ -16,6 +16,7 @@ export interface EngineDebugState {
   seed: number;
   fixedTimestep: number | null;
   tempo: import('./tempo').TempoState;
+  morph: import('./PresetMorph').MorphState;
   preset: string;
   effects: string[];
   patterns: string[];

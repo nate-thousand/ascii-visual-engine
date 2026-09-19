@@ -33,6 +33,7 @@ import type {
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
 import { NO_TEMPO, type TempoState } from './tempo';
 import { Random, deriveSeed } from './Random';
+import { PresetMorph, NO_MORPH, type MorphOptions, type MorphState } from './PresetMorph';
 import { exportPreset, loadPresetFromUrl, type ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
@@ -162,6 +163,10 @@ export class AsciiEngine {
   private rootRandom: Random;
   private randomStreams = new Map<string, Random>();
   private fixedDt: number | null = null;
+  private morph: PresetMorph | null = null;
+  private morphTarget: AsciiPreset | null = null;
+  private morphResolve: ((done: boolean) => void) | null = null;
+  private applyingMorph = false;
 
   constructor(options: AsciiEngineOptions) {
     this.canvas = options.canvas;
@@ -315,6 +320,7 @@ export class AsciiEngine {
   destroy(): void {
     if (this.state === 'destroyed') return;
     this.stop();
+    this.cancelMorph();
     this.setState('destroyed');
     this.pluginManager.destroy();
     this.motionManager.destroy();
@@ -348,6 +354,7 @@ export class AsciiEngine {
   setPreset(input: PresetInput): void {
     if (!this.alive('setPreset')) return;
     const preset = assertValidPreset(input);
+    if (this.morph && !this.applyingMorph) this.cancelMorph();
     this.preset = preset;
     this.initControls(preset);
     this.rendererManager.setDensity(this.getControl('density', this.presetDefault('density')));
@@ -365,10 +372,99 @@ export class AsciiEngine {
     this.eventBus.emit('preset', preset);
   }
 
+  /**
+   * Blend into another look over time. Every control the target sets (its
+   * group values, its `controls` defaults, and the engine defaults behind
+   * them) runs from its current value to the target value along the easing
+   * curve; the structure switches in one step at `switchAt`. Source and
+   * performance controls are engine state and stay put. A control the host
+   * sets during the morph drops out of the blend; `setPreset()` or a second
+   * `morphTo()` cancels the current morph. Resolves when the morph ends,
+   * with `false` if it was cancelled. Emits `morph` on start, at the switch,
+   * and at the end.
+   */
+  morphTo(target: PresetInput | string, options: MorphOptions = {}): Promise<boolean> {
+    if (!this.alive('morphTo')) return Promise.resolve(false);
+    let resolved: AsciiPreset;
+    if (typeof target === 'string') {
+      try {
+        resolved = assertValidPreset(getPreset(target as PresetId));
+      } catch {
+        console.warn(`[AsciiEngine] Unknown preset id "${target}"`);
+        return Promise.resolve(false);
+      }
+    } else {
+      resolved = assertValidPreset(target);
+    }
+    if (this.morph) this.cancelMorph();
+
+    const from: Record<string, number> = {};
+    for (const [name, value] of this.controlValues) from[name] = value;
+    const to: Record<string, number> = {};
+    for (const [name, value] of this.controlValuesFor(resolved)) {
+      if (name in DEFAULT_SOURCE_CONTROLS || name in DEFAULT_PERFORMANCE_CONTROLS) continue;
+      to[name] = value;
+    }
+    const morph = new PresetMorph(this.preset.id, resolved.id, from, to, options);
+    this.morph = morph;
+    this.morphTarget = resolved;
+    this.eventBus.emit('morph', morph.getState());
+    return new Promise<boolean>((resolve) => {
+      this.morphResolve = resolve;
+    });
+  }
+
+  /** Stop the current morph where it is. Controls keep their blended values; the structure stays whatever it is. */
+  cancelMorph(): void {
+    if (!this.morph) return;
+    const resolve = this.morphResolve;
+    this.morph = null;
+    this.morphTarget = null;
+    this.morphResolve = null;
+    this.eventBus.emit('morph', NO_MORPH);
+    resolve?.(false);
+  }
+
+  getMorphState(): MorphState {
+    return this.morph ? this.morph.getState() : NO_MORPH;
+  }
+
+  private updateMorph(dt: number): void {
+    const morph = this.morph;
+    if (!morph || !this.morphTarget) return;
+    const step = morph.advance(dt);
+    this.applyingMorph = true;
+    try {
+      if (step.switchNow) {
+        // The host's own changes during the morph outlive the preset reset.
+        const held = morph.releasedControls().map((name) => [name, this.controlValues.get(name)] as const);
+        this.setPreset(this.morphTarget);
+        for (const [name, value] of held) {
+          if (value !== undefined) this.setControl(name, value);
+        }
+        this.eventBus.emit('morph', morph.getState());
+      }
+      for (const [name, value] of Object.entries(step.values)) {
+        if (this.controlValues.get(name) !== value) this.setControl(name, value);
+      }
+    } finally {
+      this.applyingMorph = false;
+    }
+    if (step.done) {
+      const resolve = this.morphResolve;
+      this.morph = null;
+      this.morphTarget = null;
+      this.morphResolve = null;
+      this.eventBus.emit('morph', { ...morph.getState(), active: false });
+      resolve?.(true);
+    }
+  }
+
   setControl(name: string, value: number): void {
     if (!this.alive('setControl')) return;
     warnUnknownControl(name);
     this.controlValues.set(name, value);
+    if (this.morph && !this.applyingMorph) this.morph.release(name);
 
     this.performanceManager.noteControl(name, value);
     if (name === 'density') {
@@ -857,6 +953,7 @@ export class AsciiEngine {
       seed: this.getSeed(),
       fixedTimestep: this.getFixedTimestep(),
       tempo: this.getTempo(),
+      morph: this.getMorphState(),
       preset: this.preset.id,
       effects: this.pluginManager
         .getEnabledByType('effect')
@@ -1146,17 +1243,31 @@ export class AsciiEngine {
     return getPresetValue(this.preset, name) ?? AsciiEngine.CONTROL_DEFAULTS[name] ?? 0;
   }
 
+  /**
+   * Reset the controls to a preset's values. Source and performance controls
+   * are engine state, not part of the look: the values already set survive,
+   * matching what the source and performance managers are still doing.
+   */
   private initControls(preset: AsciiPreset): void {
-    this.controlValues.clear();
-
-    for (const control of preset.controls ?? []) {
-      this.controlValues.set(control.name, control.default);
+    const next = this.controlValuesFor(preset);
+    for (const name of [...Object.keys(DEFAULT_SOURCE_CONTROLS), ...Object.keys(DEFAULT_PERFORMANCE_CONTROLS)]) {
+      const current = this.controlValues.get(name);
+      if (current !== undefined) next.set(name, current);
     }
+    this.controlValues = next;
+  }
 
+  /** Every control value a preset starts with: declared `controls` defaults, then engine defaults overridden by the preset's group values. */
+  private controlValuesFor(preset: AsciiPreset): Map<string, number> {
+    const out = new Map<string, number>();
+    for (const control of preset.controls ?? []) {
+      out.set(control.name, control.default);
+    }
     const values = presetControlValues(preset);
     for (const [key, fallback] of Object.entries(AsciiEngine.CONTROL_DEFAULTS)) {
-      this.controlValues.set(key, values[key] ?? fallback);
+      out.set(key, values[key] ?? fallback);
     }
+    return out;
   }
 
   private applyPresetMotions(preset: AsciiPreset): void {
@@ -1528,6 +1639,7 @@ export class AsciiEngine {
 
     this.performanceManager.markPhase('input');
     this.updateInput();
+    this.updateMorph(dt);
 
     const trailAmount = this.getControl('trailAmount', this.presetDefault('trailAmount'));
 

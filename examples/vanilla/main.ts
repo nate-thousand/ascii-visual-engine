@@ -38,6 +38,7 @@ const domOutput = $<HTMLPreElement>('dom-output');
 const fpsEl = $<HTMLSpanElement>('fps');
 
 const presetSelect = $<HTMLSelectElement>('preset');
+const morphSecondsSelect = $<HTMLSelectElement>('morph-seconds');
 const presetControlsEl = $<HTMLDivElement>('preset-controls');
 const engineReadout = $<HTMLPreElement>('engine-readout');
 const exportPresetBtn = $<HTMLButtonElement>('export-preset');
@@ -450,11 +451,16 @@ function syncCompositionFromEngine(): void {
 // Preset switching
 // ---------------------------------------------------------------------------
 
-function applyPresetById(id: string): void {
+function applyPresetById(id: string, morphSeconds = 0): void {
   warnUnknownPreset(id, presetIds);
   const preset = allPresets.find((p) => p.id === id);
   if (!preset) return;
-  engine.setPreset(preset);
+  if (morphSeconds > 0) {
+    // The sliders follow the blend; the panel rebuilds when the structure switches.
+    void engine.morphTo(preset, { duration: morphSeconds });
+  } else {
+    engine.setPreset(preset);
+  }
   presetSelect.value = preset.id;
   buildPresetControls(preset);
   syncSlidersFromEngine();
@@ -465,7 +471,25 @@ function applyPresetById(id: string): void {
   refreshReadouts();
 }
 
-presetSelect.addEventListener('change', () => applyPresetById(presetSelect.value));
+presetSelect.addEventListener('change', () => applyPresetById(presetSelect.value, parseFloat(morphSecondsSelect.value) || 0));
+
+engine.on('morph', (state) => {
+  if (state.active && !state.switched) return;
+  presetSelect.value = engine.getPreset().id;
+  buildPresetControls(engine.getPreset());
+  syncSlidersFromEngine();
+  syncCompositionFromEngine();
+});
+// A morph writes every blending control each frame; reflect them once per frame.
+let sliderSyncQueued = false;
+engine.on('control', () => {
+  if (!engine.getMorphState().active || sliderSyncQueued) return;
+  sliderSyncQueued = true;
+  requestAnimationFrame(() => {
+    sliderSyncQueued = false;
+    syncSlidersFromEngine();
+  });
+});
 
 $('trigger-burst').addEventListener('click', () => triggerBurst(0.5, 0.5, 1.8));
 $('trigger-burst-random').addEventListener('click', () =>
@@ -997,6 +1021,7 @@ function refreshReadouts(): void {
       `state:       ${state.state}`,
       `tempo:       ${state.tempo.source === 'none' ? 'none' : `${state.tempo.bpm} bpm (${state.tempo.source}) beat ${state.tempo.beat} phase ${state.tempo.phase.toFixed(2)}`}`,
       `preset:      ${state.preset}`,
+      `morph:       ${state.morph.active ? `${state.morph.from} to ${state.morph.to} ${Math.round(state.morph.progress * 100)}%${state.morph.switched ? ', switched' : ''}` : 'none'}`,
       `effects:     ${state.effects.join(', ') || 'none'}`,
       `patterns:    ${state.patterns.join(', ') || 'none'}`,
       `motions:     ${md.activeMotions.map((m) => `${m.id} w=${m.weight.toFixed(2)}`).join(', ') || 'none'}`,

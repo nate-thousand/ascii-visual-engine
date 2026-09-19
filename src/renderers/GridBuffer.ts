@@ -64,7 +64,11 @@ export class GridBuffer {
   }
 
   setDensity(density: number): void {
+    const before = this.cols;
     this.density = density;
+    // A small change (a morph step, adaptive quality) often lands on the
+    // same column count; the cells are then untouched.
+    if (this.cells.length > 0 && this.targetCols() === before) return;
     this.rebuildGrid();
   }
 
@@ -105,8 +109,12 @@ export class GridBuffer {
     this.rows = 0;
   }
 
+  private targetCols(): number {
+    return Math.max(8, Math.floor(this.width / (12 / this.density)));
+  }
+
   private rebuildGrid(): void {
-    const targetCols = Math.max(8, Math.floor(this.width / (12 / this.density)));
+    const targetCols = this.targetCols();
     this.cellWidth = this.width / targetCols;
     this.cellHeight = this.cellWidth * 1.6;
     this.cols = targetCols;

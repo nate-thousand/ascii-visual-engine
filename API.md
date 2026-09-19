@@ -38,6 +38,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `start()`, `stop()`, `resize(w, h)`, `destroy()`, `getState()` | Lifecycle. `getState()` is `idle`, `running`, or `destroyed`; `start()` throws after `destroy()`. `resize` re-reads `devicePixelRatio` when the ratio is `auto` |
 | `setPixelRatio(ratio \| 'auto')`, `getPixelRatio()` | Canvas backing store scale, 0.5 to 2 |
 | `setPreset(preset \| id)`, `setPresetById(id)`, `getPreset()` | Look. Unknown ids warn and keep the current look |
+| `morphTo(preset \| id, options?)`, `cancelMorph()`, `getMorphState()` | Blend into another look over time; see Preset morphing below |
 | `exportPreset(options?)` | The current look as a preset: enabled plugins, motions with weights, simulations, passes, layers, glyph config, every live control at its current value. `{ id?, name? }` |
 | `loadPresetFromUrl(url, init?)` | Fetch, validate, and apply a preset JSON file (nested or flat). Rejects with every error listed; the look is untouched on failure |
 | `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
@@ -107,7 +108,29 @@ Releases every subsystem, the renderer, and the event listeners. Idempotent. The
 
 #### `setPreset(preset: AsciiPreset): void`
 
-Switches active preset. Enables plugins from preset configuration. Emits `preset` event.
+Switches active preset. Enables plugins from preset configuration. Emits `preset` event. Controls reset to the preset's values, except source and performance controls (`sourceBlend`, `fpsTarget`, `adaptiveQuality`, and the rest of those two groups), which are engine state and keep their values.
+
+#### `morphTo(target: PresetInput | string, options?: MorphOptions): Promise<boolean>`
+
+Blend into another look instead of cutting to it. Every control the target sets (its group values, its `controls` defaults, and the engine defaults behind them) runs from its current value to the target value over `duration` seconds along `easing`; the structure (plugins, motions, simulations, passes, layers, glyph set, source, mappings) cannot be blended and switches in one step at `switchAt`. Resolves `true` when the morph ends, `false` when it was cancelled. Emits `morph` with the state at the start, at the switch, and at the end.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `duration` | `1` | Seconds |
+| `easing` | `'easeInOut'` | `'linear'`, `'easeIn'`, `'easeOut'`, `'easeInOut'`, or `(t) => number` |
+| `switchAt` | `0.5` | Progress at which the structure switches; `0` at the start, `1` at the end |
+| `exclude` | `[]` | Controls left alone: not blended, and their current values survive the switch |
+
+Rules: source and performance controls are engine state and never blend. A control the host sets during the morph drops out of the blend and keeps the host's value through the switch. `setPreset()`, a second `morphTo()`, `cancelMorph()`, and `destroy()` cancel the current morph where it is (controls keep their blended values; the structure stays whatever it is). Under `fixedTimestep` a morph is deterministic. `getMorphState()` and `getDebugState().morph` return `{ active, from, to, progress, eased, switched, duration }` (`NO_MORPH` when idle). `PresetMorph` is exported for hosts that want the blend math on their own values.
+
+```ts
+await engine.morphTo('glyphCorruptedBroadcast', { duration: 4, switchAt: 0.3 });
+engine.on('morph', (m) => console.log(m.from, m.to, m.progress));
+```
+
+#### `cancelMorph(): void`
+
+Stop the current morph where it is. No-op without one.
 
 #### `registerPlugin(plugin: Plugin): void`
 
@@ -220,6 +243,7 @@ Remove a specific event listener.
 | `start` | `void` | Engine started |
 | `stop` | `void` | Engine stopped |
 | `preset` | `AsciiPreset` | Preset changed |
+| `morph` | `MorphState` | A `morphTo()` started, switched structure, or ended (`active: false`, also on cancel) |
 | `control` | `{ name: string; value: number }` | Control updated |
 | `noteOn` | `NoteEvent` | Note triggered |
 | `noteOff` | `NoteEvent` | Note released |
