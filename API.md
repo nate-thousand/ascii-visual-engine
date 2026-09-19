@@ -36,6 +36,8 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `start()`, `stop()`, `resize(w, h)`, `destroy()`, `getState()` | Lifecycle. `getState()` is `idle`, `running`, or `destroyed`; `start()` throws after `destroy()`. `resize` re-reads `devicePixelRatio` when the ratio is `auto` |
 | `setPixelRatio(ratio \| 'auto')`, `getPixelRatio()` | Canvas backing store scale, 0.5 to 2 |
 | `setPreset(preset \| id)`, `setPresetById(id)`, `getPreset()` | Look. Unknown ids warn and keep the current look |
+| `exportPreset(options?)` | The current look as a preset: enabled plugins, motions with weights, simulations, passes, layers, glyph config, every live control at its current value. `{ id?, name? }` |
+| `loadPresetFromUrl(url, init?)` | Fetch, validate, and apply a preset JSON file (nested or flat). Rejects with every error listed; the look is untouched on failure |
 | `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
 | `setGlyphSet(glyphs)` | Override glyph characters, bypassing the glyph language |
 | `setColor(color)` | Canvas foreground color |
@@ -337,6 +339,11 @@ import {
 | `presets` | `{ basic, terminal, organic }` map |
 | `getPreset(id)` | Get preset by id |
 | `listPresets()` | Array of all built-in presets |
+| `exportPreset(engine, options?)` | The engine's current look as a nested preset (also `engine.exportPreset()`) |
+| `presetToJson(preset)` | Pretty printed JSON |
+| `loadPresetFromUrl(url, init?)` | Fetch and validate a preset; resolves to the normalized nested preset, does not apply it |
+| `parsePreset(json, label?)` | Validate parsed JSON; throws with every error listed |
+| `validatePreset(json)` | `{ ok, errors, warnings, preset }` without throwing |
 
 ---
 

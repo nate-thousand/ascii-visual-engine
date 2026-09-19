@@ -155,6 +155,8 @@ else console.error(result.errors);
 
 `listLiveControls(preset)` returns the control names a preset's composition actually reads; `liveControlDefs(preset)` turns that into slider definitions; `withLiveControls(preset)` fills `controls` the same way the built ins do.
 
+Saving a look: `engine.exportPreset({ id, name })` captures the enabled plugins, motions with their weights, simulations, post passes, layers, glyph configuration, and every control the composition reads at its current value, as a nested preset; `presetToJson()` serializes it. Loading one: `engine.loadPresetFromUrl(url)` fetches, validates, and applies; `loadPresetFromUrl(url)` on its own only fetches and validates; `parsePreset(json)` validates something already parsed. All three accept the flat shape too and return the nested one.
+
 ## The flat shape (deprecated at 1.0)
 
 The 0.1 and 0.2 shape kept every field at the top level. Any preset carrying a flat only key is treated as flat and normalized:

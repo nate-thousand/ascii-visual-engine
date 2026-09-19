@@ -3,6 +3,9 @@ import {
   listPresets,
   listLiveControls,
   CONTROL_CATALOG,
+  presetToJson,
+  parsePreset,
+  downloadJson,
   motionCatalog,
   simulationCatalog,
   pluginCatalog,
@@ -37,6 +40,11 @@ const fpsEl = $<HTMLSpanElement>('fps');
 const presetSelect = $<HTMLSelectElement>('preset');
 const presetControlsEl = $<HTMLDivElement>('preset-controls');
 const engineReadout = $<HTMLPreElement>('engine-readout');
+const exportPresetBtn = $<HTMLButtonElement>('export-preset');
+const importPresetInput = $<HTMLInputElement>('import-preset');
+const presetUrlInput = $<HTMLInputElement>('preset-url');
+const loadPresetUrlBtn = $<HTMLButtonElement>('load-preset-url');
+const presetIoError = $<HTMLDivElement>('preset-io-error');
 const effectPluginList = $<HTMLDivElement>('effect-plugins');
 const patternPluginList = $<HTMLDivElement>('pattern-plugins');
 const motionPluginList = $<HTMLDivElement>('motion-plugins');
@@ -422,6 +430,45 @@ $('trigger-burst-random').addEventListener('click', () =>
   triggerBurst(Math.random(), Math.random(), 1.2 + Math.random()),
 );
 $('trigger-reset').addEventListener('click', () => applyPresetById(engine.getPreset().id));
+
+/** Apply a preset object that did not come from the built in list. */
+function applyLoadedPreset(preset: AsciiPreset): void {
+  engine.setPreset(preset);
+  presetSelect.selectedIndex = -1;
+  buildPresetControls(engine.getPreset());
+  syncSlidersFromEngine();
+  syncCompositionFromEngine();
+  refreshReadouts();
+}
+
+exportPresetBtn.addEventListener('click', () => {
+  presetIoError.textContent = '';
+  const preset = handle.exportPreset();
+  downloadJson(`${preset.id}.json`, presetToJson(preset));
+});
+
+importPresetInput.addEventListener('change', async () => {
+  presetIoError.textContent = '';
+  const file = importPresetInput.files?.[0];
+  if (!file) return;
+  try {
+    applyLoadedPreset(parsePreset(JSON.parse(await file.text()), file.name));
+  } catch (error) {
+    presetIoError.textContent = error instanceof Error ? error.message : String(error);
+  }
+  importPresetInput.value = '';
+});
+
+loadPresetUrlBtn.addEventListener('click', async () => {
+  presetIoError.textContent = '';
+  const url = presetUrlInput.value.trim();
+  if (!url) return;
+  try {
+    applyLoadedPreset(await handle.loadPresetFromUrl(url));
+  } catch (error) {
+    presetIoError.textContent = error instanceof Error ? error.message : String(error);
+  }
+});
 
 function triggerBurst(x: number, y: number, intensity: number): void {
   engine.enablePlugin('burst');

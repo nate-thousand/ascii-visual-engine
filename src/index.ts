@@ -134,6 +134,8 @@ export { normalizePreset, flattenPreset, isFlatPreset, getPresetValue, presetCon
 export type { PresetControlName, PresetGroupName } from './core/presetShape';
 export { listLiveControls, CONTROL_CONSUMERS, GLOBAL_CONTROLS, AUDIO_CONTROLS } from './core/liveControls';
 export { CONTROL_CATALOG, liveControlDefs, withLiveControls } from './presets/controlCatalog';
+export { exportPreset, loadPresetFromUrl, parsePreset, presetToJson } from './presets/presetIO';
+export type { ExportPresetOptions } from './presets/presetIO';
 
 // Motion
 export {
@@ -214,6 +216,7 @@ export {
   exportGifFromCanvases,
   captureCanvasBlob,
   downloadBlob,
+  downloadJson,
   SCENE_FORMAT_VERSION,
 } from './export';
 export type {

@@ -31,6 +31,7 @@ import type {
   EngineState,
 } from './types';
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
+import { exportPreset, loadPresetFromUrl, type ExportPresetOptions } from '../presets/presetIO';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
 import type { EngineDebugState } from './debug';
 import {
@@ -276,6 +277,18 @@ export class AsciiEngine {
     this.performanceManager.destroy();
     this.rendererManager.destroy();
     this.eventBus.clear();
+  }
+
+  /** The current look as a preset: enabled plugins, motions, simulations, passes, layers, and every live control at its current value. */
+  exportPreset(options?: ExportPresetOptions): AsciiPreset {
+    return exportPreset(this, options);
+  }
+
+  /** Fetch, validate, and apply a preset. Rejects with every structural error listed; nothing changes on failure. */
+  async loadPresetFromUrl(url: string, init?: RequestInit): Promise<AsciiPreset> {
+    const preset = await loadPresetFromUrl(url, init);
+    this.setPreset(preset);
+    return preset;
   }
 
   /** Apply a look. Accepts the nested shape or the deprecated flat shape; the stored preset is always nested. */

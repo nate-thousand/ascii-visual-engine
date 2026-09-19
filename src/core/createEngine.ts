@@ -2,6 +2,7 @@ import { AsciiEngine } from './AsciiEngine';
 import type { AsciiPreset, EngineEventMap, EngineEventName, EngineState } from './types';
 import type { ScriptEngine } from '../scripting/ScriptEngine';
 import type { PointerInputOptions, PointerState } from '../input/PointerInput';
+import type { ExportPresetOptions } from '../presets/presetIO';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -46,6 +47,10 @@ export interface EngineHandle {
   setPresetById(id: string): void;
   /** The active preset. */
   getPreset(): AsciiPreset;
+  /** The current look as a preset, ready to save or hand back to `setPreset()`. */
+  exportPreset(options?: ExportPresetOptions): AsciiPreset;
+  /** Fetch, validate, and apply a preset JSON file. */
+  loadPresetFromUrl(url: string, init?: RequestInit): Promise<AsciiPreset>;
 
   /** Set a numeric control (`density`, `speed`, anything in `preset.controls`). */
   setControl(name: string, value: number): void;
@@ -131,6 +136,8 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     },
     setPresetById: (id) => engine.setPresetById(id),
     getPreset: () => engine.getPreset(),
+    exportPreset: (options) => engine.exportPreset(options),
+    loadPresetFromUrl: (url, init) => engine.loadPresetFromUrl(url, init),
 
     setControl: (name, value) => engine.setControl(name, value),
     getControl: (name, fallback) => engine.getControl(name, fallback),

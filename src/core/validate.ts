@@ -247,8 +247,8 @@ export function validatePreset(input: unknown): PresetValidationResult {
   const ok = errors.length === 0;
   if (!ok) return { ok, errors, warnings };
   const preset = p as unknown as AsciiPreset;
-  // Sliders default to whatever the composition reads.
-  if (preset.controls === undefined) preset.controls = liveControlDefs(preset);
+  // Sliders default to whatever the composition reads; an empty list means the same as none.
+  if (!preset.controls || preset.controls.length === 0) preset.controls = liveControlDefs(preset);
   return { ok, errors, warnings, preset };
 }
 

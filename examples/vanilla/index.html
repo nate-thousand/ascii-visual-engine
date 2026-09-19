@@ -325,6 +325,18 @@
             <button type="button" id="trigger-burst-random">Random burst</button>
             <button type="button" id="trigger-reset">Reset</button>
           </div>
+          <div class="sub">Save and load</div>
+          <div class="row">
+            <button type="button" id="export-preset">Save this look as JSON</button>
+          </div>
+          <label for="import-preset">Load preset file</label>
+          <input type="file" id="import-preset" accept="application/json,.json" />
+          <label for="preset-url">Load preset URL</label>
+          <div class="row">
+            <input type="url" id="preset-url" placeholder="https://.../look.json" style="flex: 2; min-width: 0; background: #111; color: #00ff88; border: 1px solid rgba(0,255,136,0.3); border-radius: 4px; padding: 5px 8px; font-family: inherit; font-size: 12px;" />
+            <button type="button" id="load-preset-url">Load</button>
+          </div>
+          <div class="note" id="preset-io-error"></div>
           <details id="section-composition">
             <summary>Composition</summary>
             <div class="body">
