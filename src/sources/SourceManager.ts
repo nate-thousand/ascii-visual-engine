@@ -141,6 +141,7 @@ export class SourceManager {
       1,
       getControl,
       getControl('sourceInvert', 0) >= 0.5,
+      getControl('sourceSmooth', 1) >= 0.5,
     );
     return true;
   }
@@ -157,6 +158,7 @@ export class SourceManager {
       blend: getControl('sourceBlend', 1),
       contrast: getControl('sourceContrast', 1),
       invert: getControl('sourceInvert', 0) >= 0.5,
+      smooth: getControl('sourceSmooth', 1) >= 0.5,
     });
     return true;
   }

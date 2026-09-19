@@ -93,6 +93,8 @@ await engine.loadSource('text', { text: 'ASCII\nENGINE', font: 'Inter', weight: 
 
 Fit modes compare the source's aspect ratio with the grid's pixel size, so a logo keeps its proportions even though cells are 1.6 times taller than wide. `size: 'fit'` type is sized at the grid's pixel size too, so it stays legible at any density.
 
+**Sub cell anti aliasing.** With `sourceSmooth` on (the default) each cell averages the source over its whole footprint instead of reading the one pixel under its centre, through a summed area table so the cost per cell is constant. A stroke thinner than a cell contributes its share of the cell's brightness rather than being hit or missed, so thin type and fine logo detail survive at low density. In mask mode the same average makes the silhouette's edge cells fade over `softness` (0.25 in brightness) below `sourceThreshold` instead of snapping in or out. Set `sourceSmooth` to 0 for the nearest pixel look. The table is built once per still image or text raster and once per frame for video, webcam, and canvas sources (about 3 ms at 1280x720).
+
 ---
 
 ## Fit Modes
@@ -166,6 +168,7 @@ Helpers:
 | `sourceInvert` | `0` | 1 flips light and dark (before the alpha scale) |
 | `sourceMask` | `0` | 1 treats the source as a shape over the procedural look instead of a brightness ramp |
 | `sourceThreshold` | `0.5` | Brightness a cell needs to count as inside the shape in mask mode |
+| `sourceSmooth` | `1` | Average the source over each cell's footprint (sub cell anti aliasing); 0 reads one pixel per cell |
 
 ```typescript
 engine.setControl('sourceContrast', 1.5);

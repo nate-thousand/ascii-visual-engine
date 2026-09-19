@@ -288,6 +288,7 @@ const SOURCE_PANEL_CONTROLS: ControlDef[] = [
   { name: 'sourceInvert', label: 'Invert (dark on light)', min: 0, max: 1, default: 0, step: 1 },
   { name: 'sourceMask', label: 'Mask (shape over the look)', min: 0, max: 1, default: 0, step: 1 },
   { name: 'sourceThreshold', label: 'Mask threshold', min: 0, max: 1, default: 0.5, step: 0.05 },
+  { name: 'sourceSmooth', label: 'Smooth (area sample)', min: 0, max: 1, default: 1, step: 1 },
 ];
 
 /**

@@ -409,6 +409,7 @@ export {
   SOURCE_CONTROLS,
   DEFAULT_SOURCE_CONTROLS,
   mapNormalizedToSource,
+  mapNormalizedToSourceF,
   mapBrightnessToGlyph,
   pixelBrightness,
   pixelCoverage,

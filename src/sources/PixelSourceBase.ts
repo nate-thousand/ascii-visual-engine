@@ -59,6 +59,7 @@ export abstract class PixelSourceBase implements Source {
       contrastAmount,
       edgeAmount,
       invert,
+      context.getControl('sourceSmooth', 1) >= 0.5 ? { cols: context.cols, rows: context.rows } : undefined,
     );
   }
 

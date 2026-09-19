@@ -61,6 +61,7 @@ export const SOURCE_CONTROLS = [
   'sourceInvert',
   'sourceMask',
   'sourceThreshold',
+  'sourceSmooth',
 ] as const;
 
 export type SourceControlName = (typeof SOURCE_CONTROLS)[number];
@@ -71,6 +72,9 @@ export type SourceControlName = (typeof SOURCE_CONTROLS)[number];
  * brightness a cell needs to count as inside the shape. `sourceBlend` is
  * the source's share: in ramp mode how much of the ramp replaces the
  * patterns, in mask mode how far cells outside the shape are dimmed.
+ * `sourceSmooth` (1 = on) averages the source over each cell's footprint
+ * instead of reading one pixel, so strokes thinner than a cell survive and
+ * mask edges fade; 0 is the crunchy nearest pixel look.
  */
 export const DEFAULT_SOURCE_CONTROLS: Record<SourceControlName, number> = {
   sourceContrast: 1,
@@ -79,4 +83,5 @@ export const DEFAULT_SOURCE_CONTROLS: Record<SourceControlName, number> = {
   sourceInvert: 0,
   sourceMask: 0,
   sourceThreshold: 0.5,
+  sourceSmooth: 1,
 };

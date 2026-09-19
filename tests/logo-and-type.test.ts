@@ -78,10 +78,50 @@ describe('mask mode', () => {
     const soft2 = rgba(4, 1, (x) => [255, 255, 255, Math.round((x / 3) * 255)]);
     const low = gridOf(4, 1);
     const high = gridOf(4, 1);
-    sampler.applyMask(soft2, low, 4, 1, 'stretch', 4, 1, { threshold: 0.2 });
-    sampler.applyMask(soft2, high, 4, 1, 'stretch', 4, 1, { threshold: 0.9 });
+    sampler.applyMask(soft2, low, 4, 1, 'stretch', 4, 1, { threshold: 0.2, smooth: false });
+    sampler.applyMask(soft2, high, 4, 1, 'stretch', 4, 1, { threshold: 0.9, smooth: false });
     expect(low.cells.map((c) => c.char).join('')).toBe(' ###');
     expect(high.cells.map((c) => c.char).join('')).toBe('   #');
+
+    // Smooth: a cell just under the threshold fades instead of vanishing.
+    const faded = gridOf(4, 1, '#', 1);
+    sampler.applyMask(soft2, faded, 4, 1, 'stretch', 4, 1, { threshold: 0.9, softness: 0.3 });
+    expect(faded.cells.map((c) => c.char).join('')).toBe('  ##');
+    expect(faded.cells[2].brightness).toBeGreaterThan(0);
+    expect(faded.cells[2].brightness).toBeLessThan(0.3);
+    expect(faded.cells[3].brightness).toBe(1);
+  });
+
+  it('area sampling: a stroke thinner than a cell still contributes its share', () => {
+    const sampler = new SourceSampler();
+    // A 1 px white vertical line at x = 10 in a 40 x 8 image, sampled by 4 x 1 cells (10 px per cell).
+    const line = rgba(40, 8, (x) => (x === 10 ? [255, 255, 255, 255] : [0, 0, 0, 0]));
+    const nearest = gridOf(4, 1, '.', 0);
+    sampler.applyToGrid(line, nearest, 4, 1, [' ', '+', '#'], 'stretch', 40, 8, 1, 0, 1, undefined, false, false);
+    // Nearest: cell 1 samples x = 13, misses the line entirely.
+    expect(nearest.cells.map((c) => c.brightness)).toEqual([0, 0, 0, 0]);
+
+    const smooth = gridOf(4, 1, '.', 0);
+    sampler.applyToGrid(line, smooth, 4, 1, [' ', '+', '#'], 'stretch', 40, 8, 1, 0, 1, undefined, false, true);
+    expect(smooth.cells[1].brightness).toBeCloseTo(0.1, 5);
+    expect(smooth.cells[0].brightness).toBe(0);
+    expect(smooth.cells[2].brightness).toBe(0);
+
+    // A full white image averages to 1 everywhere, including the edge cells.
+    const white = rgba(40, 8, () => [255, 255, 255, 255]);
+    const full = gridOf(4, 1, '.', 0);
+    sampler.applyToGrid(white, full, 4, 1, [' ', '#'], 'stretch', 40, 8, 1, 0, 1, undefined, false, true);
+    expect(full.cells.map((c) => c.brightness)).toEqual([1, 1, 1, 1]);
+
+    // Half alpha averages to half; inverted, a black opaque image is fully lit.
+    const half = rgba(40, 8, () => [255, 255, 255, 128]);
+    expect(sampler.areaBrightness(half, 0, 0, 40, 8)).toBeCloseTo(128 / 255, 3);
+    const black = rgba(40, 8, () => [0, 0, 0, 255]);
+    expect(sampler.areaBrightness(black, 0, 0, 40, 8)).toBe(0);
+    expect(sampler.areaBrightness(black, 0, 0, 40, 8, true)).toBe(1);
+    // A box hanging past the image edge counts the outside as background.
+    expect(sampler.areaBrightness(white, 30, 0, 50, 8)).toBeCloseTo(0.5, 5);
+    expect(sampler.areaBrightness(white, 50, 0, 60, 8)).toBe(0);
   });
 });
 

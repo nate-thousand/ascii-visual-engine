@@ -553,6 +553,7 @@ External visual source pipeline — images, video, webcam, canvas. See [SOURCE_P
 | `sourceInvert` | `0` | Flip light and dark, for dark logos or type on a transparent ground |
 | `sourceMask` | `0` | Shape mask over the procedural look instead of a brightness ramp |
 | `sourceThreshold` | `0.5` | Inside/outside cut in mask mode |
+| `sourceSmooth` | `1` | Area sample each cell's footprint (sub cell anti aliasing); 0 for nearest pixel |
 
 Logos and type: `loadSource('image', 'logo.svg' | { svg })` and `loadSource('text', { text, font, weight, size, align })`. See SOURCE_PIPELINE.md, Logos and type.
 

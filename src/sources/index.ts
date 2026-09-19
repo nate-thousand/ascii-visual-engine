@@ -17,6 +17,7 @@ export { SourceManager } from './SourceManager';
 export {
   SourceSampler,
   mapNormalizedToSource,
+  mapNormalizedToSourceF,
   mapBrightnessToGlyph,
   pixelBrightness,
   pixelCoverage,
