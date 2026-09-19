@@ -891,6 +891,7 @@ function refreshReadouts(): void {
     const md = state.motion;
     const gd = state.glyph;
     engineReadout.textContent = [
+      `state:       ${state.state}`,
       `preset:      ${state.preset}`,
       `effects:     ${state.effects.join(', ') || 'none'}`,
       `patterns:    ${state.patterns.join(', ') || 'none'}`,

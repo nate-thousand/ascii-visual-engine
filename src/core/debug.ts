@@ -12,6 +12,7 @@ import type { ScriptDebugState } from '../scripting/ScriptTypes';
 import type { PerformanceDebugState } from '../performance/PerformanceTypes';
 
 export interface EngineDebugState {
+  state: import('./types').EngineState;
   preset: string;
   effects: string[];
   patterns: string[];

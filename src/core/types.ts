@@ -360,9 +360,18 @@ export interface RendererOptions {
   backgroundColor?: string;
 }
 
+/**
+ * `idle`: constructed or stopped, every call works. `running`: the loop is
+ * scheduled. `destroyed`: resources released; `start()` throws, other
+ * mutating calls warn once and do nothing.
+ */
+export type EngineState = 'idle' | 'running' | 'destroyed';
+
 export type EngineEventMap = {
   start: void;
   stop: void;
+  /** Every transition, with the new state. */
+  state: EngineState;
   preset: AsciiPreset;
   control: { name: string; value: number };
   pattern: { id: PatternId; enabled: boolean };

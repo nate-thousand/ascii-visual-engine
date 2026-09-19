@@ -1,5 +1,5 @@
 import { AsciiEngine } from './AsciiEngine';
-import type { AsciiPreset, EngineEventMap, EngineEventName } from './types';
+import type { AsciiPreset, EngineEventMap, EngineEventName, EngineState } from './types';
 import type { ScriptEngine } from '../scripting/ScriptEngine';
 import type { PointerInputOptions, PointerState } from '../input/PointerInput';
 import { getPreset, type PresetId } from '../presets';
@@ -35,8 +35,10 @@ export interface EngineHandle {
   /** Pin the backing store scale (0.5 to 2) or return to `auto`. */
   setPixelRatio(ratio: number | 'auto'): void;
   getPixelRatio(): number;
-  /** Stop and release everything. The handle is dead afterwards. */
+  /** Stop and release everything. The handle is dead afterwards; `start()` then throws. */
   destroy(): void;
+  /** `idle` (constructed or stopped), `running`, or `destroyed`. */
+  getState(): EngineState;
 
   /** Switch look by preset object or built in id. Unknown ids warn and keep the current look. */
   setPreset(preset: AsciiPreset | string): void;
@@ -121,6 +123,7 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     setPixelRatio: (ratio) => engine.setPixelRatio(ratio),
     getPixelRatio: () => engine.getPixelRatio(),
     destroy: () => engine.destroy(),
+    getState: () => engine.getState(),
 
     setPreset: (preset) => {
       if (typeof preset === 'string') engine.setPresetById(preset);

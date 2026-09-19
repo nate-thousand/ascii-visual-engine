@@ -104,7 +104,7 @@ Decisions 2 through 6. Each verifiable in the harness.
 - [x] **HiDPI.** Canvas and offscreen renderers scale the backing store by `devicePixelRatio` (capped at 2) behind a context transform; grid and draw calls stay in CSS pixels. `pixelRatio` option on the engine and facade, `setPixelRatio`, `getPixelRatio`, re-read on resize. `tests/hidpi.test.ts`
 - [x] **`PointerInput` plugin.** Pointer Events on the canvas or any element; normalized position in `getPointerState()` and debug state; press to `noteOn` at that position, release to `noteOff`, per pointer; off by default; registered like `KeyboardInput` through the same queue and mapper. `tests/pointer-input.test.ts`
 - [x] **Frame budget.** Measured at 1920x1080, ratios 2 and 1, recorded in BENCHMARKS.md. Three heroes were over (18 to 20 ms); the draw loop now sets `fillStyle` per quantized level instead of per cell and skips the per cell measure, render 12 ms to 3.3 ms, all six at 2.8 to 10.7 ms. No density lowered. Harness has a Run frame budget button
-- [ ] Engine state: an explicit `idle | running | destroyed` state with guards, replacing the single `destroyed` flag
+- [x] Engine state: `getState()` is `idle | running | destroyed`, `state` event on every transition, idempotent `start` `stop` `destroy`, `start()` throws after destroy, mutating calls after destroy warn once and are ignored. `tests/engine-state.test.ts`
 - [ ] Preset loader: `loadPresetFromUrl()` using `validatePreset()`; `exportPreset()` from current engine state, so a harness session can be saved as a preset
 - [ ] Pattern and effect `params` in the preset schema (today only the top level numeric knobs are honoured)
 - [ ] Effect unit tests (effects are covered only through integration tests)
@@ -151,6 +151,6 @@ In this order. No host drives it (decision 8).
 | --- | --- | --- |
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
 | 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
-| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | In progress on `release/0.3.0`; facade, nested presets, HiDPI, PointerInput, frame budget done |
+| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | In progress on `release/0.3.0`; facade, nested presets, HiDPI, PointerInput, frame budget, engine state done |
 | 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Planned |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |

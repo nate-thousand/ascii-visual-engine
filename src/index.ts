@@ -24,6 +24,7 @@ export type {
   EngineEventMap,
   EngineEventName,
   EngineEventPayload,
+  EngineState,
   GridCell,
   GridDimensions,
   GridState,

@@ -28,6 +28,7 @@ import type {
   GridState,
   NoteEvent,
   PresetInput,
+  EngineState,
 } from './types';
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
@@ -138,8 +139,8 @@ export class AsciiEngine {
   private preset: AsciiPreset;
   private controlValues = new Map<string, number>();
   private rafId: number | null = null;
-  private running = false;
-  private destroyed = false;
+  private state: EngineState = 'idle';
+  private warnedDestroyed = false;
   private lastTime = 0;
   private frameCount = 0;
   private fpsTime = 0;
@@ -204,28 +205,63 @@ export class AsciiEngine {
     }
   }
 
+  /** `idle`, `running`, or `destroyed`. */
+  getState(): EngineState {
+    return this.state;
+  }
+
+  isDestroyed(): boolean {
+    return this.state === 'destroyed';
+  }
+
+  private setState(next: EngineState): void {
+    if (this.state === next) return;
+    this.state = next;
+    this.eventBus.emit('state', next);
+  }
+
+  /**
+   * Guard for calls that change engine state after `destroy()`. Warns once
+   * and returns false so a late event from a host does not throw mid teardown.
+   */
+  private alive(operation: string): boolean {
+    if (this.state !== 'destroyed') return true;
+    if (!this.warnedDestroyed) {
+      this.warnedDestroyed = true;
+      console.warn(`[AsciiEngine] ${operation}() called after destroy(); ignoring this and further calls`);
+    }
+    return false;
+  }
+
+  /** Start the loop. Idempotent while running; throws on a destroyed engine. */
   start(): void {
-    if (this.running || this.destroyed) return;
-    this.running = true;
+    if (this.state === 'running') return;
+    if (this.state === 'destroyed') {
+      throw new Error('[AsciiEngine] start() called after destroy(); create a new engine');
+    }
+    this.setState('running');
     this.lastTime = performance.now();
     this.fpsTime = this.lastTime;
     this.eventBus.emit('start', undefined);
     this.tick(this.lastTime);
   }
 
+  /** Stop the loop, keep every other piece of state. Idempotent. */
   stop(): void {
-    if (!this.running) return;
-    this.running = false;
+    if (this.state !== 'running') return;
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+    this.setState('idle');
     this.eventBus.emit('stop', undefined);
   }
 
+  /** Release everything. Idempotent; the engine cannot be restarted. */
   destroy(): void {
+    if (this.state === 'destroyed') return;
     this.stop();
-    this.destroyed = true;
+    this.setState('destroyed');
     this.pluginManager.destroy();
     this.motionManager.destroy();
     this.sourceManager.destroy();
@@ -244,6 +280,7 @@ export class AsciiEngine {
 
   /** Apply a look. Accepts the nested shape or the deprecated flat shape; the stored preset is always nested. */
   setPreset(input: PresetInput): void {
+    if (!this.alive('setPreset')) return;
     const preset = assertValidPreset(input);
     this.preset = preset;
     this.initControls(preset);
@@ -263,6 +300,7 @@ export class AsciiEngine {
   }
 
   setControl(name: string, value: number): void {
+    if (!this.alive('setControl')) return;
     warnUnknownControl(name);
     this.controlValues.set(name, value);
 
@@ -649,6 +687,7 @@ export class AsciiEngine {
   }
 
   noteOn(event: NoteEvent = {}): void {
+    if (!this.alive('noteOn')) return;
     this.lastNoteOn = { ...event };
     this.pluginManager.dispatchNoteOn(event);
     this.eventBus.emit('noteOn', event);
@@ -667,6 +706,7 @@ export class AsciiEngine {
   off = this.eventBus.off.bind(this.eventBus);
 
   resize(width: number, height: number): void {
+    if (!this.alive('resize')) return;
     // A window dragged to another screen changes devicePixelRatio; auto follows it.
     if (this.pixelRatioOption === 'auto') {
       this.rendererManager.setPixelRatio(resolvePixelRatio('auto'));
@@ -725,11 +765,12 @@ export class AsciiEngine {
   }
 
   isRunning(): boolean {
-    return this.running;
+    return this.state === 'running';
   }
 
   getDebugState(): EngineDebugState {
     return {
+      state: this.state,
       preset: this.preset.id,
       effects: this.pluginManager
         .getEnabledByType('effect')
@@ -1355,7 +1396,7 @@ export class AsciiEngine {
   }
 
   private tick = (now: number): void => {
-    if (!this.running) return;
+    if (this.state !== 'running') return;
 
     const dt = Math.min((now - this.lastTime) / 1000, 0.05);
     this.lastTime = now;

@@ -33,7 +33,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 
 | Method | Description |
 | --- | --- |
-| `start()`, `stop()`, `resize(w, h)`, `destroy()` | Lifecycle. `resize` re-reads `devicePixelRatio` when the ratio is `auto` |
+| `start()`, `stop()`, `resize(w, h)`, `destroy()`, `getState()` | Lifecycle. `getState()` is `idle`, `running`, or `destroyed`; `start()` throws after `destroy()`. `resize` re-reads `devicePixelRatio` when the ratio is `auto` |
 | `setPixelRatio(ratio \| 'auto')`, `getPixelRatio()` | Canvas backing store scale, 0.5 to 2 |
 | `setPreset(preset \| id)`, `setPresetById(id)`, `getPreset()` | Look. Unknown ids warn and keep the current look |
 | `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
@@ -72,17 +72,32 @@ new AsciiEngine(options: AsciiEngineOptions)
 
 ### Methods
 
+#### Engine state
+
+`getState()` returns `'idle' | 'running' | 'destroyed'`; `isRunning()` and `isDestroyed()` are the shorthands, and `getDebugState().state` carries it. Every transition emits a `state` event with the new value.
+
+| From | Call | To |
+| --- | --- | --- |
+| idle | `start()` | running (emits `start`) |
+| running | `start()` | running, no-op |
+| running | `stop()` | idle (emits `stop`) |
+| idle | `stop()` | idle, no-op |
+| idle or running | `destroy()` | destroyed |
+| destroyed | `destroy()` | destroyed, no-op |
+| destroyed | `start()` | throws |
+| destroyed | `setPreset`, `setControl`, `resize`, `noteOn` | ignored; one console warning per engine |
+
 #### `start(): void`
 
-Starts the animation loop. No-op if already running or destroyed. Emits `start` event.
+Starts the animation loop. No-op while running. Throws on a destroyed engine. Emits `start`.
 
 #### `stop(): void`
 
-Stops the animation loop. Preserves engine state. Emits `stop` event.
+Stops the animation loop; controls, preset, sources, and recordings survive. No-op when idle. Emits `stop`.
 
 #### `destroy(): void`
 
-Permanently tears down the engine. Stops loop, resets effects, clears renderer and event listeners. Cannot be restarted.
+Releases every subsystem, the renderer, and the event listeners. Idempotent. The engine cannot be restarted; create a new one.
 
 #### `setPreset(preset: AsciiPreset): void`
 
@@ -191,6 +206,7 @@ Remove a specific event listener.
 
 | Event | Payload type | Description |
 | --- | --- | --- |
+| `state` | `EngineState` | Every transition: `idle`, `running`, or `destroyed` |
 | `start` | `void` | Engine started |
 | `stop` | `void` | Engine stopped |
 | `preset` | `AsciiPreset` | Preset changed |
