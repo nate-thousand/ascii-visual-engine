@@ -10,7 +10,7 @@ import type {
   AudioMappingTarget,
   AudioSmoothingConfig,
 } from './AudioTypes';
-import { DEFAULT_AUDIO_SMOOTHING } from './AudioTypes';
+import { BPM_MAP_RANGE, DEFAULT_AUDIO_SMOOTHING } from './AudioTypes';
 
 function clamp(v: number, min: number, max: number): number {
   return v < min ? min : v > max ? max : v;
@@ -111,7 +111,7 @@ export class AudioReactiveMapper {
     const smoothing = this.config.smoothing;
 
     for (const mapping of this.config.mappings) {
-      const raw = features[mapping.feature];
+      const raw = mapping.feature === 'bpm' ? normalizeBpm(features.bpm) : features[mapping.feature];
       const gated = this.applyGate(raw, features.amplitude, smoothing);
       const smoothed = this.smoothValue(mapping.feature, gated, dt, smoothing);
       this.applyMapping(engine, mapping.target, smoothed, features, nowMs);
@@ -215,4 +215,10 @@ export function createDefaultMappings(): AudioFeatureMapping[] {
       target: { type: 'control', control: 'simSpawnRate', amount: 0.8, min: 0, max: 1 },
     },
   ];
+}
+
+/** Tempo as a 0 to 1 mapping input over BPM_MAP_RANGE; 0 when there is no estimate. */
+export function normalizeBpm(bpm: number): number {
+  if (bpm <= 0) return 0;
+  return clamp((bpm - BPM_MAP_RANGE.min) / (BPM_MAP_RANGE.max - BPM_MAP_RANGE.min), 0, 1);
 }

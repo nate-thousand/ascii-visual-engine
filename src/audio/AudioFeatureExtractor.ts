@@ -1,5 +1,6 @@
 import type { AudioFeatures } from './AudioTypes';
 import type { AudioAnalyzer } from './AudioAnalyzer';
+import { BeatDetector, type BeatState } from './BeatDetector';
 
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
@@ -7,16 +8,16 @@ function clamp01(v: number): number {
 
 export class AudioFeatureExtractor {
   private prevAmplitude = 0;
-  private bassEnvelope = 0;
-  private beatPulse = 0;
-  private lastBeatTime = 0;
-  private beatCooldownMs = 180;
+  private readonly beats = new BeatDetector();
 
   reset(): void {
     this.prevAmplitude = 0;
-    this.bassEnvelope = 0;
-    this.beatPulse = 0;
-    this.lastBeatTime = 0;
+    this.beats.reset();
+  }
+
+  /** The beat detector behind `beat`, `beatPhase`, `beatConfidence`, and `bpm`. */
+  getBeatDetector(): BeatDetector {
+    return this.beats;
   }
 
   extract(analyzer: AudioAnalyzer, nowMs: number): AudioFeatures {
@@ -37,7 +38,7 @@ export class AudioFeatureExtractor {
     const transient = clamp01(Math.max(0, delta) * 6);
     this.prevAmplitude = amplitude;
 
-    const beat = this.detectBeat(bass, nowMs);
+    const beat = this.beats.update(clamp01(bass), nowMs);
 
     return {
       amplitude: clamp01(amplitude),
@@ -48,7 +49,7 @@ export class AudioFeatureExtractor {
       treble: clamp01(treble),
       spectralCentroid: clamp01(spectralCentroid),
       transient: clamp01(transient),
-      beat: clamp01(beat),
+      ...beatFields(beat),
     };
   }
 
@@ -65,8 +66,12 @@ export class AudioFeatureExtractor {
       treble: clamp01(values.treble ?? 0),
       spectralCentroid: clamp01(values.spectralCentroid ?? 0.5),
       transient: clamp01(values.transient ?? Math.max(0, amplitude - this.prevAmplitude) * 6),
-      beat: clamp01(values.beat ?? this.detectBeat(bass, nowMs)),
+      ...beatFields(this.beats.update(bass, nowMs)),
     };
+    if (values.beat !== undefined) features.beat = clamp01(values.beat);
+    if (values.bpm !== undefined) features.bpm = values.bpm;
+    if (values.beatPhase !== undefined) features.beatPhase = clamp01(values.beatPhase);
+    if (values.beatConfidence !== undefined) features.beatConfidence = clamp01(values.beatConfidence);
     this.prevAmplitude = amplitude;
     return features;
   }
@@ -83,28 +88,8 @@ export class AudioFeatureExtractor {
     if (total <= 0) return 0;
     return weighted / total / frequencyData.length;
   }
+}
 
-  private detectBeat(bass: number, nowMs: number): number {
-    const attack = 0.35;
-    const release = 0.08;
-    if (bass > this.bassEnvelope) {
-      this.bassEnvelope += (bass - this.bassEnvelope) * attack;
-    } else {
-      this.bassEnvelope += (bass - this.bassEnvelope) * release;
-    }
-
-    const threshold = 0.35;
-    if (
-      bass > threshold &&
-      this.bassEnvelope > threshold &&
-      nowMs - this.lastBeatTime > this.beatCooldownMs
-    ) {
-      this.beatPulse = 1;
-      this.lastBeatTime = nowMs;
-    }
-
-    this.beatPulse *= 0.88;
-    if (this.beatPulse < 0.01) this.beatPulse = 0;
-    return this.beatPulse;
-  }
+function beatFields(b: BeatState): Pick<AudioFeatures, 'beat' | 'beatPhase' | 'beatConfidence' | 'bpm'> {
+  return { beat: clamp01(b.pulse), beatPhase: clamp01(b.phase), beatConfidence: clamp01(b.confidence), bpm: b.bpm };
 }

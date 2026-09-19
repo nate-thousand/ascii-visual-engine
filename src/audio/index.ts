@@ -24,6 +24,10 @@ export {
 export { AudioInput, type AudioInputState } from './AudioInput';
 export { AudioAnalyzer } from './AudioAnalyzer';
 export { AudioFeatureExtractor } from './AudioFeatureExtractor';
+export { BeatDetector } from './BeatDetector';
+export type { BeatState, BeatDetectorOptions } from './BeatDetector';
+export { normalizeBpm } from './AudioReactiveMapper';
+export { BPM_MAP_RANGE } from './AudioTypes';
 export {
   AudioReactiveMapper,
   resolveAudioMappingPreset,

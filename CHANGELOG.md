@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased (0.4.0)
+
+Live performance features. See ROADMAP.md section 3.
+
+### Added
+
+- **Beat detection with a tempo estimate.** `BeatDetector` replaces the fixed threshold bass gate in the feature extractor: an adaptive energy threshold over a one second window finds onsets, the intervals between the last 16 are folded into 60 to 200 BPM and clustered for a tempo, and confidence is the share that agree. New audio features `beatPhase` (0 to 1 sawtooth to the next predicted beat), `beatConfidence`, and `bpm`; `beat` is now a time based pulse instead of a per frame decay. All four are mappable; `bpm` maps as 0 to 1 over 60 to 200 (`normalizeBpm`, `BPM_MAP_RANGE`). The estimate holds through dropped kicks, fades when onsets stop, drops after four seconds of silence, and is frame rate independent. `extractor.getBeatDetector()`, `BeatDetector` and its options exported. Harness Audio readout shows tempo, confidence, and phase. `tests/beat-detection.test.ts`.
+
 ## Unreleased (0.3.0)
 
 The API release. See ROADMAP.md section 2.

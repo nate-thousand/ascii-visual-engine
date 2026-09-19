@@ -1023,7 +1023,8 @@ function refreshReadouts(): void {
       `mapping:   ${ad.mappingEnabled ? 'on' : 'off'}`,
       `error:     ${ad.error ?? 'none'}`,
       `update:    ${ad.updateTimeMs.toFixed(2)} ms`,
-      f ? `transient: ${f.transient.toFixed(3)}  beat: ${f.beat.toFixed(3)}` : 'features:  none',
+      f ? `transient: ${f.transient.toFixed(3)}  beat: ${f.beat.toFixed(2)}` : 'features:  none',
+      f ? `tempo:     ${f.bpm > 0 ? `${f.bpm} bpm, confidence ${f.beatConfidence.toFixed(2)}, phase ${f.beatPhase.toFixed(2)}` : 'none yet'}` : '',
     ].join('\n');
     if (f) updateAudioMeters(f);
   }

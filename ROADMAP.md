@@ -113,7 +113,7 @@ Decisions 2 through 6. Each verifiable in the harness.
 
 In this order. No host drives it (decision 8).
 
-- [ ] Beat detection with BPM estimate in the audio analyzer; expose `beat` and `bpm` as mappable features
+- [x] Beat detection with BPM estimate: `BeatDetector` (adaptive onset threshold, interval folding and clustering, confidence, hold and drop); `beat`, `beatPhase`, `beatConfidence`, `bpm` as mappable features. `tests/beat-detection.test.ts`
 - [ ] MIDI clock (`0xF8`) for tempo synced motion
 - [ ] Deterministic seed for motion and simulations so a look can be reproduced exactly
 - [ ] Preset morphing: interpolate numeric controls between two presets over time
@@ -152,5 +152,5 @@ In this order. No host drives it (decision 8).
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
 | 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
 | 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Section 2 complete on `release/0.3.0`, untagged |
-| 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Planned |
+| 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | In progress on `release/0.3.0` (branch to rename or split at tag time); beat detection done |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |

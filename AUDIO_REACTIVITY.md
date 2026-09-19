@@ -65,12 +65,21 @@ engine.disconnectAudio();
 | `treble` | High frequency band energy |
 | `spectralCentroid` | Brightness / pitch center (0–1) |
 | `transient` | Onset detection from amplitude delta |
-| `beat` | Bass-driven beat pulse approximation |
+| `beat` | 1 on a detected onset, decaying over about a quarter second |
+| `beatPhase` | 0 to 1 progress from the last onset toward the next predicted beat; 0 without a tempo |
+| `beatConfidence` | 0 to 1 share of recent onsets that agree with the tempo estimate |
+| `bpm` | Estimated tempo, 0 until enough onsets agree. As a mapping input it spans 0 to 1 over 60 to 200 BPM (`normalizeBpm`) |
 
 ```typescript
 const features = engine.getAudioFeatures();
-// { amplitude, bass, lowMid, mid, highMid, treble, spectralCentroid, transient, beat }
+// { amplitude, bass, lowMid, mid, highMid, treble, spectralCentroid, transient, beat, beatPhase, beatConfidence, bpm }
 ```
+
+### Beat detection
+
+`BeatDetector` (`src/audio/BeatDetector.ts`) runs inside the feature extractor on the bass band. An onset is a frame where bass rises above `sensitivity` (1.3) times its recent one second average, is above a floor (0.15), and at least 150 ms have passed since the last onset. The tempo comes from the intervals between the last 16 onsets: each is folded into 60 to 200 BPM by doubling or halving, the median is taken, intervals within 10% of it are averaged, and their share is the confidence. The estimate holds through a few dropped kicks, fades in confidence once onsets stop, and is dropped after four seconds of silence. It is frame rate independent: the same signal at 30 and 120 fps lands within a couple of BPM. `extractor.getBeatDetector()` exposes the state and a `BeatDetector` can be built standalone with its own options for a host's own analysis.
+
+`beatPhase` is the sawtooth a tempo synced motion wants; `beat` is the pulse a flash or a burst wants.
 
 ---
 

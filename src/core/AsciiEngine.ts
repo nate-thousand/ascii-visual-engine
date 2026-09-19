@@ -1224,6 +1224,9 @@ export class AsciiEngine {
       spectralCentroid: 0,
       transient: 0,
       beat: 0,
+      beatPhase: 0,
+      beatConfidence: 0,
+      bpm: 0,
     };
   }
 

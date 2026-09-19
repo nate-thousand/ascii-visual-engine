@@ -7,7 +7,10 @@ export type AudioFeatureName =
   | 'treble'
   | 'spectralCentroid'
   | 'transient'
-  | 'beat';
+  | 'beat'
+  | 'beatPhase'
+  | 'beatConfidence'
+  | 'bpm';
 
 export interface AudioFeatures {
   amplitude: number;
@@ -18,8 +21,18 @@ export interface AudioFeatures {
   treble: number;
   spectralCentroid: number;
   transient: number;
+  /** 1 on a detected onset, decaying over about a quarter second. */
   beat: number;
+  /** 0 to 1 progress from the last onset toward the next predicted beat; 0 without a tempo. */
+  beatPhase: number;
+  /** 0 to 1 agreement of recent onsets with the tempo estimate. */
+  beatConfidence: number;
+  /** Estimated tempo in beats per minute; 0 until enough onsets agree. Mapped as `(bpm - 60) / 140`. */
+  bpm: number;
 }
+
+/** BPM range a `bpm` mapping spans 0 to 1 over. */
+export const BPM_MAP_RANGE = { min: 60, max: 200 } as const;
 
 export type AudioInputType = 'microphone' | 'audioElement' | 'mediaStream' | 'analyser';
 

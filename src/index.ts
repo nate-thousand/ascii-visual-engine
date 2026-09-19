@@ -280,6 +280,9 @@ export {
   AudioAnalyzer,
   AudioFeatureExtractor,
   AudioReactiveMapper,
+  BeatDetector,
+  normalizeBpm,
+  BPM_MAP_RANGE,
   resolveAudioMappingPreset,
   createDefaultMappings,
   DEFAULT_AUDIO_SMOOTHING,
@@ -287,6 +290,8 @@ export {
   DEFAULT_AUDIO_SMOOTHING_CONTROLS,
 } from './audio';
 export type {
+  BeatState,
+  BeatDetectorOptions,
   AudioFeatures,
   AudioFeatureName,
   AudioInputType,
