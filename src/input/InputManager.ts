@@ -12,26 +12,43 @@ import { KeyboardInput } from './KeyboardInput';
 import { PointerInput, type PointerInputOptions, type PointerState, type PointerTarget } from './PointerInput';
 import { PerformanceMapper, type PerformanceEngineBridge } from './PerformanceMapper';
 import { getDevicePresetMapping } from './devicePresets';
+import {
+  InputRecorder,
+  InputPlayer,
+  type InputRecording,
+  type InputRecordingStatus,
+  type InputPlaybackOptions,
+  type InputPlaybackStatus,
+} from './InputRecorder';
 
 export class InputManager {
   private midi = new MidiInput();
   private keyboard = new KeyboardInput();
   private pointer = new PointerInput();
   private mapper = new PerformanceMapper();
+  private recorder = new InputRecorder();
+  private player = new InputPlayer();
+  private lastRecording: InputRecording | null = null;
   private lastEvent: InputEvent | null = null;
   private engine: PerformanceEngineBridge | null = null;
 
   constructor() {
     this.mapper.loadFromStorage();
-    const handler = (event: InputEvent) => {
-      this.lastEvent = event;
-      if (this.engine) {
-        this.mapper.handleEvent(this.engine, event);
-      }
-    };
+    const handler = (event: InputEvent) => this.dispatch(event);
     this.midi.setMessageHandler(handler);
     this.keyboard.setMessageHandler(handler);
     this.pointer.setMessageHandler(handler);
+  }
+
+  /**
+   * The one path every input event takes, from a device or from playback:
+   * recorded if a take is running, then mapped onto the engine. Devices
+   * deliver here as the event happens; playback delivers per frame.
+   */
+  dispatch(event: InputEvent): void {
+    this.lastEvent = event;
+    if (!event.replayed) this.recorder.record(event);
+    if (this.engine) this.mapper.handleEvent(this.engine, event);
   }
 
   setEngine(engine: PerformanceEngineBridge): void {
@@ -140,17 +157,83 @@ export class InputManager {
     this.pointer.releaseAll();
   }
 
-  processQueuedEvents(): void {
-    if (!this.engine) return;
-    for (const event of this.midi.drainQueue()) {
-      this.mapper.handleEvent(this.engine, event);
+  /**
+   * Per frame: advance the take clock and deliver replayed events that fell
+   * due. Device events were already dispatched as they arrived; their queues
+   * are drained here so they do not grow.
+   */
+  processQueuedEvents(dt = 0, now = typeof performance !== 'undefined' ? performance.now() : Date.now()): void {
+    this.midi.drainQueue();
+    this.keyboard.drainQueue();
+    this.pointer.drainQueue();
+    this.recorder.advance(dt);
+    for (const event of this.player.advance(dt, now)) {
+      this.dispatch(event);
     }
-    for (const event of this.keyboard.drainQueue()) {
-      this.mapper.handleEvent(this.engine, event);
-    }
-    for (const event of this.pointer.drainQueue()) {
-      this.mapper.handleEvent(this.engine, event);
-    }
+  }
+
+  // Input recording and playback
+
+  startInputRecording(): void {
+    this.recorder.start();
+  }
+
+  /** Finish the take; also kept as the loaded recording for playback. */
+  stopInputRecording(name?: string): InputRecording {
+    const recording = this.recorder.stop(name);
+    this.lastRecording = recording;
+    this.player.load(recording);
+    return recording;
+  }
+
+  cancelInputRecording(): void {
+    this.recorder.cancel();
+  }
+
+  isInputRecording(): boolean {
+    return this.recorder.isRecording();
+  }
+
+  /** The last take stopped or loaded. */
+  getInputRecording(): InputRecording | null {
+    return this.lastRecording;
+  }
+
+  loadInputRecording(recording: InputRecording): void {
+    this.lastRecording = recording;
+    this.player.load(recording);
+  }
+
+  /** Replay a take (the loaded one when omitted). False when there is nothing to play. */
+  playInputRecording(recording?: InputRecording, options?: InputPlaybackOptions): boolean {
+    if (recording) this.loadInputRecording(recording);
+    this.stopInputPlayback();
+    return this.player.play(options);
+  }
+
+  pauseInputPlayback(): void {
+    this.player.pause();
+  }
+
+  resumeInputPlayback(): void {
+    this.player.resume();
+  }
+
+  /** Stop replaying; held notes from the take get their `noteOff`. */
+  stopInputPlayback(): void {
+    for (const event of this.player.stop()) this.dispatch(event);
+  }
+
+  seekInputPlayback(seconds: number): void {
+    for (const event of this.player.seek(seconds)) this.dispatch(event);
+  }
+
+  getInputRecordingStatus(): InputRecordingStatus {
+    return this.recorder.getStatus();
+  }
+
+  getInputPlaybackStatus(): InputPlaybackStatus {
+    return this.player.getStatus();
   }
 
   getDebugState(): InputDebugState {
@@ -171,6 +254,8 @@ export class InputManager {
       lastEvent: this.lastEvent,
       mappingCount: (mapping.ccMappings?.length ?? 0) + (mapping.noteMappings?.length ?? 0),
       learnedCount: mapping.learnedMappings?.length ?? 0,
+      recording: this.recorder.getStatus(),
+      playback: this.player.getStatus(),
     };
   }
 
@@ -183,6 +268,8 @@ export class InputManager {
   }
 
   destroy(): void {
+    this.recorder.cancel();
+    this.player.stop();
     this.keyboard.disable();
     this.pointer.disable();
     this.midi.destroy();

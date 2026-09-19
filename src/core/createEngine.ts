@@ -8,6 +8,7 @@ import type { TempoState } from './tempo';
 import type { MorphOptions, MorphState } from './PresetMorph';
 import type { VideoRecordOptions, VideoRecordingStatus } from '../export/VideoRecorder';
 import type { ExportResult } from '../export/ExportTypes';
+import type { InputRecording, InputPlaybackOptions, InputRecordingStatus, InputPlaybackStatus } from '../input/InputRecorder';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -107,6 +108,15 @@ export interface EngineHandle {
   /** MIDI clock, else audio beat detection, else none: `{ source, bpm, phase, barPhase, beat, confidence }`. */
   getTempo(): TempoState;
 
+  /** Record every mapped input event with its offset; `stop` returns the take and loads it for playback. */
+  startInputRecording(): void;
+  stopInputRecording(name?: string): InputRecording;
+  /** Replay a take (the last one when omitted) through the same mapper as live input. */
+  playInputRecording(recording?: InputRecording, options?: InputPlaybackOptions): boolean;
+  stopInputPlayback(): void;
+  getInputRecordingStatus(): InputRecordingStatus;
+  getInputPlaybackStatus(): InputPlaybackStatus;
+
   /** Record the canvas as WebM or MP4 in real time through `MediaRecorder`. `{ ok: false, error }` when the browser cannot. */
   startVideoRecording(options?: VideoRecordOptions): { ok: boolean; error?: string };
   /** Finish the video; downloads it unless `download` is false. The blob is on the result either way. */
@@ -205,6 +215,13 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     disablePointerInput: () => engine.disablePointerInput(),
     getPointerState: () => engine.getPointerState(),
     getTempo: () => engine.getTempo(),
+
+    startInputRecording: () => engine.startInputRecording(),
+    stopInputRecording: (name) => engine.stopInputRecording(name),
+    playInputRecording: (recording, options) => engine.playInputRecording(recording, options),
+    stopInputPlayback: () => engine.stopInputPlayback(),
+    getInputRecordingStatus: () => engine.getInputRecordingStatus(),
+    getInputPlaybackStatus: () => engine.getInputPlaybackStatus(),
 
     startVideoRecording: (options) => engine.startVideoRecording(options),
     stopVideoRecording: (options) => engine.stopVideoRecording(options),

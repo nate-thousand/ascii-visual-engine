@@ -118,7 +118,7 @@ In this order. No host drives it (decision 8).
 - [x] Deterministic seed for motion, simulations, effects, and glyph animation: `Random` with named streams, `seed` option, `setSeed()`, `fixedTimestep`, seed in scene documents. `tests/determinism.test.ts` proves identical frames for the same seed under irregular clocks
 - [x] Preset morphing: `morphTo(preset, { duration, easing, switchAt, exclude })` blends every control the target sets and switches the structure in one step at `switchAt`; host edits during the morph hold; `morph` event and state. `tests/preset-morph.test.ts`
 - [x] WebM or MP4 recording via `MediaRecorder`: `VideoRecorder` and `startVideoRecording()` / `stopVideoRecording()`, real time capture of the canvas independent of the timeline recorder, host audio tracks muxed. `tests/video-recording.test.ts`
-- [ ] Input recording and playback for rehearsals
+- [x] Input recording and playback for rehearsals: `InputRecorder` and `InputPlayer`, takes as plain JSON, replay through the same mapper on the engine clock, frame exact under a fixed timestep. `tests/input-recording.test.ts`. Found and fixed a double dispatch of every device event on the way
 
 ### 4. Library hygiene
 
@@ -152,5 +152,5 @@ In this order. No host drives it (decision 8).
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
 | 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
 | 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Section 2 complete on `release/0.3.0`, untagged |
-| 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | In progress on `release/0.3.0` (branch to rename or split at tag time); beat detection, MIDI clock, seeds, morphing, video recording done |
+| 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Done on `release/0.3.0` (branch to rename or split at tag time), untagged |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |

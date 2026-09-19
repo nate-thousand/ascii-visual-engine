@@ -51,6 +51,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `enableKeyboardInput()`, `disableKeyboardInput()` | Computer keyboard notes, off by default |
 | `enablePointerInput(options?)`, `disablePointerInput()`, `getPointerState()` | Mouse, touch, and pen on the canvas: press is a `noteOn` at the pointer position. Off by default |
 | `getTempo()` | `{ source, bpm, phase, barPhase, beat, confidence }`: MIDI clock, else audio beat detection, else none. See MIDI_AND_INPUT.md |
+| `startInputRecording()`, `stopInputRecording(name?)`, `playInputRecording(take?, options?)`, `stopInputPlayback()`, `getInputRecordingStatus()`, `getInputPlaybackStatus()` | Record every mapped input event as a take and replay it through the mapper without the controller. See MIDI_AND_INPUT.md |
 | `startVideoRecording(options?)`, `stopVideoRecording(options?)`, `getVideoRecordingStatus()` | Real time WebM or MP4 of the canvas through `MediaRecorder`; `start` returns `{ ok, error? }`, `stop` resolves with the blob and downloads unless `download: false`. See EXPORTING.md |
 | `getScriptEngine()` | The sandboxed script runtime |
 | `on(event, listener)`, `off(event, listener)` | Typed events; `on` returns the unsubscribe function |

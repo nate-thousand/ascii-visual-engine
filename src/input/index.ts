@@ -47,3 +47,19 @@ export {
   DEVICE_PRESET_IDS,
   INPUT_DEVICE_PRESETS,
 } from './devicePresets';
+export {
+  InputRecorder,
+  InputPlayer,
+  INPUT_RECORDING_VERSION,
+  serializeInputRecording,
+  parseInputRecording,
+} from './InputRecorder';
+export type {
+  InputRecording,
+  RecordedInputEvent,
+  InputRecordingState,
+  InputRecordingStatus,
+  InputPlaybackState,
+  InputPlaybackOptions,
+  InputPlaybackStatus,
+} from './InputRecorder';

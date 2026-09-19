@@ -457,6 +457,21 @@
             <button type="button" id="clear-learned">Clear learned</button>
             <button type="button" id="reset-input-mapping">Reset mapping</button>
           </div>
+          <div class="sub">Input take (record a rehearsal, replay it without the controller)</div>
+          <div class="status" id="input-take-status">no take</div>
+          <div class="row">
+            <button type="button" id="start-input-recording">Record input</button>
+            <button type="button" id="stop-input-recording">Stop</button>
+            <button type="button" id="play-input-recording">Play</button>
+            <button type="button" id="loop-input-recording">Loop</button>
+            <button type="button" id="stop-input-playback">Stop playback</button>
+          </div>
+          <div class="row">
+            <button type="button" id="save-input-recording">Save take JSON</button>
+          </div>
+          <label for="load-input-recording">Load take file</label>
+          <input type="file" id="load-input-recording" accept="application/json,.json" />
+          <div class="note" id="input-take-error"></div>
           <pre id="input-readout" class="readout"></pre>
         </div>
       </details>

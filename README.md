@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-308%20passing-brightgreen.svg)](#development)
+[![Tests](https://img.shields.io/badge/tests-316%20passing-brightgreen.svg)](#development)
 
 A Canvas 2D ASCII engine used by [Plantasonic](https://github.com/nate-thousand/plantasonic) and [Signal 9](https://github.com/nate-thousand/signal-9-live). Grid, frame loop, presets, plugins, audio, and MIDI — the host app owns the shell.
 

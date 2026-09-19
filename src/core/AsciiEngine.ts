@@ -80,6 +80,10 @@ import {
   type PointerInputOptions,
   type PointerState,
   type PointerTarget,
+  type InputRecording,
+  type InputRecordingStatus,
+  type InputPlaybackOptions,
+  type InputPlaybackStatus,
 } from '../input';
 import { getPreset, type PresetId } from '../presets';
 import { GlyphRegistry } from '../glyphs';
@@ -772,6 +776,64 @@ export class AsciiEngine {
     return this.inputManager.getNoteMonitor();
   }
 
+  /** Record every mapped input event (MIDI, keyboard, pointer) with its offset, for replay without the controller. */
+  startInputRecording(): void {
+    this.inputManager.startInputRecording();
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+  }
+
+  /** Finish the take. It is also loaded for `playInputRecording()`. */
+  stopInputRecording(name?: string): InputRecording {
+    const recording = this.inputManager.stopInputRecording(name);
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+    return recording;
+  }
+
+  cancelInputRecording(): void {
+    this.inputManager.cancelInputRecording();
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+  }
+
+  getInputRecording(): InputRecording | null {
+    return this.inputManager.getInputRecording();
+  }
+
+  loadInputRecording(recording: InputRecording): void {
+    this.inputManager.loadInputRecording(recording);
+  }
+
+  /** Replay a take against the engine clock through the same mapper as live input. */
+  playInputRecording(recording?: InputRecording, options?: InputPlaybackOptions): boolean {
+    const ok = this.inputManager.playInputRecording(recording, options);
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+    return ok;
+  }
+
+  pauseInputPlayback(): void {
+    this.inputManager.pauseInputPlayback();
+  }
+
+  resumeInputPlayback(): void {
+    this.inputManager.resumeInputPlayback();
+  }
+
+  stopInputPlayback(): void {
+    this.inputManager.stopInputPlayback();
+    this.eventBus.emit('input', this.inputManager.getDebugState());
+  }
+
+  seekInputPlayback(seconds: number): void {
+    this.inputManager.seekInputPlayback(seconds);
+  }
+
+  getInputRecordingStatus(): InputRecordingStatus {
+    return this.inputManager.getInputRecordingStatus();
+  }
+
+  getInputPlaybackStatus(): InputPlaybackStatus {
+    return this.inputManager.getInputPlaybackStatus();
+  }
+
   getInputManager(): InputManager {
     return this.inputManager;
   }
@@ -1369,8 +1431,8 @@ export class AsciiEngine {
     }
   }
 
-  private updateInput(): void {
-    this.inputManager.processQueuedEvents();
+  private updateInput(dt: number): void {
+    this.inputManager.processQueuedEvents(dt, this.lastTime);
   }
 
   setPresetById(id: string): void {
@@ -1664,7 +1726,7 @@ export class AsciiEngine {
     this.updateAudio(dt);
 
     this.performanceManager.markPhase('input');
-    this.updateInput();
+    this.updateInput(dt);
     this.updateMorph(dt);
 
     const trailAmount = this.getControl('trailAmount', this.presetDefault('trailAmount'));

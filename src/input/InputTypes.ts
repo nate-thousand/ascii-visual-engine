@@ -23,6 +23,8 @@ export interface InputEvent {
   x?: number;
   y?: number;
   timestamp: number;
+  /** Came from `InputPlayer`, not a device; the recorder skips it. */
+  replayed?: boolean;
 }
 
 export interface MidiDeviceInfo {
@@ -158,6 +160,8 @@ export interface InputDebugState {
   lastEvent: InputEvent | null;
   mappingCount: number;
   learnedCount: number;
+  recording: import('./InputRecorder').InputRecordingStatus;
+  playback: import('./InputRecorder').InputPlaybackStatus;
 }
 
 export interface NoteMonitorEntry {

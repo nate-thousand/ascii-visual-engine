@@ -333,6 +333,11 @@ export {
   getDevicePresetMapping,
   DEVICE_PRESET_IDS,
   mapMidiToNoteEvent,
+  InputRecorder,
+  InputPlayer,
+  INPUT_RECORDING_VERSION,
+  serializeInputRecording,
+  parseInputRecording,
 } from './input';
 export type {
   MidiClockState,
@@ -351,6 +356,13 @@ export type {
   CcMapping,
   NoteMonitorEntry,
   DevicePresetId,
+  InputRecording,
+  RecordedInputEvent,
+  InputRecordingState,
+  InputRecordingStatus,
+  InputPlaybackState,
+  InputPlaybackOptions,
+  InputPlaybackStatus,
 } from './input';
 
 // Simulation

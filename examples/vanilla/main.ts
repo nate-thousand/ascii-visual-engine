@@ -6,6 +6,8 @@ import {
   presetToJson,
   parsePreset,
   downloadJson,
+  serializeInputRecording,
+  parseInputRecording,
   motionCatalog,
   simulationCatalog,
   pluginCatalog,
@@ -765,6 +767,52 @@ inputPanicBtn.addEventListener('click', () => {
   refreshReadouts();
 });
 
+const inputTakeStatus = $<HTMLDivElement>('input-take-status');
+const inputTakeError = $<HTMLDivElement>('input-take-error');
+const loadInputRecordingInput = $<HTMLInputElement>('load-input-recording');
+
+$('start-input-recording').addEventListener('click', () => {
+  inputTakeError.textContent = '';
+  engine.startInputRecording();
+  refreshReadouts();
+});
+$('stop-input-recording').addEventListener('click', () => {
+  if (engine.getInputRecordingStatus().state === 'recording') engine.stopInputRecording();
+  refreshReadouts();
+});
+$('play-input-recording').addEventListener('click', () => {
+  if (!engine.playInputRecording()) inputTakeError.textContent = 'No take yet: record one or load a file.';
+  refreshReadouts();
+});
+$('loop-input-recording').addEventListener('click', () => {
+  if (!engine.playInputRecording(undefined, { loop: true })) inputTakeError.textContent = 'No take yet: record one or load a file.';
+  refreshReadouts();
+});
+$('stop-input-playback').addEventListener('click', () => {
+  engine.stopInputPlayback();
+  refreshReadouts();
+});
+$('save-input-recording').addEventListener('click', () => {
+  const take = engine.getInputRecording();
+  if (!take) {
+    inputTakeError.textContent = 'No take to save.';
+    return;
+  }
+  downloadJson(`${take.name ?? 'input-take'}.json`, serializeInputRecording(take));
+});
+loadInputRecordingInput.addEventListener('change', async () => {
+  const file = loadInputRecordingInput.files?.[0];
+  if (!file) return;
+  try {
+    engine.loadInputRecording(parseInputRecording(await file.text()));
+    inputTakeError.textContent = '';
+  } catch (error) {
+    inputTakeError.textContent = error instanceof Error ? error.message : String(error);
+  }
+  loadInputRecordingInput.value = '';
+  refreshReadouts();
+});
+
 keyboardInputToggle.addEventListener('change', () => {
   if (keyboardInputToggle.checked) engine.enableKeyboardInput();
   else engine.disableKeyboardInput();
@@ -1093,6 +1141,16 @@ function refreshReadouts(): void {
       (m) => `  CC${m.controller} -> ${m.target.type}${m.target.type === 'control' ? ` (${m.target.control})` : ''}`,
     );
     const notes = engine.getInputNoteMonitor().slice(0, 6);
+    const take = engine.getInputRecording();
+    inputTakeStatus.textContent =
+      id.recording.state === 'recording'
+        ? `recording: ${id.recording.eventCount} events, ${id.recording.duration.toFixed(1)}s`
+        : id.playback.state !== 'idle'
+          ? `${id.playback.state}: ${id.playback.position.toFixed(1)}s / ${id.playback.duration.toFixed(1)}s, event ${id.playback.index}/${id.playback.eventCount}${id.playback.loop ? ', loop' : ''}`
+          : take
+            ? `take: ${take.events.length} events, ${take.duration.toFixed(1)}s${take.name ? ` (${take.name})` : ''}`
+            : 'no take';
+    inputTakeStatus.style.color = id.recording.state === 'recording' ? '#ff4444' : '';
     inputReadout.textContent = [
       `midi:     ${id.midiConnected ? (id.deviceName ?? 'connected') : 'off'}`,
       `keyboard: ${id.keyboardEnabled ? 'on' : 'off'}`,

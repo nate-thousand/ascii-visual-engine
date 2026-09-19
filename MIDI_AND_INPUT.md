@@ -20,11 +20,11 @@ KeyboardInput ─┼──► InputManager ──► PerformanceMapper ──►
 PointerInput ──┘
 ```
 
-Each frame (when input is active):
+1. `MidiInput`, `KeyboardInput`, and `PointerInput` normalize what they receive into `InputEvent` objects and hand each one to `InputManager.dispatch()` as it happens
+2. `dispatch()` records the event if a take is running, then gives it to `PerformanceMapper`, which applies CC, pitch bend, aftertouch, and note mappings
+3. Each frame, `InputManager.processQueuedEvents(dt, now)` advances the take clock and dispatches any replayed events that fell due
 
-1. `MidiInput`, `KeyboardInput`, and `PointerInput` enqueue normalized `InputEvent` objects
-2. `InputManager.processQueuedEvents()` drains queues into `PerformanceMapper`
-3. `PerformanceMapper` applies CC, pitch bend, aftertouch, and note mappings
+Every event goes through `dispatch()` exactly once, from a device or from playback.
 
 ---
 
@@ -89,6 +89,30 @@ Mouse, touch, and pen on one element through Pointer Events. Off by default; the
 - `engine.getTempo()` (also on the facade) is the engine's single tempo: the MIDI clock when it is active, else the audio beat detector when it has an estimate, else `NO_TEMPO`. Shape: `{ source: 'midi' | 'audio' | 'none', bpm, phase, barPhase, beat, confidence }`, with bars of four beats.
 - Motions receive it as `context.tempo`. `PulseMotion` (one cycle per beat) and `BreathingMotion` (one breath per bar) blend toward it by the `tempoSync` control (0 free running, 1 locked); `tempoAngle(tempo, beatsPerCycle)` turns a tempo into an angle for sine based motion. Without a tempo, `tempoSync` does nothing.
 - `getDebugState().input.clock` and `getDebugState().tempo` carry both; the harness shows them in the Input and Preset readouts.
+
+---
+
+## Input Recording (takes)
+
+A take is every input event the mapper received, with its offset from the start, as plain JSON. Record a rehearsal with the controller, replay it on stage without one, or replay it while tuning a look. Playback goes through the same mapper as live input, so mappings, learned bindings, and the burst plugin behave identically; the events carry `replayed: true` and are not recorded again, so a take can play while a new one records.
+
+```typescript
+engine.startInputRecording();
+// ... play the controller ...
+const take = engine.stopInputRecording('verse');   // also loaded for playback
+downloadJson('verse.json', serializeInputRecording(take));
+
+engine.playInputRecording();                       // the loaded take
+engine.playInputRecording(parseInputRecording(json), { loop: true, speed: 1 });
+engine.stopInputPlayback();                        // held notes get their noteOff
+```
+
+- Time is the engine clock (`dt` per frame), so a take made under `fixedTimestep` replays frame for frame; with the same `seed` the pictures match. `tests/input-recording.test.ts` proves it.
+- `InputRecording` is `{ version: 1, duration, recordedAt?, name?, events: [{ t, event }] }`. `parseInputRecording()` validates and throws with the first problem; `serializeInputRecording()` pretty prints.
+- `pauseInputPlayback()`, `resumeInputPlayback()`, `seekInputPlayback(seconds)` (releases held notes), `loadInputRecording(take)`, `getInputRecording()`, `cancelInputRecording()`.
+- `getInputRecordingStatus()` is `{ state, eventCount, duration }`; `getInputPlaybackStatus()` is `{ state, position, duration, eventCount, index, loop, speed }`. Both are in `getDebugState().input` as `recording` and `playback`.
+- The end of a take, a loop wrap, stop, and seek release any note the take left held, so nothing sticks.
+- `InputRecorder` and `InputPlayer` are exported on their own.
 
 ---
 
@@ -201,6 +225,9 @@ Learned mappings persist in `localStorage` under key `ascii-visual-engine:input-
 | `cancelInputLearn()` | Exit learn mode without binding |
 | `inputPanic()` | All notes off — clears stuck notes |
 | `getInputNoteMonitor()` | Recent note on/off events |
+| `startInputRecording()`, `stopInputRecording(name?)`, `cancelInputRecording()` | Record a take of every mapped input event |
+| `playInputRecording(take?, { loop?, speed? })`, `pauseInputPlayback()`, `resumeInputPlayback()`, `stopInputPlayback()`, `seekInputPlayback(s)` | Replay a take through the mapper |
+| `getInputRecording()`, `loadInputRecording(take)`, `getInputRecordingStatus()`, `getInputPlaybackStatus()` | The loaded take and both statuses |
 | `getInputManager()` | Direct access to input subsystem |
 
 ### Events
@@ -214,7 +241,7 @@ Learned mappings persist in `localStorage` under key `ascii-visual-engine:input-
 
 ```typescript
 const { input } = engine.getDebugState();
-// midiConnected, keyboardEnabled, pointerEnabled, pointer, deviceName, learnMode, activeNotes, mappingCount, learnedCount
+// midiConnected, keyboardEnabled, pointerEnabled, pointer, clock, deviceName, learnMode, activeNotes, mappingCount, learnedCount, recording, playback
 ```
 
 ---
@@ -252,6 +279,7 @@ The demo includes:
 - Mapping table (CC + learned bindings)
 - Note monitor (recent noteOn/noteOff)
 - Panic button — all notes off
+- Input take: record, stop, play, loop, stop playback, save as JSON, load a file, with a status line
 
 Select a **Performance —** preset, enable the burst plugin, connect MIDI or keyboard, and play.
 
