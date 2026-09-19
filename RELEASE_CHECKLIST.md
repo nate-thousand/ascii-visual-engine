@@ -11,6 +11,9 @@ Initial MVP release of ASCII Visual Engine. Use this checklist before tagging or
 - [x] `npm run build` — library ESM + CJS + `.d.ts` artifacts
 - [x] `npm run build:demo` — static demo in `dist-demo/`
 - [x] `npm run lint` — TypeScript validation (via typecheck)
+- [ ] `npm run test:coverage` passes the floor in `vitest.config.ts`
+- [ ] `npm run docs:api` generates without errors
+- [ ] `npm install github:nate-thousand/ascii-visual-engine#<tag>` in a scratch project builds `dist/` through `prepare` and `import { createEngine }` resolves
 
 ## Examples
 

@@ -26,7 +26,10 @@
     "typecheck": "tsc --noEmit && tsc -p examples/tsconfig.check.json",
     "lint": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
+    "docs:api": "typedoc",
+    "prepare": "npm run build",
     "test:all": "npm run build && REQUIRE_DIST=1 vitest run",
     "test:consumer": "npm run build && REQUIRE_DIST=1 vitest run tests/consumer-smoke.test.ts"
   },
@@ -39,6 +42,9 @@
   },
   "homepage": "https://github.com/nate-thousand/ascii-visual-engine#readme",
   "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "typedoc": "^0.28.20",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
     "vite-plugin-dts": "^4.5.0",

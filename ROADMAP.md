@@ -122,10 +122,10 @@ In this order. No host drives it (decision 8).
 
 ### 4. Library hygiene
 
-- [ ] Git tag install instructions in README now (decision 7); npm publish under a scope when a third host appears
-- [ ] Minimal embed example (under 20 lines) and a React `useAsciiEngine` hook example
-- [ ] TypeDoc generated API reference
-- [ ] Code coverage threshold in CI
+- [x] Git tag install instructions in README (decision 7), with a `prepare` script so `npm install github:...#tag` builds `dist/`; npm publish under a scope when a third host appears
+- [x] Minimal embed example (`examples/embed/index.html`, 19 lines) and a React `useAsciiEngine` hook plus `AsciiCanvas` component (`examples/react/`), typechecked
+- [x] TypeDoc API reference: `npm run docs:api` into `docs/api/` (ignored), built in CI
+- [x] Coverage floor in CI: `npm run test:coverage`, 77 / 80 / 69 / 77 (statements, branches, functions, lines) as of 2026-09-19
 
 ### 5. Later, if ever
 

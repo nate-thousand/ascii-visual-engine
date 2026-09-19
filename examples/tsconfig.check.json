@@ -7,8 +7,9 @@
     "declarationMap": false,
     "baseUrl": "..",
     "paths": { "ascii-visual-engine": ["src/index.ts"] },
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "jsx": "react-jsx"
   },
-  "include": ["vanilla/main.ts", "scripts", "../src"],
+  "include": ["vanilla/main.ts", "scripts", "react", "../src"],
   "exclude": ["../node_modules", "../dist"]
 }

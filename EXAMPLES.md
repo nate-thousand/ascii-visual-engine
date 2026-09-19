@@ -1,6 +1,17 @@
-# Script Examples
+# Examples
 
-Example scripts live in [`examples/scripts/`](./examples/scripts/). Run them from the vanilla demo **Script Console** or register them in your own app.
+Three kinds live under `examples/`:
+
+| Folder | What |
+| --- | --- |
+| `embed/` | The smallest embed: one HTML file, one `createEngine()` call, 19 lines |
+| `react/` | `useAsciiEngine()` hook and an `AsciiCanvas` component |
+| `vanilla/` | The harness: one section per subsystem, sliders generated per preset |
+| `scripts/` | Script gallery for the sandboxed `ScriptAPI`, below |
+
+## Script Examples
+
+Example scripts live in [`examples/scripts/`](./examples/scripts/). Run them from the harness **Scripting** section or register them in your own app.
 
 ## Gallery
 

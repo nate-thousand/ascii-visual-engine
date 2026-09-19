@@ -1,13 +1,13 @@
 # ASCII Visual Engine
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/nate-thousand/ascii-visual-engine/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-189%20passing-brightgreen.svg)](#development)
+[![Tests](https://img.shields.io/badge/tests-265%20passing-brightgreen.svg)](#development)
 
 A Canvas 2D ASCII engine used by [Plantasonic](https://github.com/nate-thousand/plantasonic) and [Signal 9](https://github.com/nate-thousand/signal-9-live). Grid, frame loop, presets, plugins, audio, and MIDI — the host app owns the shell.
 
-**v0.1.0** — library + live demo. Not on npm. WebGL is a stub (`render()` is a no-op).
+**v0.3.0** (unreleased on `release/0.3.0`): library plus harness. Not on npm; hosts pin a git tag. WebGL is a stub (`render()` is a no-op).
 
 **Brief:** [BRIEF.md](./BRIEF.md) · **Roadmap:** [ROADMAP.md](./ROADMAP.md)
 
@@ -148,11 +148,19 @@ Full details: [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ### As a dependency
 
+Hosts pin a git tag. Not published to npm; `npm install ascii-visual-engine` will not resolve this package.
+
 ```bash
-npm install github:nate-thousand/ascii-visual-engine#v0.1.0
+npm install github:nate-thousand/ascii-visual-engine#v0.3.0
 ```
 
-Not published to npm. `npm install ascii-visual-engine` will not resolve this package.
+The package's `prepare` script builds `dist/` when npm installs from git, so the import works without a checkout of this repo:
+
+```typescript
+import { createEngine } from 'ascii-visual-engine';
+```
+
+Move between versions by changing the tag. Tags are listed in CHANGELOG.md; nothing on `main` is a release until it is tagged. Verified: `npm install git+...#release/0.3.0` in an empty project yields `dist/` and `import { createEngine }` resolves. If your npm blocks install scripts, allow this package's `prepare` (`npm approve-scripts ascii-visual-engine`) or build `dist/` yourself.
 
 ### Development
 
@@ -165,8 +173,11 @@ npm install
 ### Build
 
 ```bash
-npm run build      # Compile TypeScript + bundle to dist/
-npm run typecheck  # Type-check without emitting
+npm run build          # Compile TypeScript + bundle to dist/
+npm run typecheck      # Library and examples, without emitting
+npm run test           # 265 tests
+npm run test:coverage  # Same, with the coverage floor CI enforces
+npm run docs:api       # TypeDoc reference into docs/api/
 ```
 
 ### Run the example
@@ -180,6 +191,14 @@ Opens the harness at `http://localhost:5173`. One collapsible section per subsys
 ---
 
 ## Example Usage
+
+### Smallest possible embed
+
+[`examples/embed/index.html`](./examples/embed/index.html) is the whole thing: a canvas, one `createEngine()` call, pointer input on, resize wired. Nineteen lines including the HTML.
+
+### React
+
+[`examples/react/useAsciiEngine.ts`](./examples/react/useAsciiEngine.ts) mounts the engine for the life of a component (create on mount, `ResizeObserver` for size, destroy on unmount) and [`AsciiCanvas.tsx`](./examples/react/AsciiCanvas.tsx) wraps it with `preset`, `controls`, and `pointer` props. Both typecheck against `src/` as part of `npm run typecheck`.
 
 ### Basic engine creation
 

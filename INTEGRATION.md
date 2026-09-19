@@ -20,12 +20,12 @@ These tiers define what v0.1.x guarantees vs. what is still experimental.
 ## Quick start (~30 lines)
 
 ```bash
-# In ascii-visual-engine/
-npm run build
-npm link
+# Pin a tag (the prepare script builds dist/ on install)
+npm install github:nate-thousand/ascii-visual-engine#v0.3.0
 
-# In your project
-npm link ascii-visual-engine
+# Or, while developing both side by side:
+# in ascii-visual-engine/   npm run build && npm link
+# in your project           npm link ascii-visual-engine
 ```
 
 ```typescript
