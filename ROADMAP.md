@@ -107,7 +107,7 @@ Decisions 2 through 6. Each verifiable in the harness.
 - [x] Engine state: `getState()` is `idle | running | destroyed`, `state` event on every transition, idempotent `start` `stop` `destroy`, `start()` throws after destroy, mutating calls after destroy warn once and are ignored. `tests/engine-state.test.ts`
 - [x] Preset loader: `loadPresetFromUrl()` through `validatePreset()`, `parsePreset()`, `presetToJson()`; `exportPreset()` from current engine state with a round trip test; harness Save and Load. `tests/preset-io.test.ts`
 - [x] Pattern and effect `params` in the preset schema: `PluginConfig.params`, `ParamStore`, every built in declares its tunables with defaults equal to the old constants, engine and facade get, set, describe; export writes changed params. `tests/plugin-params.test.ts`
-- [ ] Effect unit tests (effects are covered only through integration tests)
+- [x] Effect unit tests: `tests/effects-unit.test.ts` drives the five effect classes directly (determinism, ranges, glyph mapping, params, burst lifecycle, glitch rate under a deterministic random ramp, trails decay and fade transform)
 
 ### 3. Live performance features (0.4.0)
 
@@ -151,6 +151,6 @@ In this order. No host drives it (decision 8).
 | --- | --- | --- |
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
 | 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
-| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | In progress on `release/0.3.0`; everything but the effect unit tests done |
+| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Section 2 complete on `release/0.3.0`, untagged |
 | 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Planned |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |
