@@ -38,7 +38,7 @@ function glyphPreset(
   return withLiveControls(composed);
 }
 
-export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Glyph — Organic Bloom', 'organicBloom', {
+export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Organic Bloom', 'organicBloom', {
   glyphs: { categories: ['organic', 'unicodeDecorative'] },
   plugins: [
     { id: 'burst', type: 'effect' },
@@ -54,7 +54,7 @@ export const organicBloomPreset = glyphPreset('glyphOrganicBloom', 'Glyph — Or
 
 export const digitalForestPreset = glyphPreset(
   'glyphDigitalForest',
-  'Glyph — Digital Forest',
+  'Digital Forest',
   'digitalForest',
   {
     glyphs: { categories: ['organic', 'architecture', 'terminal'] },
@@ -71,7 +71,7 @@ export const digitalForestPreset = glyphPreset(
   },
 );
 
-export const crtTerminalPreset = glyphPreset('glyphCrtTerminal', 'Glyph — CRT Terminal', 'crtTerminal', {
+export const crtTerminalPreset = glyphPreset('glyphCrtTerminal', 'CRT Terminal', 'crtTerminal', {
   glyphs: { categories: ['terminal', 'noise'] },
   plugins: [
     { id: 'wave', type: 'effect' },
@@ -85,7 +85,7 @@ export const crtTerminalPreset = glyphPreset('glyphCrtTerminal', 'Glyph — CRT 
 
 export const corruptedBroadcastPreset = glyphPreset(
   'glyphCorruptedBroadcast',
-  'Glyph — Corrupted Broadcast',
+  'Corrupted Broadcast',
   'corruptedBroadcast',
   {
     glyphs: { categories: ['noise', 'terminal', 'abstract'] },
@@ -100,7 +100,7 @@ export const corruptedBroadcastPreset = glyphPreset(
   },
 );
 
-export const flowFieldPreset = glyphPreset('glyphFlowField', 'Glyph — Flow Field', 'flowField', {
+export const flowFieldPreset = glyphPreset('glyphFlowField', 'Flow Field', 'flowField', {
   glyphs: { categories: ['fluid', 'particle', 'minimal'] },
   plugins: [
     { id: 'wave', type: 'effect' },
@@ -114,7 +114,7 @@ export const flowFieldPreset = glyphPreset('glyphFlowField', 'Glyph — Flow Fie
 
 export const particleNebulaPreset = glyphPreset(
   'glyphParticleNebula',
-  'Glyph — Particle Nebula',
+  'Particle Nebula',
   'particleNebula',
   {
     glyphs: { categories: ['particle', 'unicodeDecorative', 'abstract'] },
@@ -129,7 +129,7 @@ export const particleNebulaPreset = glyphPreset(
 
 export const abstractGeometryPreset = glyphPreset(
   'glyphAbstractGeometry',
-  'Glyph — Abstract Geometry',
+  'Abstract Geometry',
   'abstractGeometry',
   {
     glyphs: { categories: ['geometric', 'abstract', 'technical'] },
@@ -142,7 +142,7 @@ export const abstractGeometryPreset = glyphPreset(
   },
 );
 
-export const minimalZenPreset = glyphPreset('glyphMinimalZen', 'Glyph — Minimal Zen', 'minimalZen', {
+export const minimalZenPreset = glyphPreset('glyphMinimalZen', 'Minimal Zen', 'minimalZen', {
   glyphs: { categories: ['minimal'] },
   plugins: [
     { id: 'trails', type: 'effect' },

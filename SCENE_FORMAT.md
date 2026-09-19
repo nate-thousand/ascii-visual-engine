@@ -71,7 +71,7 @@ interface AsciiSceneDocument {
   },
   "preset": {
     "id": "glyphOrganicBloom",
-    "name": "Glyph — Organic Bloom",
+    "name": "Organic Bloom",
     "glyphSet": [".", "·", "•", "*", "✿"],
     "glyphLanguage": "organicBloom",
     "plugins": [{ "id": "burst", "type": "effect" }],

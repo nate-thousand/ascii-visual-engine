@@ -31,13 +31,13 @@ function performancePreset(
 
 export const performanceGenericPreset = performancePreset(
   'performanceGeneric',
-  'Performance — Generic MIDI',
+  'Generic MIDI',
   'genericKeyboard',
 );
 
 export const performanceAkaiPreset = performancePreset(
   'performanceAkai',
-  'Performance — Akai MPK Mini',
+  'Akai MPK Mini',
   'akaiMpkMini',
   {
     simulation: { behaviors: [{ id: 'particle', enabled: true }], simSpawnRate: 0.4 },
@@ -55,13 +55,13 @@ export const performanceAkaiPreset = performancePreset(
 
 export const performanceLaunchkeyPreset = performancePreset(
   'performanceLaunchkey',
-  'Performance — Novation Launchkey',
+  'Novation Launchkey',
   'novationLaunchkey',
 );
 
 export const performanceQwertyPreset = performancePreset(
   'performanceQwerty',
-  'Performance — QWERTY Keyboard',
+  'QWERTY Keyboard',
   'qwertyKeyboard',
   {
     plugins: [

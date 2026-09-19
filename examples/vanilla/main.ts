@@ -158,7 +158,7 @@ function presetFamily(preset: AsciiPreset): string {
 }
 
 function presetLabel(preset: AsciiPreset): string {
-  return preset.name.replace(/^(Glyph|Audio|Performance) — /, '');
+  return preset.name;
 }
 
 {

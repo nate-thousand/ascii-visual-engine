@@ -37,7 +37,7 @@ function baseAudioPreset(
   });
 }
 
-export const audioAmbientPreset = baseAudioPreset('audioAmbient', 'Audio — Ambient Slow', {
+export const audioAmbientPreset = baseAudioPreset('audioAmbient', 'Ambient Slow', {
   enabled: true,
   smoothing: { attack: 0.35, release: 0.6, sensitivity: 0.8, noiseGate: 0.015 },
   mappings: [
@@ -47,7 +47,7 @@ export const audioAmbientPreset = baseAudioPreset('audioAmbient', 'Audio — Amb
   ],
 }, { speed: 0.5, trailAmount: 0.5 });
 
-export const audioBassPreset = baseAudioPreset('audioBass', 'Audio — Bass Reactive', {
+export const audioBassPreset = baseAudioPreset('audioBass', 'Bass Reactive', {
   enabled: true,
   smoothing: { attack: 0.06, release: 0.2, sensitivity: 1.2, noiseGate: 0.025 },
   mappings: [
@@ -67,7 +67,7 @@ export const audioBassPreset = baseAudioPreset('audioBass', 'Audio — Bass Reac
   glitchAmount: 0,
 });
 
-export const audioGlitchPreset = baseAudioPreset('audioGlitch', 'Audio — Glitch Transient', {
+export const audioGlitchPreset = baseAudioPreset('audioGlitch', 'Glitch Transient', {
   enabled: true,
   smoothing: { attack: 0.02, release: 0.12, sensitivity: 1.5, noiseGate: 0.01 },
   mappings: [
@@ -86,7 +86,7 @@ export const audioGlitchPreset = baseAudioPreset('audioGlitch', 'Audio — Glitc
   glitchAmount: 0.2,
 });
 
-export const audioVoicePreset = baseAudioPreset('audioVoice', 'Audio — Voice Reactive', {
+export const audioVoicePreset = baseAudioPreset('audioVoice', 'Voice Reactive', {
   enabled: true,
   smoothing: { attack: 0.1, release: 0.3, sensitivity: 1, noiseGate: 0.03 },
   mappings: [
@@ -104,7 +104,7 @@ export const audioVoicePreset = baseAudioPreset('audioVoice', 'Audio — Voice R
   pattern: { spiralAmount: 0.4 },
 });
 
-export const audioFullSpectrumPreset = baseAudioPreset('audioFullSpectrum', 'Audio — Full Spectrum', {
+export const audioFullSpectrumPreset = baseAudioPreset('audioFullSpectrum', 'Full Spectrum', {
   enabled: true,
   smoothing: { attack: 0.07, release: 0.22, sensitivity: 1.1, noiseGate: 0.02 },
   mappings: [

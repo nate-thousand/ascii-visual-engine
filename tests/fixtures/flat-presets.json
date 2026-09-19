@@ -1743,7 +1743,7 @@
   },
   {
     "id": "audioAmbient",
-    "name": "Audio — Ambient Slow",
+    "name": "Ambient Slow",
     "glyphSet": [
       " ",
       ".",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "audioBass",
-    "name": "Audio — Bass Reactive",
+    "name": "Bass Reactive",
     "glyphSet": [
       " ",
       ".",
@@ -2212,7 +2212,7 @@
   },
   {
     "id": "audioGlitch",
-    "name": "Audio — Glitch Transient",
+    "name": "Glitch Transient",
     "glyphSet": [
       " ",
       ".",
@@ -2424,7 +2424,7 @@
   },
   {
     "id": "audioVoice",
-    "name": "Audio — Voice Reactive",
+    "name": "Voice Reactive",
     "glyphSet": [
       " ",
       ".",
@@ -2626,7 +2626,7 @@
   },
   {
     "id": "audioFullSpectrum",
-    "name": "Audio — Full Spectrum",
+    "name": "Full Spectrum",
     "glyphSet": [
       " ",
       ".",
@@ -2902,7 +2902,7 @@
   },
   {
     "id": "performanceGeneric",
-    "name": "Performance — Generic MIDI",
+    "name": "Generic MIDI",
     "glyphSet": [
       " ",
       ".",
@@ -3044,7 +3044,7 @@
   },
   {
     "id": "performanceAkai",
-    "name": "Performance — Akai MPK Mini",
+    "name": "Akai MPK Mini",
     "glyphSet": [
       " ",
       ".",
@@ -3255,7 +3255,7 @@
   },
   {
     "id": "performanceLaunchkey",
-    "name": "Performance — Novation Launchkey",
+    "name": "Novation Launchkey",
     "glyphSet": [
       " ",
       ".",
@@ -3397,7 +3397,7 @@
   },
   {
     "id": "performanceQwerty",
-    "name": "Performance — QWERTY Keyboard",
+    "name": "QWERTY Keyboard",
     "glyphSet": [
       " ",
       ".",
@@ -3519,7 +3519,7 @@
   },
   {
     "id": "glyphOrganicBloom",
-    "name": "Glyph — Organic Bloom",
+    "name": "Organic Bloom",
     "glyphSet": [
       ".",
       "·",
@@ -3671,7 +3671,7 @@
   },
   {
     "id": "glyphDigitalForest",
-    "name": "Glyph — Digital Forest",
+    "name": "Digital Forest",
     "glyphSet": [
       ".",
       "·",
@@ -3824,7 +3824,7 @@
   },
   {
     "id": "glyphCrtTerminal",
-    "name": "Glyph — CRT Terminal",
+    "name": "CRT Terminal",
     "glyphSet": [
       ".",
       ":",
@@ -3935,7 +3935,7 @@
   },
   {
     "id": "glyphCorruptedBroadcast",
-    "name": "Glyph — Corrupted Broadcast",
+    "name": "Corrupted Broadcast",
     "glyphSet": [
       "░",
       "▒",
@@ -4056,7 +4056,7 @@
   },
   {
     "id": "glyphFlowField",
-    "name": "Glyph — Flow Field",
+    "name": "Flow Field",
     "glyphSet": [
       "~",
       "≈",
@@ -4182,7 +4182,7 @@
   },
   {
     "id": "glyphParticleNebula",
-    "name": "Glyph — Particle Nebula",
+    "name": "Particle Nebula",
     "glyphSet": [
       ".",
       "·",
@@ -4346,7 +4346,7 @@
   },
   {
     "id": "glyphAbstractGeometry",
-    "name": "Glyph — Abstract Geometry",
+    "name": "Abstract Geometry",
     "glyphSet": [
       ".",
       "+",
@@ -4457,7 +4457,7 @@
   },
   {
     "id": "glyphMinimalZen",
-    "name": "Glyph — Minimal Zen",
+    "name": "Minimal Zen",
     "glyphSet": [
       " ",
       ".",
