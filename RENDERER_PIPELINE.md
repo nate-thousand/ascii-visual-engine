@@ -74,7 +74,7 @@ interface RenderContext {
 | --- | --- | --- | --- | --- |
 | `canvas` | `CanvasRenderer` | Canvas 2D | Yes | Default. Full motion offsets, trails fade |
 | `dom` | `DomRenderer` | `<pre>` text | Yes | Terminal-style output. No trail fade |
-| `offscreen-canvas` | `OffscreenCanvasRenderer` | Offscreen → canvas | Yes | Falls back to canvas 2D if unsupported |
+| `offscreen-canvas` | `OffscreenCanvasRenderer` | Offscreen → canvas | Yes | Falls back to canvas 2D if unsupported. Same cost as `canvas` until the worker path exists (ROADMAP section 5); API only, not in the harness select |
 | `webgl` | `WebGLRendererStub` | — | No | Interface only — planned for GPU optimization |
 
 ---

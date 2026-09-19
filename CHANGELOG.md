@@ -24,6 +24,7 @@ Live performance features. See ROADMAP.md section 3.
 
 ### Changed
 
+- Harness Renderer select offers Canvas 2D and DOM text only. `offscreen-canvas` stays available through `renderer` and `setActiveRenderer()`; it buys nothing over `canvas` until rendering moves to a worker.
 - `setPreset()` no longer resets source and performance control values (`sourceBlend`, `sourceContrast`, `sourceEdge`, `fpsTarget`, `perfQuality`, `adaptiveQuality`, `dirtyRendering`, `spatialGrid`, `workerOffload`) to their defaults: they are engine state, and their managers were never reset, so `getControl()` disagreed with what the engine was doing. The values set before the switch are kept.
 - `GridBuffer.setDensity()` skips the rebuild when the new density lands on the same column count, so a morph step or an adaptive quality nudge no longer clears every cell.
 
