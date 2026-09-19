@@ -1,6 +1,7 @@
 import type { NoteEvent } from '../core/types';
 import type { AsciiEngine } from '../core/AsciiEngine';
-import { clamp01, type Plugin, type PluginContext, type PluginType } from './Plugin';
+import { clamp01, type Plugin, type PluginConfig, type PluginContext, type PluginType } from './Plugin';
+import { isParameterized, type ParamDef } from './ParamStore';
 import { isEffectPlugin } from './EffectPlugin';
 import { isPatternPlugin, PatternPlugin } from './PatternPlugin';
 
@@ -80,6 +81,43 @@ export class PluginManager {
       const plugin = this.plugins.get(id);
       if (plugin) plugin.enabled = true;
     }
+  }
+
+  /**
+   * Preset load: enable exactly these plugins and set their params. Every
+   * plugin's params go back to defaults first, so a preset that says nothing
+   * about a plugin gets its stock behavior.
+   */
+  applyConfigs(configs: PluginConfig[]): void {
+    for (const plugin of this.plugins.values()) {
+      plugin.enabled = false;
+      if (isParameterized(plugin)) plugin.resetParams();
+    }
+    for (const config of configs) {
+      if (config.enabled === false) continue;
+      const plugin = this.plugins.get(config.id);
+      if (!plugin) continue;
+      plugin.enabled = true;
+      const params = config.params ?? (config.options as Record<string, number> | undefined);
+      if (params && isParameterized(plugin)) plugin.setParams(params);
+    }
+  }
+
+  describeParams(id: string): ParamDef[] {
+    const plugin = this.plugins.get(id);
+    return plugin && isParameterized(plugin) ? plugin.describeParams() : [];
+  }
+
+  getParams(id: string): Record<string, number> {
+    const plugin = this.plugins.get(id);
+    return plugin && isParameterized(plugin) ? plugin.getParams() : {};
+  }
+
+  setParams(id: string, params: Record<string, number>): boolean {
+    const plugin = this.plugins.get(id);
+    if (!plugin || !isParameterized(plugin)) return false;
+    plugin.setParams(params);
+    return true;
   }
 
   update(deltaTime: number, context: PluginContext): void {

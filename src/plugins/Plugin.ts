@@ -31,6 +31,8 @@ export interface PluginConfig {
   id: string;
   type: PluginType;
   enabled?: boolean;
+  params?: Record<string, number>;
+  /** @deprecated Use `params` */
   options?: Record<string, unknown>;
 }
 

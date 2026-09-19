@@ -1,6 +1,7 @@
 import type { Effect, EffectContext, NoteEvent } from '../core/types';
 import type { AsciiEngine } from '../core/AsciiEngine';
 import type { Plugin, PluginContext } from './Plugin';
+import { isParameterized, type ParamDef, type Parameterized } from './ParamStore';
 
 export type EffectPhase = 'motion' | 'post';
 
@@ -11,7 +12,7 @@ export interface EffectPluginMeta {
   phase: EffectPhase;
 }
 
-export class EffectPlugin implements Plugin {
+export class EffectPlugin implements Plugin, Parameterized {
   readonly id: string;
   readonly name: string;
   readonly version: string;
@@ -56,6 +57,22 @@ export class EffectPlugin implements Plugin {
 
   getEffect(): Effect {
     return this.effect;
+  }
+
+  describeParams(): ParamDef[] {
+    return isParameterized(this.effect) ? this.effect.describeParams() : [];
+  }
+
+  getParams(): Record<string, number> {
+    return isParameterized(this.effect) ? this.effect.getParams() : {};
+  }
+
+  setParams(params: Record<string, number>): void {
+    if (isParameterized(this.effect)) this.effect.setParams(params);
+  }
+
+  resetParams(): void {
+    if (isParameterized(this.effect)) this.effect.resetParams();
   }
 }
 

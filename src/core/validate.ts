@@ -163,6 +163,15 @@ export function validatePreset(input: unknown): PresetValidationResult {
         if (!isObject(pl)) { errors.push(`${where}: plugins[${i}] must be an object`); return; }
         if (!isNonEmptyString(pl.id)) errors.push(`${where}: plugins[${i}].id must be a non-empty string`);
         if (!PLUGIN_TYPES.has(pl.type as string)) errors.push(`${where}: plugins[${i}].type must be one of ${[...PLUGIN_TYPES].join(', ')}`);
+        if (pl.params !== undefined) {
+          if (!isObject(pl.params)) {
+            errors.push(`${where}: plugins[${i}].params must be an object when present`);
+          } else {
+            for (const [k, v] of Object.entries(pl.params)) {
+              if (!isFiniteNumber(v)) errors.push(`${where}: plugins[${i}].params.${k} must be a finite number`);
+            }
+          }
+        }
       });
     }
   }

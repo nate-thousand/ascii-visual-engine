@@ -1,10 +1,35 @@
 import type { AsciiEngine } from '../core/AsciiEngine';
 import type { Pattern, PatternSampleContext } from './Pattern';
 import { clamp01 } from './Pattern';
+import { ParamStore, type ParamDef, type Parameterized } from '../plugins/ParamStore';
 
-export class RadialSymmetryPattern implements Pattern {
+export class RadialSymmetryPattern implements Pattern, Parameterized {
   readonly id = 'radialSymmetry' as const;
   readonly name = 'Radial Symmetry';
+
+  readonly params = new ParamStore<'fold' | 'petal' | 'bloom' | 'ring' | 'ringFrequency'>([
+    { name: 'fold', label: 'Fold', min: 0, max: 1, default: 0.35, step: 0.05 },
+    { name: 'petal', label: 'Petal', min: 0, max: 1, default: 0.35, step: 0.05 },
+    { name: 'bloom', label: 'Bloom', min: 0, max: 1, default: 0.2, step: 0.05 },
+    { name: 'ring', label: 'Ring', min: 0, max: 1, default: 0.1, step: 0.05 },
+    { name: 'ringFrequency', label: 'Ring frequency', min: 2, max: 30, default: 12, step: 1 },
+  ]);
+
+  describeParams(): ParamDef[] {
+    return this.params.describeParams();
+  }
+
+  getParams(): Record<string, number> {
+    return this.params.getParams();
+  }
+
+  setParams(params: Record<string, number>): void {
+    this.params.setParams(params);
+  }
+
+  resetParams(): void {
+    this.params.resetParams();
+  }
 
   initialize(_engine: AsciiEngine): void {}
 
@@ -26,9 +51,14 @@ export class RadialSymmetryPattern implements Pattern {
       0.55,
     );
     const bloom = Math.max(0, 1 - r * 0.85);
-    const ring = Math.sin(r * 12 - t * 1.5) * 0.5 + 0.5;
+    const ring = Math.sin(r * this.params.get('ringFrequency') - t * 1.5) * 0.5 + 0.5;
 
-    return clamp01(fold * 0.35 + petal * 0.35 + bloom * 0.2 + ring * 0.1);
+    return clamp01(
+      fold * this.params.get('fold') +
+        petal * this.params.get('petal') +
+        bloom * this.params.get('bloom') +
+        ring * this.params.get('ring'),
+    );
   }
 
   destroy(): void {}

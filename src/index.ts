@@ -1,6 +1,8 @@
 // Core
 export { AsciiEngine } from './core/AsciiEngine';
 export { createEngine } from './core/createEngine';
+export { ParamStore, isParameterized } from './plugins/ParamStore';
+export type { ParamDef, Parameterized } from './plugins/ParamStore';
 export { resolvePixelRatio, MAX_PIXEL_RATIO } from './renderers/pixelRatio';
 export type { PixelRatioOption } from './renderers/pixelRatio';
 export type { CreateEngineOptions, EngineHandle } from './core/createEngine';

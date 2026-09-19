@@ -63,7 +63,7 @@ Three rules make the shape predictable:
 | `id` | yes | Non empty. Used for selection, `?preset=` in the harness, and warnings |
 | `name` | yes | Display name |
 | `glyphSet` | yes | Ordered characters from dark to bright. Ignored for character choice when `glyphs.language` or `glyphs.categories` is set, still required |
-| `plugins` | no | `{ id, type: 'effect' \| 'pattern', enabled? }`. Effects: `noise wave burst glitch trails`. Patterns: `radialSymmetry spiral wavePattern grid cellular scanline` |
+| `plugins` | no | `{ id, type: 'effect' \| 'pattern', enabled?, params? }`. Effects: `noise wave burst glitch trails`. Patterns: `radialSymmetry spiral wavePattern grid cellular scanline`. `params` sets a plugin's own tunables (PLUGIN_API.md lists them); values are clamped, unknown names ignored, and every plugin returns to its defaults on each preset load |
 | `controls` | no | `{ name, label?, min, max, default, step? }`. When absent, derived from what the composition reads (see `listLiveControls()`). A declared entry keeps its range and label; its `default` follows the preset's own value for that control |
 | `density` `speed` `trailAmount` `glitchAmount` | no | Base values every preset has. `trailAmount` only draws when the `trails` effect is enabled, `glitchAmount` when `glitch` is |
 | `motion` | no | See MOTION_SYSTEM.md. `field` alone (no behaviors) maps to the legacy noise or wave behavior set |
@@ -80,7 +80,7 @@ Three rules make the shape predictable:
 
 `AsciiEngine.setPreset()` and the constructor run `assertValidPreset()`, which normalizes, validates, and throws with every structural problem listed. Soft problems (a default outside its range, an unknown control name, the deprecated flat shape) warn once per preset id. `validatePreset(json)` does the same without throwing and returns `{ ok, errors, warnings, preset }`, where `preset` is the normalized nested object with `controls` filled in.
 
-Structural errors: missing or mistyped `id`, `name`, `glyphSet`; `plugins` or `controls` not arrays; a plugin `type` outside `pattern effect input renderer utility`; a control with `min > max` or a non positive `step`; a base or group number that is not finite; `density` not greater than 0; `motion.field` outside `noise wave none`; a group that is not an object; a legacy `patterns` id that is not a known pattern.
+Structural errors: missing or mistyped `id`, `name`, `glyphSet`; `plugins` or `controls` not arrays; a plugin `type` outside `pattern effect input renderer utility`; a plugin `params` that is not an object of finite numbers; a control with `min > max` or a non positive `step`; a base or group number that is not finite; `density` not greater than 0; `motion.field` outside `noise wave none`; a group that is not an object; a legacy `patterns` id that is not a known pattern.
 
 ## Examples
 
@@ -100,7 +100,7 @@ A look with motion, a pattern, and tuned defaults:
   "plugins": [
     { "id": "burst", "type": "effect" },
     { "id": "trails", "type": "effect" },
-    { "id": "radialSymmetry", "type": "pattern" }
+    { "id": "radialSymmetry", "type": "pattern", "params": { "ringFrequency": 20 } }
   ],
   "speed": 0.6,
   "trailAmount": 0.45,

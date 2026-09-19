@@ -4,6 +4,7 @@ import { validatePreset } from '../core/validate';
 import { CONTROL_GROUP, type PresetControlName, type PresetGroupName } from '../core/presetShape';
 import { listLiveControls } from '../core/liveControls';
 import { withLiveControls } from './controlCatalog';
+import type { ParamDef } from '../plugins/ParamStore';
 
 export interface ExportPresetOptions {
   /** Id for the exported preset. Default: the current preset's id with `-edit`. */
@@ -26,7 +27,12 @@ export function exportPreset(engine: AsciiEngine, options: ExportPresetOptions =
   const plugins: PluginConfig[] = engine
     .getEnabledPlugins()
     .filter((p) => p.type === 'effect' || p.type === 'pattern')
-    .map((p) => ({ id: p.id, type: p.type }));
+    .map((p) => {
+      const config: PluginConfig = { id: p.id, type: p.type };
+      const changed = changedParams(engine.describePluginParams(p.id), engine.getPluginParams(p.id));
+      if (Object.keys(changed).length > 0) config.params = changed;
+      return config;
+    });
 
   const behaviors = engine.getEnabledMotions().map((m) => ({ id: m.id, weight: m.weight, priority: m.priority }));
   const simulations = engine.getEnabledSimulations().map((s) => ({ id: s.id }));
@@ -77,6 +83,14 @@ export function exportPreset(engine: AsciiEngine, options: ExportPresetOptions =
   }
 
   return withLiveControls(draft);
+}
+
+function changedParams(defs: ParamDef[], values: Record<string, number>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const def of defs) {
+    if (values[def.name] !== undefined && values[def.name] !== def.default) out[def.name] = values[def.name];
+  }
+  return out;
 }
 
 /** A preset as pretty printed JSON. */

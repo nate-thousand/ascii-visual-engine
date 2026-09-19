@@ -59,6 +59,9 @@ export interface PluginConfig {
   id: string;
   type: PluginType;
   enabled?: boolean;
+  /** Tunables the plugin declares (see `describePluginParams()`); unknown names are ignored, values are clamped. */
+  params?: Record<string, number>;
+  /** @deprecated Use `params` */
   options?: Record<string, unknown>;
 }
 

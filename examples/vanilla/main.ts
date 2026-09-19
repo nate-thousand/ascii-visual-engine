@@ -50,6 +50,7 @@ const patternPluginList = $<HTMLDivElement>('pattern-plugins');
 const motionPluginList = $<HTMLDivElement>('motion-plugins');
 const simulationPluginList = $<HTMLDivElement>('simulation-plugins');
 const postPassList = $<HTMLDivElement>('post-passes');
+const pluginParamsEl = $<HTMLDivElement>('plugin-params');
 
 const sourceModeSelect = $<HTMLSelectElement>('source-mode');
 const sourceFitSelect = $<HTMLSelectElement>('source-fit');
@@ -373,9 +374,11 @@ function mountCheckbox(
 
 for (const [id, entry] of Object.entries(pluginCatalog)) {
   const target = entry.type === 'pattern' ? patternPluginList : effectPluginList;
-  mountCheckbox(target, id, entry.name, pluginCheckboxes, (on) =>
-    on ? engine.enablePlugin(id) : engine.disablePlugin(id),
-  );
+  mountCheckbox(target, id, entry.name, pluginCheckboxes, (on) => {
+    if (on) engine.enablePlugin(id);
+    else engine.disablePlugin(id);
+    buildPluginParams();
+  });
 }
 for (const [id, entry] of Object.entries(motionCatalog)) {
   mountCheckbox(motionPluginList, id, entry.name, motionCheckboxes, (on) =>
@@ -393,9 +396,45 @@ for (const id of listPostPassIds()) {
   );
 }
 
+/** One slider per param of every enabled effect and pattern plugin. */
+function buildPluginParams(): void {
+  pluginParamsEl.innerHTML = '';
+  for (const plugin of engine.getEnabledPlugins()) {
+    const defs = engine.describePluginParams(plugin.id);
+    if (defs.length === 0) continue;
+    const values = engine.getPluginParams(plugin.id);
+    const title = document.createElement('div');
+    title.className = 'status';
+    title.textContent = plugin.name;
+    pluginParamsEl.appendChild(title);
+    for (const def of defs) {
+      const label = document.createElement('label');
+      label.append(def.label ?? def.name);
+      const value = document.createElement('span');
+      value.className = 'value';
+      value.textContent = String(values[def.name]);
+      label.appendChild(value);
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.id = `param-${plugin.id}-${def.name}`;
+      input.min = String(def.min);
+      input.max = String(def.max);
+      input.step = String(def.step ?? 0.01);
+      input.value = String(values[def.name]);
+      input.addEventListener('input', () => {
+        const v = parseFloat(input.value);
+        value.textContent = String(v);
+        engine.setPluginParams(plugin.id, { [def.name]: v });
+      });
+      pluginParamsEl.append(label, input);
+    }
+  }
+}
+
 function syncCompositionFromEngine(): void {
   const plugins = new Set(engine.getEnabledPlugins().map((p: Plugin) => p.id));
   for (const [id, box] of pluginCheckboxes) box.checked = plugins.has(id);
+  buildPluginParams();
   const motions = new Set(engine.getEnabledMotions().map((m) => m.id));
   for (const [id, box] of motionCheckboxes) box.checked = motions.has(id);
   const sims = new Set(engine.getEnabledSimulations().map((s) => s.id));

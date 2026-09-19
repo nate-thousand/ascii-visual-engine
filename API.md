@@ -39,6 +39,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `exportPreset(options?)` | The current look as a preset: enabled plugins, motions with weights, simulations, passes, layers, glyph config, every live control at its current value. `{ id?, name? }` |
 | `loadPresetFromUrl(url, init?)` | Fetch, validate, and apply a preset JSON file (nested or flat). Rejects with every error listed; the look is untouched on failure |
 | `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
+| `describePluginParams(id)`, `getPluginParams(id)`, `setPluginParams(id, params)` | Plugin tunables, e.g. `spiral` arms or `glitch` rate |
 | `setGlyphSet(glyphs)` | Override glyph characters, bypassing the glyph language |
 | `setColor(color)` | Canvas foreground color |
 | `setBassGlyphScale(level)` | Host supplied bass level (0 to 1) for per glyph scale pulses |
@@ -124,6 +125,10 @@ Disables a plugin without removing it. Emits `plugin` event.
 #### `getPlugin(id: string): Plugin | undefined`
 
 Returns a registered plugin by id.
+
+#### `describePluginParams(id): ParamDef[]`, `getPluginParams(id)`, `setPluginParams(id, params)`
+
+A plugin's own tunables (ranges and defaults, current values, set some of them). Values are clamped, unknown names ignored; `setPluginParams` emits `plugin`. See PLUGIN_API.md for the built in params.
 
 #### `getEnabledPlugins(): Plugin[]`
 

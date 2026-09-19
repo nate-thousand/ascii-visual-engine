@@ -3,6 +3,7 @@ import type { AsciiPreset, EngineEventMap, EngineEventName, EngineState } from '
 import type { ScriptEngine } from '../scripting/ScriptEngine';
 import type { PointerInputOptions, PointerState } from '../input/PointerInput';
 import type { ExportPresetOptions } from '../presets/presetIO';
+import type { ParamDef } from '../plugins/ParamStore';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -56,6 +57,11 @@ export interface EngineHandle {
   setControl(name: string, value: number): void;
   /** Read a control; `fallback` when it has never been set. */
   getControl(name: string, fallback?: number): number;
+
+  /** A plugin's tunables (`describePluginParams`) and their current values; `setPluginParams` clamps and ignores unknown names. */
+  describePluginParams(id: string): ParamDef[];
+  getPluginParams(id: string): Record<string, number>;
+  setPluginParams(id: string, params: Record<string, number>): void;
 
   /** Override the glyph characters, bypassing the preset's glyph language. */
   setGlyphSet(glyphs: string[]): void;
@@ -141,6 +147,10 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
 
     setControl: (name, value) => engine.setControl(name, value),
     getControl: (name, fallback) => engine.getControl(name, fallback),
+
+    describePluginParams: (id) => engine.describePluginParams(id),
+    getPluginParams: (id) => engine.getPluginParams(id),
+    setPluginParams: (id, params) => engine.setPluginParams(id, params),
 
     setGlyphSet: (glyphs) => engine.setGlyphSet(glyphs),
     setColor: (color) => engine.setColor(color),

@@ -32,6 +32,7 @@ import type {
 } from './types';
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
 import { exportPreset, loadPresetFromUrl, type ExportPresetOptions } from '../presets/presetIO';
+import type { ParamDef } from '../plugins/ParamStore';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
 import type { EngineDebugState } from './debug';
 import {
@@ -380,6 +381,23 @@ export class AsciiEngine {
 
   getPlugin(id: string): Plugin | undefined {
     return this.pluginManager.get(id);
+  }
+
+  /** A plugin's tunables with ranges and defaults; empty for plugins without params. */
+  describePluginParams(id: string): ParamDef[] {
+    return this.pluginManager.describeParams(id);
+  }
+
+  getPluginParams(id: string): Record<string, number> {
+    return this.pluginManager.getParams(id);
+  }
+
+  /** Set some of a plugin's params; values are clamped, unknown names ignored. Emits `plugin`. */
+  setPluginParams(id: string, params: Record<string, number>): void {
+    if (!this.alive('setPluginParams')) return;
+    if (!this.pluginManager.setParams(id, params)) return;
+    const plugin = this.pluginManager.get(id);
+    if (plugin) this.eventBus.emit('plugin', { id, type: plugin.type, enabled: plugin.enabled });
   }
 
   getEnabledPlugins(): Plugin[] {
@@ -1102,7 +1120,7 @@ export class AsciiEngine {
   private applyPresetPlugins(preset: AsciiPreset): void {
     const enabledIds = resolvePresetPlugins(preset);
     warnUnknownPluginIds(enabledIds);
-    this.pluginManager.setEnabledIds(enabledIds);
+    this.pluginManager.applyConfigs(preset.plugins ?? []);
   }
 
   private applyPresetSource(preset: AsciiPreset): void {

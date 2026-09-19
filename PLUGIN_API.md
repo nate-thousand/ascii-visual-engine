@@ -77,6 +77,9 @@ engine.disablePlugin('glitch');
 engine.getPlugin('glitch');
 engine.getEnabledPlugins();
 engine.getPluginManager();
+engine.describePluginParams('spiral');
+engine.getPluginParams('spiral');
+engine.setPluginParams('spiral', { arms: 5 });
 ```
 
 Events:
@@ -226,14 +229,12 @@ const preset: AsciiPreset = {
   id: 'bloom',
   name: 'Bloom',
   glyphSet: ['·', '○', '●', '◉'],
-  motionField: 'none',
   plugins: [
     { id: 'noise', type: 'effect' },
-    { id: 'trails', type: 'effect', options: {} },
-    { id: 'radialSymmetry', type: 'pattern' },
-    { id: 'cellular', type: 'pattern', options: {} },
+    { id: 'trails', type: 'effect', params: { decay: 0.08 } },
+    { id: 'radialSymmetry', type: 'pattern', params: { ringFrequency: 20, bloom: 0.4 } },
+    { id: 'cellular', type: 'pattern' },
   ],
-  controls: [],
   density: 1,
   speed: 0.6,
   trailAmount: 0.7,
@@ -241,7 +242,52 @@ const preset: AsciiPreset = {
 };
 ```
 
-Legacy `effects` and `patterns` arrays are still supported and auto-migrated via `resolvePresetPlugins()`.
+Legacy `effects`, `patterns`, and `motionField` are folded into `plugins` by `normalizePreset()` when a flat preset loads.
+
+### Params
+
+A plugin can declare tunables beyond the shared controls. `params` on a plugin config sets them when the preset loads; every plugin's params return to their defaults on each `setPreset()`, so a preset that says nothing about a plugin gets stock behavior. Values are clamped to the declared range and unknown names are ignored, so a preset written for a newer plugin still loads.
+
+Every built in pattern and effect declares params, with defaults equal to the constants they replaced:
+
+| Plugin | Params |
+| --- | --- |
+| `spiral` | `arms` 3, `twist` 8, `orbit` 16 |
+| `radialSymmetry` | `fold` 0.35, `petal` 0.35, `bloom` 0.2, `ring` 0.1 (mix weights), `ringFrequency` 12 |
+| `cellular` | `scale` 6, `threshold` 0.42 |
+| `scanline` | `spacing` 0.035, `lineWidth` 0.35, `staticAmount` 0.4 |
+| `grid` | `cols` 10, `rows` 8, `lineWidth` 0.08 |
+| `wavePattern` | `frequencyX` 4, `frequencyY` 3, `frequencyDiagonal` 5 |
+| `glitch` | `rate` 0.28, `symbolShare` 0.5 |
+| `noise` | `scaleX` 0.7, `scaleY` 0.5, `floor` 0.4 |
+| `wave` | `scaleX` 0.3, `scaleY` 0.25, `floor` 0.3 |
+| `burst` | `radius` 0.5, `spread` 2.5, `life` 0.9, `gain` 1.4 |
+| `trails` | `decay` 0.15, `fade` 0.86 |
+
+Runtime: `engine.describePluginParams(id)` returns the definitions (`{ name, label, min, max, default, step }`, the `ControlDef` shape), `engine.getPluginParams(id)` the values, `engine.setPluginParams(id, { name: value })` sets some of them and emits `plugin`. `exportPreset()` writes only the params that differ from their defaults.
+
+Third party plugins opt in by implementing `Parameterized` (`describeParams`, `getParams`, `setParams`, `resetParams`); `ParamStore` does the bookkeeping:
+
+```typescript
+import { ParamStore, type ParamDef, type Parameterized } from 'ascii-visual-engine';
+
+class Ripple implements Pattern, Parameterized {
+  readonly params = new ParamStore<'rings' | 'speed'>([
+    { name: 'rings', min: 1, max: 20, default: 6, step: 1 },
+    { name: 'speed', min: 0, max: 4, default: 1, step: 0.1 },
+  ]);
+  describeParams(): ParamDef[] { return this.params.describeParams(); }
+  getParams() { return this.params.getParams(); }
+  setParams(p: Record<string, number>) { this.params.setParams(p); }
+  resetParams() { this.params.resetParams(); }
+  sample(x: number, y: number, ctx: PatternSampleContext) {
+    return Math.sin(Math.hypot(x - 0.5, y - 0.5) * this.params.get('rings') * Math.PI - ctx.time * this.params.get('speed')) * 0.5 + 0.5;
+  }
+  // ...
+}
+```
+
+`PatternPlugin` and `EffectPlugin` forward the four methods to the wrapped pattern or effect.
 
 ---
 

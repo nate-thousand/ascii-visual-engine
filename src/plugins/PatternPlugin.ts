@@ -1,6 +1,7 @@
 import type { Pattern, PatternSampleContext } from '../patterns/Pattern';
 import type { AsciiEngine } from '../core/AsciiEngine';
 import type { Plugin, PluginContext } from './Plugin';
+import { isParameterized, type ParamDef, type Parameterized } from './ParamStore';
 
 export interface PatternPluginMeta {
   id?: string;
@@ -8,7 +9,7 @@ export interface PatternPluginMeta {
   version: string;
 }
 
-export class PatternPlugin implements Plugin {
+export class PatternPlugin implements Plugin, Parameterized {
   readonly id: string;
   readonly name: string;
   readonly version: string;
@@ -43,6 +44,22 @@ export class PatternPlugin implements Plugin {
 
   getPattern(): Pattern {
     return this.pattern;
+  }
+
+  describeParams(): ParamDef[] {
+    return isParameterized(this.pattern) ? this.pattern.describeParams() : [];
+  }
+
+  getParams(): Record<string, number> {
+    return isParameterized(this.pattern) ? this.pattern.getParams() : {};
+  }
+
+  setParams(params: Record<string, number>): void {
+    if (isParameterized(this.pattern)) this.pattern.setParams(params);
+  }
+
+  resetParams(): void {
+    if (isParameterized(this.pattern)) this.pattern.resetParams();
   }
 
   getWeight(context: PluginContext): number {
