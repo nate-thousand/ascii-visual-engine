@@ -1,6 +1,7 @@
 import type { Motion, MotionContext } from '../Motion';
 import type { AsciiEngine } from '../../core/AsciiEngine';
 import { clamp01 } from '../motionMath';
+import { tempoAngle } from '../../core/tempo';
 
 export class BreathingMotion implements Motion {
   readonly id = 'breathing';
@@ -16,8 +17,14 @@ export class BreathingMotion implements Motion {
     const speed = getControl('speed', 1);
     const amp = getControl('amplitude', 1);
     const strength = getControl('strength', 0.7);
-    const breath = Math.sin(time * speed * 1.2) * 0.5 + 0.5;
-    const inhale = Math.sin(time * speed * 0.6);
+    // Tempo sync: one breath per bar, blended in by the control.
+    const sync = ctx.tempo.source === 'none' ? 0 : getControl('tempoSync', 0);
+    const barAngle = tempoAngle(ctx.tempo, 4);
+    const freeBreath = Math.sin(time * speed * 1.2) * 0.5 + 0.5;
+    const syncBreath = Math.sin(barAngle - Math.PI / 2) * 0.5 + 0.5;
+    const breath = freeBreath + (syncBreath - freeBreath) * sync;
+    const freeInhale = Math.sin(time * speed * 0.6);
+    const inhale = freeInhale + (Math.sin(barAngle * 0.5) - freeInhale) * sync;
 
     for (let i = 0; i < grid.cells.length; i++) {
       const cell = grid.cells[i];

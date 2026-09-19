@@ -1,6 +1,7 @@
 import type { Motion, MotionContext } from '../Motion';
 import type { AsciiEngine } from '../../core/AsciiEngine';
 import { clamp01 } from '../motionMath';
+import { tempoAngle } from '../../core/tempo';
 
 export class PulseMotion implements Motion {
   readonly id = 'pulse';
@@ -17,6 +18,9 @@ export class PulseMotion implements Motion {
     const freq = getControl('frequency', 1);
     const amp = getControl('amplitude', 1);
     const strength = getControl('strength', 0.7);
+    // Tempo sync: one pulse cycle per beat, blended in by the control.
+    const sync = ctx.tempo.source === 'none' ? 0 : getControl('tempoSync', 0);
+    const syncAngle = tempoAngle(ctx.tempo, 1);
 
     for (let i = 0; i < grid.cells.length; i++) {
       const cell = grid.cells[i];
@@ -25,8 +29,10 @@ export class PulseMotion implements Motion {
       const dx = nx - 0.5;
       const dy = ny - 0.5;
       const r = Math.sqrt(dx * dx + dy * dy);
-      const pulse = Math.sin(r * 20 * freq - time * speed * 3) * 0.5 + 0.5;
-      const ring = Math.sin(r * 30 - time * speed * 4) > 0.7 ? 1 : 0;
+      const freePulse = Math.sin(r * 20 * freq - time * speed * 3) * 0.5 + 0.5;
+      const syncPulse = Math.sin(r * 20 * freq - syncAngle) * 0.5 + 0.5;
+      const pulse = freePulse + (syncPulse - freePulse) * sync;
+      const ring = Math.sin(r * 30 - (sync > 0 ? syncAngle * (1 + sync) : time * speed * 4)) > 0.7 ? 1 : 0;
 
       scratch.dx[i] = dx * pulse * amp * 12 * strength;
       scratch.dy[i] = dy * pulse * amp * 12 * strength;

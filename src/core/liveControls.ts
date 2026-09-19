@@ -13,7 +13,7 @@ import { resolvePresetAudioMapping } from '../audio/builtins';
  */
 export const CONTROL_CONSUMERS = {
   motion: {
-    breathing: ['strength', 'amplitude'],
+    breathing: ['strength', 'amplitude', 'tempoSync'],
     brownian: ['strength', 'randomness', 'decay'],
     curlNoise: ['strength', 'amplitude', 'noiseScale'],
     flocking: ['strength'],
@@ -21,7 +21,7 @@ export const CONTROL_CONSUMERS = {
     gravity: ['strength', 'gravity', 'drag'],
     orbital: ['strength', 'amplitude'],
     organicGrowth: ['strength', 'frequency'],
-    pulse: ['strength', 'amplitude', 'frequency'],
+    pulse: ['strength', 'amplitude', 'frequency', 'tempoSync'],
     spiral: ['strength', 'amplitude', 'frequency'],
     wave: ['strength', 'amplitude', 'frequency'],
     wind: ['strength', 'randomness', 'flowStrength'],

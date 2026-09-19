@@ -106,6 +106,7 @@ Exposed via `engine.setControl()` / preset fields:
 | `drag` | 0.05 | Velocity damping (gravity) |
 | `gravity` | 0.5 | Downward pull strength |
 | `noiseScale` | 1 | Noise field scale |
+| `tempoSync` | 0 | Blend toward the engine tempo where a motion supports it (pulse per beat, breathing per bar) |
 | `flowStrength` | 0.8 | Flow/wind field strength |
 
 ---

@@ -7,6 +7,7 @@ import type {
   MidiDeviceInfo,
 } from './InputTypes';
 import { MidiInput } from './MidiInput';
+import type { MidiClock } from './MidiClock';
 import { KeyboardInput } from './KeyboardInput';
 import { PointerInput, type PointerInputOptions, type PointerState, type PointerTarget } from './PointerInput';
 import { PerformanceMapper, type PerformanceEngineBridge } from './PerformanceMapper';
@@ -77,6 +78,10 @@ export class InputManager {
 
   getPointerState(): PointerState {
     return this.pointer.getState();
+  }
+
+  getMidiClock(): MidiClock {
+    return this.midi.getClock();
   }
 
   setMapping(config: InputMappingConfig): void {
@@ -156,6 +161,7 @@ export class InputManager {
       keyboardEnabled: this.keyboard.isEnabled(),
       pointerEnabled: this.pointer.isEnabled(),
       pointer: this.pointer.getState(),
+      clock: this.midi.getClock().getState(typeof performance !== 'undefined' ? performance.now() : Date.now()),
       deviceId: midiState.deviceId,
       deviceName: midiState.deviceName,
       error: midiState.error,

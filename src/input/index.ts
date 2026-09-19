@@ -33,6 +33,8 @@ export {
 export { MidiInput, type MidiInputState } from './MidiInput';
 export { KeyboardInput } from './KeyboardInput';
 export { PointerInput } from './PointerInput';
+export { MidiClock, MIDI_CLOCK, MIDI_START, MIDI_CONTINUE, MIDI_STOP, MIDI_SONG_POSITION } from './MidiClock';
+export type { MidiClockState } from './MidiClock';
 export type { PointerInputOptions, PointerState, PointerTarget, PointerLike } from './PointerInput';
 export {
   PerformanceMapper,

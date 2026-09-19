@@ -17,6 +17,7 @@ export const CONTROL_CATALOG: Record<string, ControlRange> = {
   gravity: { label: 'Gravity', min: 0, max: 2, default: 0.5, step: 0.05 },
   noiseScale: { label: 'Noise Scale', min: 0.1, max: 3, default: 1, step: 0.1 },
   flowStrength: { label: 'Flow Strength', min: 0, max: 1, default: 0.8, step: 0.05 },
+  tempoSync: { label: 'Tempo Sync', min: 0, max: 1, default: 0, step: 0.05 },
   trailAmount: { label: 'Trails', min: 0, max: 1, default: 0.4, step: 0.05 },
   glitchAmount: { label: 'Glitch', min: 0, max: 1, default: 0.1, step: 0.05 },
   symmetry: { label: 'Symmetry', min: 2, max: 12, default: 6, step: 1 },

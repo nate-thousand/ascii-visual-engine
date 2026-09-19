@@ -24,6 +24,7 @@ export const CONTROL_GROUP = {
   gravity: 'motion',
   noiseScale: 'motion',
   flowStrength: 'motion',
+  tempoSync: 'motion',
   simStrength: 'simulation',
   simSpeed: 'simulation',
   simDensity: 'simulation',

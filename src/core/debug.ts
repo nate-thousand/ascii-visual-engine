@@ -13,6 +13,7 @@ import type { PerformanceDebugState } from '../performance/PerformanceTypes';
 
 export interface EngineDebugState {
   state: import('./types').EngineState;
+  tempo: import('./tempo').TempoState;
   preset: string;
   effects: string[];
   patterns: string[];

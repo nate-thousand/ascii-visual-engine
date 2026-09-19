@@ -151,6 +151,8 @@ export interface PresetMotionConfig {
   gravity?: number;
   noiseScale?: number;
   flowStrength?: number;
+  /** 0 = free running, 1 = locked to the engine tempo (MIDI clock or audio beat) where a motion supports it. */
+  tempoSync?: number;
 }
 
 /** Pattern group: defaults for the pattern plugins' knobs. */
@@ -269,6 +271,7 @@ export interface FlatPreset {
   gravity?: number;
   noiseScale?: number;
   flowStrength?: number;
+  tempoSync?: number;
   simStrength?: number;
   simSpeed?: number;
   simDensity?: number;

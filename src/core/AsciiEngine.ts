@@ -31,6 +31,7 @@ import type {
   EngineState,
 } from './types';
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
+import { NO_TEMPO, type TempoState } from './tempo';
 import { exportPreset, loadPresetFromUrl, type ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
 import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
@@ -802,6 +803,7 @@ export class AsciiEngine {
   getDebugState(): EngineDebugState {
     return {
       state: this.state,
+      tempo: this.getTempo(),
       preset: this.preset.id,
       effects: this.pluginManager
         .getEnabledByType('effect')
@@ -1293,7 +1295,33 @@ export class AsciiEngine {
       rows: grid.rows,
       cellCount: grid.cells.length,
       getControl: (name: string, fallback?: number) => this.getControl(name, fallback),
+      tempo: this.getTempo(),
     };
+  }
+
+  /**
+   * The engine tempo: the MIDI clock when a device is sending ticks, else
+   * the audio beat detector when it has an estimate, else none. Motions that
+   * support `tempoSync` lock to it.
+   */
+  getTempo(): TempoState {
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const midi = this.inputManager.getMidiClock().getTempo(now);
+    if (midi) return midi;
+    const f = this.lastAudioFeatures;
+    if (f && f.bpm > 0) {
+      const beat = this.audioFeatureExtractor.getBeatDetector().getState(now);
+      const bar = (beat.beat + f.beatPhase) / 4;
+      return {
+        source: 'audio',
+        bpm: f.bpm,
+        phase: f.beatPhase,
+        barPhase: bar - Math.floor(bar),
+        beat: beat.beat,
+        confidence: f.beatConfidence,
+      };
+    }
+    return NO_TEMPO;
   }
 
   private applyMotionGlyphs(grid: GridState): void {

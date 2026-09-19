@@ -103,7 +103,7 @@ describe('preset shape', () => {
   it('a minimal nested preset is valid, gets its controls derived, and runs', () => {
     const r = validatePreset({ id: 'tiny', name: 'Tiny', glyphSet: ['.', '#'], motion: { behaviors: [{ id: 'breathing' }] } });
     expect(r.ok).toBe(true);
-    expect(r.preset?.controls?.map((c) => c.name)).toEqual(['density', 'speed', 'strength', 'amplitude']);
+    expect(r.preset?.controls?.map((c) => c.name)).toEqual(['density', 'speed', 'strength', 'amplitude', 'tempoSync']);
 
     const frames = stubAnimationFrame();
     const engine = new AsciiEngine({

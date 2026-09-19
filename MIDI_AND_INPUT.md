@@ -81,6 +81,17 @@ Mouse, touch, and pen on one element through Pointer Events. Off by default; the
 
 ---
 
+## MIDI Clock
+
+`MidiClock` (`src/input/MidiClock.ts`) listens to the connected device's system realtime bytes: Timing Clock (`0xF8`, 24 per quarter note), Start (`0xFA`), Continue (`0xFB`), Stop (`0xFC`), and Song Position Pointer (`0xF2`). `MidiInput` routes any status byte at or above `0xF0` to it, so it needs no configuration beyond `connectMidi()`.
+
+- `engine.getInputManager().getMidiClock().getState(now)` gives `{ active, running, bpm, beat, phase, ticks }`. `bpm` averages the last 48 tick intervals; `phase` is interpolated between ticks so it is smooth at any frame rate and never runs past the next tick. A device that only sends ticks and never Start is treated as running. Two seconds without a tick and the clock is inactive.
+- `engine.getTempo()` (also on the facade) is the engine's single tempo: the MIDI clock when it is active, else the audio beat detector when it has an estimate, else `NO_TEMPO`. Shape: `{ source: 'midi' | 'audio' | 'none', bpm, phase, barPhase, beat, confidence }`, with bars of four beats.
+- Motions receive it as `context.tempo`. `PulseMotion` (one cycle per beat) and `BreathingMotion` (one breath per bar) blend toward it by the `tempoSync` control (0 free running, 1 locked); `tempoAngle(tempo, beatsPerCycle)` turns a tempo into an angle for sine based motion. Without a tempo, `tempoSync` does nothing.
+- `getDebugState().input.clock` and `getDebugState().tempo` carry both; the harness shows them in the Input and Preset readouts.
+
+---
+
 ## Performance Mapping
 
 `PerformanceMapper` translates input events into engine actions:

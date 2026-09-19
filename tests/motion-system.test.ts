@@ -1,3 +1,4 @@
+import { NO_TEMPO } from '../src/core/tempo';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MotionManager } from '../src/motion/MotionManager';
 import { createBuiltInMotions, resolvePresetMotions } from '../src/motion/builtins';
@@ -39,6 +40,7 @@ function makeMotionContext(grid: GridState) {
     rows: grid.rows,
     cellCount: grid.cells.length,
     getControl: (_name: string, fallback?: number) => fallback ?? 0.7,
+    tempo: NO_TEMPO,
   };
 }
 

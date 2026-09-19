@@ -978,6 +978,7 @@ function refreshReadouts(): void {
     const gd = state.glyph;
     engineReadout.textContent = [
       `state:       ${state.state}`,
+      `tempo:       ${state.tempo.source === 'none' ? 'none' : `${state.tempo.bpm} bpm (${state.tempo.source}) beat ${state.tempo.beat} phase ${state.tempo.phase.toFixed(2)}`}`,
       `preset:      ${state.preset}`,
       `effects:     ${state.effects.join(', ') || 'none'}`,
       `patterns:    ${state.patterns.join(', ') || 'none'}`,
@@ -1041,6 +1042,7 @@ function refreshReadouts(): void {
       `midi:     ${id.midiConnected ? (id.deviceName ?? 'connected') : 'off'}`,
       `keyboard: ${id.keyboardEnabled ? 'on' : 'off'}`,
       `pointer:  ${id.pointerEnabled ? `${id.pointer.x.toFixed(2)}, ${id.pointer.y.toFixed(2)} ${id.pointer.down ? `down x${id.pointer.pointers} p=${id.pointer.pressure.toFixed(2)}` : 'up'}` : 'off'}`,
+      `clock:    ${id.clock.active ? `${id.clock.bpm} bpm ${id.clock.running ? 'running' : 'stopped'} beat ${Math.floor(id.clock.beat)} phase ${id.clock.phase.toFixed(2)}` : 'no ticks'}`,
       `learn:    ${id.learnMode ? (id.learnTarget ?? 'active') : 'off'}`,
       `notes:    ${id.activeNotes.join(', ') || 'none'}`,
       `error:    ${id.error ?? 'none'}`,

@@ -1,3 +1,4 @@
+import type { TempoState } from '../core/tempo';
 import type { AsciiEngine } from '../core/AsciiEngine';
 import type { GridState } from '../core/types';
 
@@ -54,6 +55,8 @@ export interface MotionContext {
   /** Scratch buffer for the current motion — cleared before each update. */
   scratch: MotionBuffer;
   getControl: (name: string, fallback?: number) => number;
+  /** The engine tempo (MIDI clock, else audio beat detection, else none). */
+  tempo: TempoState;
 }
 
 export interface Motion {
@@ -102,6 +105,7 @@ export const MOTION_CONTROLS = [
   'gravity',
   'noiseScale',
   'flowStrength',
+  'tempoSync',
 ] as const;
 
 export type MotionControlName = (typeof MOTION_CONTROLS)[number];
@@ -117,4 +121,5 @@ export const DEFAULT_MOTION_CONTROLS: Record<MotionControlName, number> = {
   gravity: 0.5,
   noiseScale: 1,
   flowStrength: 0.8,
+  tempoSync: 0,
 };

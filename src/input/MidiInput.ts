@@ -1,4 +1,5 @@
 import type { InputEvent, MidiDeviceInfo } from './InputTypes';
+import { MidiClock } from './MidiClock';
 
 export interface MidiInputState {
   connected: boolean;
@@ -17,6 +18,12 @@ export class MidiInput {
   private queue: InputEvent[] = [];
   private onMessage: ((event: InputEvent) => void) | null = null;
   private stateChangeHandler: (() => void) | null = null;
+  private readonly clock = new MidiClock();
+
+  /** Beat clock fed by 0xF8 ticks, Start, Continue, Stop, and Song Position from the connected device. */
+  getClock(): MidiClock {
+    return this.clock;
+  }
 
   async requestAccess(): Promise<{ ok: boolean; error?: string }> {
     if (typeof navigator === 'undefined' || !navigator.requestMIDIAccess) {
@@ -94,6 +101,7 @@ export class MidiInput {
     this.deviceId = null;
     this.deviceName = null;
     this.queue = [];
+    this.clock.reset();
   }
 
   destroy(): void {
@@ -135,9 +143,14 @@ export class MidiInput {
     if (!data || data.length === 0) return;
 
     const status = data[0];
+    const timestamp = performance.now();
+    // System realtime and song position carry no channel; the clock owns them.
+    if (status >= 0xf0) {
+      this.clock.handleMessage(status, data, timestamp);
+      return;
+    }
     const channel = status & 0x0f;
     const command = status & 0xf0;
-    const timestamp = performance.now();
 
     let event: InputEvent | null = null;
 

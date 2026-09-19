@@ -4,6 +4,7 @@ import type { ScriptEngine } from '../scripting/ScriptEngine';
 import type { PointerInputOptions, PointerState } from '../input/PointerInput';
 import type { ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
+import type { TempoState } from './tempo';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -85,6 +86,8 @@ export interface EngineHandle {
   disablePointerInput(): void;
   /** Normalized pointer position and press state. */
   getPointerState(): PointerState;
+  /** MIDI clock, else audio beat detection, else none: `{ source, bpm, phase, barPhase, beat, confidence }`. */
+  getTempo(): TempoState;
 
   /** The sandboxed script runtime. */
   getScriptEngine(): ScriptEngine;
@@ -168,6 +171,7 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     enablePointerInput: (options) => engine.enablePointerInput(undefined, options),
     disablePointerInput: () => engine.disablePointerInput(),
     getPointerState: () => engine.getPointerState(),
+    getTempo: () => engine.getTempo(),
 
     getScriptEngine: () => engine.getScriptEngine(),
 

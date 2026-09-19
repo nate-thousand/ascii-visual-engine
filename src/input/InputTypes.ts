@@ -148,6 +148,7 @@ export interface InputDebugState {
   keyboardEnabled: boolean;
   pointerEnabled: boolean;
   pointer: { x: number; y: number; down: boolean; pointers: number; pressure: number };
+  clock: { active: boolean; running: boolean; bpm: number; beat: number; phase: number; ticks: number };
   deviceId: string | null;
   deviceName: string | null;
   error: string | null;

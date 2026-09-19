@@ -7,6 +7,8 @@ export interface BeatState {
   phase: number;
   /** 0 to 1: share of recent onset intervals that agree with the estimate, faded when onsets stop. */
   confidence: number;
+  /** Onsets counted since the last reset or drop. */
+  beat: number;
 }
 
 export interface BeatDetectorOptions {
@@ -59,6 +61,7 @@ export class BeatDetector {
   private bpm = 0;
   private intervalMs = 0;
   private confidence = 0;
+  private beatCount = 0;
 
   constructor(options: BeatDetectorOptions = {}) {
     this.historyMs = options.historyMs ?? 1000;
@@ -80,6 +83,7 @@ export class BeatDetector {
     this.bpm = 0;
     this.intervalMs = 0;
     this.confidence = 0;
+    this.beatCount = 0;
   }
 
   update(energy: number, nowMs: number): BeatState {
@@ -103,6 +107,7 @@ export class BeatDetector {
       this.onsets.push(nowMs);
       if (this.onsets.length > this.intervalCount + 1) this.onsets.shift();
       this.pulse = 1;
+      this.beatCount++;
       this.estimateTempo();
     } else {
       this.pulse *= Math.exp(-dt / PULSE_TAU_MS);
@@ -115,6 +120,7 @@ export class BeatDetector {
       this.intervalMs = 0;
       this.confidence = 0;
       this.onsets = [];
+      this.beatCount = 0;
     } else if (this.intervalMs > 0 && sinceOnset > this.intervalMs * 2) {
       // Onsets have stopped: keep the tempo, let the confidence fade.
       this.confidence *= Math.exp(-dt / 1000);
@@ -126,7 +132,7 @@ export class BeatDetector {
   getState(nowMs = this.lastUpdate): BeatState {
     const phase =
       this.intervalMs > 0 && Number.isFinite(this.lastOnset) ? ((nowMs - this.lastOnset) / this.intervalMs) % 1 : 0;
-    return { pulse: this.pulse, bpm: this.bpm, phase, confidence: this.confidence };
+    return { pulse: this.pulse, bpm: this.bpm, phase, confidence: this.confidence, beat: this.beatCount };
   }
 
   private estimateTempo(): void {

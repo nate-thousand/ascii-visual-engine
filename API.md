@@ -47,6 +47,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `loadSource(id, input)`, `clearSource()` | Pixel sources: `image` (File or URL), `video` (`{ file }` or `{ src }`), `webcam` (`{ facingMode }`), `canvas` (`{ canvas }`) |
 | `enableKeyboardInput()`, `disableKeyboardInput()` | Computer keyboard notes, off by default |
 | `enablePointerInput(options?)`, `disablePointerInput()`, `getPointerState()` | Mouse, touch, and pen on the canvas: press is a `noteOn` at the pointer position. Off by default |
+| `getTempo()` | `{ source, bpm, phase, barPhase, beat, confidence }`: MIDI clock, else audio beat detection, else none. See MIDI_AND_INPUT.md |
 | `getScriptEngine()` | The sandboxed script runtime |
 | `on(event, listener)`, `off(event, listener)` | Typed events; `on` returns the unsubscribe function |
 | `engine` | The underlying `AsciiEngine` |
@@ -760,6 +761,7 @@ Web MIDI and keyboard input mapped to visual parameters. See [MIDI_AND_INPUT.md]
 | `enablePointerInput(target?, options?)` | Mouse, touch, and pen: press is a `noteOn` at the pointer position. Off by default. See MIDI_AND_INPUT.md |
 | `disablePointerInput()` | Remove pointer listeners |
 | `getPointerState()` | Normalized `{ x, y, down, pointers, pressure }` |
+| `getTempo()` | The engine tempo: MIDI clock, else audio beat detection, else `NO_TEMPO` |
 | `startInputLearn(target, callback?)` | Enter MIDI learn mode for a target |
 | `cancelInputLearn()` | Exit learn mode without binding |
 | `inputPanic()` | All notes off — clear stuck notes |
