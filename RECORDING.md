@@ -91,6 +91,8 @@ await engine.exportSequence({ prefix: 'ascii-frame' });
 engine.exportJSON('recorded-session');
 ```
 
+For a video file, `startVideoRecording()` / `stopVideoRecording()` capture the canvas in real time through `MediaRecorder` and do not use the timeline at all; both can run at once. See EXPORTING.md.
+
 ---
 
 ## Vanilla Demo

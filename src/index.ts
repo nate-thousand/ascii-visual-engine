@@ -226,6 +226,9 @@ export {
   downloadBlob,
   downloadJson,
   SCENE_FORMAT_VERSION,
+  VideoRecorder,
+  VIDEO_MIME_PREFERENCE,
+  videoFormatOf,
 } from './export';
 export type {
   ExportResult,
@@ -236,6 +239,12 @@ export type {
   PlaybackStatus,
   ExportDebugState,
   GifExportOptions,
+  VideoRecordOptions,
+  VideoRecordingStatus,
+  VideoRecordingState,
+  VideoRecorderDeps,
+  MediaRecorderLike,
+  MediaRecorderFactory,
 } from './export';
 export type { AsciiSceneDocument } from './export/SceneFormat';
 export { RecordingSession, PlaybackSession, TimelineRecorder } from './recording';

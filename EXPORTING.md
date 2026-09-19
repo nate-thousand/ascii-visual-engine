@@ -20,7 +20,8 @@ The export system works with any renderer, preset, pattern, simulation, or glyph
 | ASCII text | `engine.exportASCII()` | Implemented |
 | JSON scene | `engine.exportJSON()` | Implemented |
 | Frame sequence | `engine.exportSequence()` | Implemented |
-| MP4 / WebM / PDF | `engine.exportMP4()` etc. | Planned |
+| WebM / MP4 video | `engine.startVideoRecording()` / `stopVideoRecording()` | Implemented (real time, `MediaRecorder`) |
+| PDF | `engine.exportPDF()` | Planned |
 
 ---
 
@@ -91,6 +92,33 @@ Exports complete engine state for later reload. See [SCENE_FORMAT.md](./SCENE_FO
 
 ---
 
+## Video (WebM or MP4)
+
+Real time capture of the canvas through the browser's `MediaRecorder`. Independent of the timeline recorder: the browser encodes the canvas as it paints, so the file is what the audience saw, dropped frames included, and it costs nothing on the engine's frame. For frame perfect output at any speed use the timeline recorder with `exportSequence()` and encode offline.
+
+```typescript
+const started = engine.startVideoRecording({ frameRate: 30 });
+if (!started.ok) console.warn(started.error);   // no MediaRecorder, DOM renderer, tainted canvas
+// ... perform ...
+const result = await engine.stopVideoRecording();   // downloads ascii-<timestamp>.webm
+result.blob;                                        // the file, also when download: false
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `mimeType` | first supported of `VIDEO_MIME_PREFERENCE` | VP9 WebM, VP8 WebM, plain WebM, then MP4. Chrome and Firefox produce WebM, Safari MP4. An unsupported explicit type fails `start` |
+| `frameRate` | `30` | Frames per second pulled from the canvas; `0` captures on every paint |
+| `videoBitsPerSecond` | `8000000` | Encoder target |
+| `audioTracks` | none | Host audio to mux, for example `audioContext.createMediaStreamDestination().stream.getAudioTracks()`. The tracks are left running afterwards |
+| `maxSeconds` | none | Stop on its own |
+| `filename` | `ascii-<timestamp>.<webm|mp4>` | Download name |
+
+`pauseVideoRecording()`, `resumeVideoRecording()`, `cancelVideoRecording()` (drops the data), `getVideoRecordingStatus()` returns `{ state, supported, mimeType, duration, bytes }` and is also in `getDebugState().export.video`. `stopVideoRecording({ download: false })` keeps the blob on the result only. `VideoRecorder` is exported on its own for hosts that record a different canvas; its constructor takes `MediaRecorder` and `captureStream` replacements so it can be tested without a browser.
+
+The recorded resolution is the canvas backing store, so it follows `pixelRatio`: 1920x1080 CSS pixels at ratio 2 records 3840x2160. Pin `setPixelRatio(1)` for a lighter file.
+
+---
+
 ## Engine API
 
 | Method | Description |
@@ -102,6 +130,7 @@ Exports complete engine state for later reload. See [SCENE_FORMAT.md](./SCENE_FO
 | `importJSON(json)` | Restore scene from JSON |
 | `exportASCII(options?)` | Plain text grid download |
 | `exportSequence(options?)` | Numbered PNG sequence |
+| `startVideoRecording(options?)`, `stopVideoRecording()`, `pauseVideoRecording()`, `resumeVideoRecording()`, `cancelVideoRecording()`, `getVideoRecordingStatus()` | Real time WebM or MP4 through `MediaRecorder` |
 | `getExportManager()` | Direct access to export subsystem |
 
 ---
@@ -114,6 +143,7 @@ The demo includes an **Export & Recording** panel:
 - Import JSON scene (file picker)
 - Start/stop recording with indicator and frame counter
 - Export GIF and frame sequence
+- Record video, stop and save, discard, with state, type, duration, and size
 - Playback controls: play, stop, step forward/back
 
 ---

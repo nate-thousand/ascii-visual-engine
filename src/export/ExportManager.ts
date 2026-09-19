@@ -18,11 +18,13 @@ import {
 } from './JsonExporter';
 import { exportGifFromCanvases, futureFormatPlaceholder } from './GifExporter';
 import { exportFrameSequence } from './SequenceExporter';
+import { VideoRecorder, type VideoRecordOptions, type VideoRecordingStatus } from './VideoRecorder';
 import { TimelineRecorder } from '../recording/TimelineRecorder';
 
 export class ExportManager {
   private engine: ExportEngineBridge | null = null;
   private timeline = new TimelineRecorder();
+  private video = new VideoRecorder();
   private lastExportFormat: import('./ExportTypes').ExportFormat | null = null;
   private lastExportTime: number | null = null;
 
@@ -124,16 +126,47 @@ export class ExportManager {
     };
   }
 
-  exportMP4(): ExportResult {
-    return futureFormatPlaceholder('mp4');
-  }
-
-  exportWebM(): ExportResult {
-    return futureFormatPlaceholder('webm');
-  }
-
   exportPDF(): ExportResult {
     return futureFormatPlaceholder('pdf');
+  }
+
+  /**
+   * Record the canvas as WebM or MP4 in real time through `MediaRecorder`.
+   * Independent of the timeline recorder: both can run at once.
+   */
+  startVideoRecording(options: VideoRecordOptions = {}): { ok: boolean; error?: string } {
+    if (!this.engine) return { ok: false, error: 'Engine not connected' };
+    return this.video.start(this.engine.getCanvas(), options);
+  }
+
+  pauseVideoRecording(): void {
+    this.video.pause();
+  }
+
+  resumeVideoRecording(): void {
+    this.video.resume();
+  }
+
+  /** Finish the video; downloads it unless `download` is false. */
+  async stopVideoRecording(options: { download?: boolean } = {}): Promise<ExportResult> {
+    const result = await this.video.stop();
+    if (result.ok && result.blob && result.filename && options.download !== false) {
+      downloadBlob(result.filename, result.blob);
+    }
+    if (result.ok) this.markExport(result.format);
+    return result;
+  }
+
+  cancelVideoRecording(): void {
+    this.video.cancel();
+  }
+
+  getVideoRecordingStatus(): VideoRecordingStatus {
+    return this.video.getStatus();
+  }
+
+  getVideoRecorder(): VideoRecorder {
+    return this.video;
   }
 
   startRecording(frameRate = 30): { ok: boolean; error?: string } {
@@ -188,6 +221,7 @@ export class ExportManager {
   getDebugState(): ExportDebugState {
     return {
       recording: this.timeline.getRecordingStatus(),
+      video: this.video.getStatus(),
       playback: this.timeline.getPlaybackStatus(),
       lastExport: this.lastExportFormat,
       lastExportTime: this.lastExportTime,
@@ -200,6 +234,7 @@ export class ExportManager {
 
   destroy(): void {
     this.timeline.destroy();
+    this.video.destroy();
     this.engine = null;
   }
 

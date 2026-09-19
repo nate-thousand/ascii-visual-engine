@@ -84,7 +84,7 @@ import {
 import { getPreset, type PresetId } from '../presets';
 import { GlyphRegistry } from '../glyphs';
 import type { GlyphLanguageConfig } from '../glyphs';
-import { ExportManager } from '../export';
+import { ExportManager, type VideoRecordOptions } from '../export';
 import { ScriptEngine } from '../scripting';
 import { PerformanceManager, type QualityPresetId, DEFAULT_PERFORMANCE_CONTROLS } from '../performance';
 import type { AsciiSceneDocument } from '../export/SceneFormat';
@@ -1116,6 +1116,32 @@ export class AsciiEngine {
 
   async exportSequence(options?: SequenceExportOptions) {
     return this.exportManager.exportSequence(options);
+  }
+
+  /** Record the canvas as WebM or MP4 in real time. `{ ok: false, error }` when the browser cannot. */
+  startVideoRecording(options?: VideoRecordOptions) {
+    return this.exportManager.startVideoRecording(options);
+  }
+
+  pauseVideoRecording() {
+    this.exportManager.pauseVideoRecording();
+  }
+
+  resumeVideoRecording() {
+    this.exportManager.resumeVideoRecording();
+  }
+
+  /** Finish the video. Downloads it unless `download` is false; the blob is on the result either way. */
+  async stopVideoRecording(options?: { download?: boolean }) {
+    return this.exportManager.stopVideoRecording(options);
+  }
+
+  cancelVideoRecording() {
+    this.exportManager.cancelVideoRecording();
+  }
+
+  getVideoRecordingStatus() {
+    return this.exportManager.getVideoRecordingStatus();
   }
 
   startRecording(frameRate = 30) {

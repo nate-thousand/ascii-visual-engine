@@ -41,3 +41,12 @@ export {
   exportAsciiFromGrid,
 } from './JsonExporter';
 export { encodeGif, exportGifFromCanvases, futureFormatPlaceholder } from './GifExporter';
+export { VideoRecorder, VIDEO_MIME_PREFERENCE, videoFormatOf } from './VideoRecorder';
+export type {
+  VideoRecordOptions,
+  VideoRecordingStatus,
+  VideoRecordingState,
+  VideoRecorderDeps,
+  MediaRecorderLike,
+  MediaRecorderFactory,
+} from './VideoRecorder';

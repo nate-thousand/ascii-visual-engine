@@ -197,7 +197,7 @@ export async function exportGifFromCanvases(
   }
 }
 
-export function futureFormatPlaceholder(format: 'mp4' | 'webm' | 'pdf'): ExportResult {
+export function futureFormatPlaceholder(format: 'pdf'): ExportResult {
   return {
     ok: false,
     format,

@@ -6,6 +6,8 @@ import type { ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
 import type { TempoState } from './tempo';
 import type { MorphOptions, MorphState } from './PresetMorph';
+import type { VideoRecordOptions, VideoRecordingStatus } from '../export/VideoRecorder';
+import type { ExportResult } from '../export/ExportTypes';
 import { getPreset, type PresetId } from '../presets';
 
 export interface CreateEngineOptions {
@@ -105,6 +107,13 @@ export interface EngineHandle {
   /** MIDI clock, else audio beat detection, else none: `{ source, bpm, phase, barPhase, beat, confidence }`. */
   getTempo(): TempoState;
 
+  /** Record the canvas as WebM or MP4 in real time through `MediaRecorder`. `{ ok: false, error }` when the browser cannot. */
+  startVideoRecording(options?: VideoRecordOptions): { ok: boolean; error?: string };
+  /** Finish the video; downloads it unless `download` is false. The blob is on the result either way. */
+  stopVideoRecording(options?: { download?: boolean }): Promise<ExportResult>;
+  /** `{ state, supported, mimeType, duration, bytes }`. */
+  getVideoRecordingStatus(): VideoRecordingStatus;
+
   /** The sandboxed script runtime. */
   getScriptEngine(): ScriptEngine;
 
@@ -196,6 +205,10 @@ export function createEngine(canvas: HTMLCanvasElement, options: CreateEngineOpt
     disablePointerInput: () => engine.disablePointerInput(),
     getPointerState: () => engine.getPointerState(),
     getTempo: () => engine.getTempo(),
+
+    startVideoRecording: (options) => engine.startVideoRecording(options),
+    stopVideoRecording: (options) => engine.stopVideoRecording(options),
+    getVideoRecordingStatus: () => engine.getVideoRecordingStatus(),
 
     getScriptEngine: () => engine.getScriptEngine(),
 

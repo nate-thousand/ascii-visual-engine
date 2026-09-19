@@ -90,6 +90,7 @@ const inputReadout = $<HTMLPreElement>('input-readout');
 
 const importJsonInput = $<HTMLInputElement>('import-json');
 const recordingStatus = $<HTMLDivElement>('recording-status');
+const videoStatus = $<HTMLDivElement>('video-status');
 const exportErrorEl = $<HTMLDivElement>('export-error');
 const exportReadout = $<HTMLPreElement>('export-readout');
 
@@ -848,6 +849,18 @@ $('export-gif').addEventListener('click', async () => {
 $('export-sequence').addEventListener('click', async () => {
   reportExport(await engine.exportSequence({ prefix: 'ascii-frame' }), 'Sequence export failed');
 });
+$('start-video').addEventListener('click', () => {
+  reportExport(engine.startVideoRecording({ frameRate: 30 }), 'Video recording failed');
+  refreshReadouts();
+});
+$('stop-video').addEventListener('click', async () => {
+  reportExport(await engine.stopVideoRecording(), 'Video export failed');
+  refreshReadouts();
+});
+$('cancel-video').addEventListener('click', () => {
+  engine.cancelVideoRecording();
+  refreshReadouts();
+});
 $('play-recording').addEventListener('click', () => {
   engine.playRecording({ loop: true, speed: 1, frameRate: 30 });
   refreshReadouts();
@@ -1101,6 +1114,11 @@ function refreshReadouts(): void {
     const pb = ex.playback;
     recordingStatus.textContent = `${rec.state}, ${rec.frameCount} frames (${rec.duration.toFixed(1)}s @ ${rec.frameRate}fps)`;
     recordingStatus.style.color = rec.state === 'recording' ? '#ff4444' : '';
+    const vid = ex.video;
+    videoStatus.textContent = vid.supported
+      ? `${vid.state}${vid.mimeType ? ` ${vid.mimeType}` : ''}, ${vid.duration.toFixed(1)}s, ${(vid.bytes / 1024).toFixed(0)} KB`
+      : 'MediaRecorder not available in this browser';
+    videoStatus.style.color = vid.state === 'recording' ? '#ff4444' : '';
     exportReadout.textContent = [
       `playback:    ${pb.active ? (pb.playing ? 'playing' : 'holding') : 'released'} frame ${pb.frameIndex + 1}/${pb.frameCount}`,
       `last export: ${ex.lastExport ?? 'none'}`,

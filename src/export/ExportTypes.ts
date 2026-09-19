@@ -97,6 +97,7 @@ export interface PlaybackStatus {
 
 export interface ExportDebugState {
   recording: RecordingStatus;
+  video: import('./VideoRecorder').VideoRecordingStatus;
   playback: PlaybackStatus;
   lastExport: ExportFormat | null;
   lastExportTime: number | null;
@@ -118,4 +119,4 @@ export interface ExportEngineBridge {
   isRunning(): boolean;
 }
 
-export const FUTURE_EXPORT_FORMATS: ExportFormat[] = ['mp4', 'webm', 'pdf'];
+export const FUTURE_EXPORT_FORMATS: ExportFormat[] = ['pdf'];
