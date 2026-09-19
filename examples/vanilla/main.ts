@@ -58,6 +58,10 @@ const pluginParamsEl = $<HTMLDivElement>('plugin-params');
 const sourceModeSelect = $<HTMLSelectElement>('source-mode');
 const sourceFitSelect = $<HTMLSelectElement>('source-fit');
 const imageInput = $<HTMLInputElement>('image-input');
+const textRow = $<HTMLDivElement>('text-row');
+const textInput = $<HTMLTextAreaElement>('text-input');
+const textFontInput = $<HTMLInputElement>('text-font');
+const textWeightSelect = $<HTMLSelectElement>('text-weight');
 const videoInput = $<HTMLInputElement>('video-input');
 const webcamRow = $<HTMLDivElement>('webcam-row');
 const startWebcamBtn = $<HTMLButtonElement>('start-webcam');
@@ -281,6 +285,9 @@ const SOURCE_PANEL_CONTROLS: ControlDef[] = [
   { name: 'sourceContrast', label: 'Contrast', min: 0.5, max: 2, default: 1, step: 0.05 },
   { name: 'sourceEdge', label: 'Edge', min: 0, max: 1, default: 0.3, step: 0.05 },
   { name: 'sourceBlend', label: 'Blend', min: 0, max: 1, default: 1, step: 0.05 },
+  { name: 'sourceInvert', label: 'Invert (dark on light)', min: 0, max: 1, default: 0, step: 1 },
+  { name: 'sourceMask', label: 'Mask (shape over the look)', min: 0, max: 1, default: 0, step: 1 },
+  { name: 'sourceThreshold', label: 'Mask threshold', min: 0, max: 1, default: 0.5, step: 0.05 },
 ];
 
 /**
@@ -581,6 +588,7 @@ function updateSourceInputs(mode: string): void {
   imageInput.hidden = mode !== 'image';
   videoInput.hidden = mode !== 'video';
   webcamRow.hidden = mode !== 'webcam';
+  textRow.hidden = mode !== 'text';
   const procedural = mode === 'procedural';
   sourceControlsEl.hidden = procedural;
   sourceFitSelect.hidden = procedural;
@@ -612,6 +620,10 @@ sourceModeSelect.addEventListener('change', () => {
     void loadSource('canvas', { canvas: demoCanvas });
     return;
   }
+  if (mode === 'text') {
+    void loadSource('text', textOptions());
+    return;
+  }
   // image, video, webcam wait for their input
   engine.setActiveSource(mode);
   refreshReadouts();
@@ -624,6 +636,15 @@ sourceFitSelect.addEventListener('change', () => {
     ?.setFitMode(sourceFitSelect.value as 'fit' | 'fill' | 'stretch' | 'center');
   refreshReadouts();
 });
+
+function textOptions() {
+  return { text: textInput.value, font: textFontInput.value || 'sans-serif', weight: Number(textWeightSelect.value) };
+}
+for (const el of [textInput, textFontInput, textWeightSelect]) {
+  el.addEventListener('input', () => {
+    if (sourceModeSelect.value === 'text') void loadSource('text', textOptions());
+  });
+}
 
 imageInput.addEventListener('change', () => {
   const file = imageInput.files?.[0];
@@ -1101,7 +1122,7 @@ function refreshReadouts(): void {
   if (isOpen('section-source')) {
     const s = state.source;
     sourceReadout.textContent = [
-      `mode:   ${s.mode}`,
+      `mode:   ${s.mode}${s.mode === 'source' ? ` (${s.applyMode})` : ''}`,
       `active: ${s.activeSourceId ?? 'none'} (${s.activeSourceType ?? 'none'})`,
       `ready:  ${s.ready}`,
       `error:  ${s.error ?? 'none'}`,

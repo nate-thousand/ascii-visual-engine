@@ -35,33 +35,23 @@ export function mapNormalizedToSource(
         inBounds: sx >= 0 && sx < sourceW && sy >= 0 && sy < sourceH,
       };
     }
-    case 'fill': {
-      const scale = Math.max(targetW / sourceW, targetH / sourceH);
-      const drawW = sourceW * scale;
-      const drawH = sourceH * scale;
-      const offsetX = (targetW - drawW) / 2;
-      const offsetY = (targetH - drawH) / 2;
-      const px = nx * targetW;
-      const py = ny * targetH;
-      const sx = Math.floor((px - offsetX) / scale);
-      const sy = Math.floor((py - offsetY) / scale);
-      return {
-        sx,
-        sy,
-        inBounds: sx >= 0 && sx < sourceW && sy >= 0 && sy < sourceH,
-      };
-    }
+    case 'fill':
     case 'fit':
     default: {
-      const scale = Math.min(targetW / sourceW, targetH / sourceH);
+      const scale =
+        fitMode === 'fill' ? Math.max(targetW / sourceW, targetH / sourceH) : Math.min(targetW / sourceW, targetH / sourceH);
       const drawW = sourceW * scale;
       const drawH = sourceH * scale;
       const offsetX = (targetW - drawW) / 2;
       const offsetY = (targetH - drawH) / 2;
       const px = nx * targetW;
       const py = ny * targetH;
-      const sx = Math.floor((px - offsetX) / scale);
-      const sy = Math.floor((py - offsetY) / scale);
+      let sx = Math.floor((px - offsetX) / scale);
+      let sy = Math.floor((py - offsetY) / scale);
+      // The last grid column and row sample at exactly 1, which lands one
+      // pixel past the image; that edge belongs to the last pixel.
+      if (sx === sourceW && px <= offsetX + drawW) sx = sourceW - 1;
+      if (sy === sourceH && py <= offsetY + drawH) sy = sourceH - 1;
       return {
         sx,
         sy,
@@ -75,12 +65,24 @@ export function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
-/** Luminance from RGBA pixel at index. */
-export function pixelBrightness(data: Uint8ClampedArray, index: number): number {
+/**
+ * Brightness of an RGBA pixel: luminance scaled by alpha, so a transparent
+ * pixel is background (0) whatever its color. `invert` flips the luminance
+ * before the alpha scale, so a black logo on a transparent background comes
+ * out as a light shape rather than vanishing.
+ */
+export function pixelBrightness(data: Uint8ClampedArray, index: number, invert = false): number {
   const r = data[index];
   const g = data[index + 1];
   const b = data[index + 2];
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const a = data[index + 3] / 255;
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return (invert ? 1 - lum : lum) * a;
+}
+
+/** Alpha of an RGBA pixel, 0 to 1. */
+export function pixelCoverage(data: Uint8ClampedArray, index: number): number {
+  return data[index + 3] / 255;
 }
 
 /** Simple edge strength from neighboring pixels. */
@@ -143,6 +145,7 @@ export class SourceSampler {
     targetH: number,
     contrastAmount = 1,
     edgeAmount = 0,
+    invert = false,
   ): { brightness: number; contrast: number; edge: number } {
     const { sx, sy, inBounds } = mapNormalizedToSource(
       nx,
@@ -159,7 +162,7 @@ export class SourceSampler {
     }
 
     const idx = (sy * data.width + sx) * 4;
-    let brightness = pixelBrightness(data.data, idx);
+    let brightness = pixelBrightness(data.data, idx, invert);
     const contrast = pixelContrast(data.data, data.width, data.height, sx, sy);
     const edge = pixelEdge(data.data, data.width, data.height, sx, sy);
 
@@ -182,6 +185,7 @@ export class SourceSampler {
     edgeAmount = 0,
     blend = 1,
     getControl?: (name: string, fallback?: number) => number,
+    invert = false,
   ): void {
     const strength = getControl?.('strength', 1) ?? 1;
     for (const cell of grid.cells) {
@@ -196,12 +200,47 @@ export class SourceSampler {
         targetH,
         contrastAmount,
         edgeAmount,
+        invert,
       );
       const char = mapBrightnessToGlyph(sample.brightness, glyphSet);
       cell.char = char;
       const blended = clamp01(cell.brightness * (1 - blend) + sample.brightness * blend);
       cell.brightness = clamp01(blended * strength);
       cell.phase = sample.brightness;
+    }
+  }
+
+  /**
+   * Treat the source as a shape: cells whose sampled brightness reaches
+   * `threshold` keep whatever the patterns and motions drew; the rest are
+   * dimmed by `blend` and blanked at 1. Edge detection does not apply. Used
+   * for logos and type, where a grey ramp would dissolve the outline.
+   */
+  applyMask(
+    data: ImageData,
+    grid: { cells: { x: number; y: number; char: string; brightness: number }[] },
+    cols: number,
+    rows: number,
+    fitMode: SourceFitMode,
+    targetW: number,
+    targetH: number,
+    options: { threshold?: number; blend?: number; contrast?: number; invert?: boolean } = {},
+  ): void {
+    const threshold = options.threshold ?? 0.5;
+    const blend = clamp01(options.blend ?? 1);
+    const contrast = options.contrast ?? 1;
+    const invert = options.invert ?? false;
+    for (const cell of grid.cells) {
+      const nx = cell.x / Math.max(cols - 1, 1);
+      const ny = cell.y / Math.max(rows - 1, 1);
+      const sample = this.sampleFromImageData(data, nx, ny, fitMode, targetW, targetH, contrast, 0, invert);
+      if (sample.brightness >= threshold) continue;
+      if (blend >= 1) {
+        cell.char = ' ';
+        cell.brightness = 0;
+      } else {
+        cell.brightness = clamp01(cell.brightness * (1 - blend));
+      }
     }
   }
 }

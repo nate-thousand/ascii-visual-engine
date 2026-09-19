@@ -3,6 +3,7 @@ import {
   VideoSource,
   WebcamSource,
   CanvasSource,
+  TextSource,
   type Source,
 } from '../sources';
 
@@ -12,6 +13,7 @@ export function createBuiltInSources(): Source[] {
     new VideoSource('video', 'Video'),
     new WebcamSource('webcam', 'Webcam'),
     new CanvasSource('canvas', 'Canvas'),
+    new TextSource('text', 'Text'),
   ];
 }
 

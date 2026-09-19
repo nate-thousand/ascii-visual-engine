@@ -92,7 +92,7 @@ export interface SimulationConfig {
 }
 
 export interface SourcePresetConfig {
-  type: 'image' | 'video' | 'webcam' | 'canvas';
+  type: 'image' | 'video' | 'webcam' | 'canvas' | 'text';
   options?: Record<string, unknown>;
 }
 

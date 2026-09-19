@@ -399,6 +399,10 @@ export {
   VideoSource,
   WebcamSource,
   CanvasSource,
+  TextSource,
+  layoutText,
+  isSvgMarkup,
+  sizeSvgMarkup,
   createBuiltInSources,
   listSourceIds,
   resolvePresetSource,
@@ -407,6 +411,7 @@ export {
   mapNormalizedToSource,
   mapBrightnessToGlyph,
   pixelBrightness,
+  pixelCoverage,
   pixelEdge,
   pixelContrast,
   clamp01,
@@ -424,6 +429,10 @@ export type {
   VideoSourceOptions,
   WebcamSourceOptions,
   CanvasSourceOptions,
+  TextSourceOptions,
+  TextLayout,
+  TextLayoutLine,
+  SourceApplyMode,
 } from './sources';
 
 // Scripting

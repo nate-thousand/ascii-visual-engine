@@ -6,6 +6,7 @@ import type {
   SourceDebugState,
   SourceMode,
   SourceType,
+  SourceApplyMode,
 } from './Source';
 import { SourceSampler } from './SourceSampler';
 
@@ -100,6 +101,18 @@ export class SourceManager {
     source.update(deltaTime, context);
   }
 
+  /** `mask` when a ready source is active and `sourceMask` is on; otherwise `brightness`. */
+  getApplyMode(getControl: (name: string, fallback?: number) => number): SourceApplyMode {
+    return getControl('sourceMask', 0) >= 0.5 ? 'mask' : 'brightness';
+  }
+
+  /** A ready source is active and will drive the grid this frame. */
+  hasReadySource(): boolean {
+    const source = this.getActiveSource();
+    return !!source && this.mode === 'source' && source.isReady();
+  }
+
+  /** Brightness ramp: replace glyphs and brightness from the source. False when nothing is ready. */
   applyToGrid(
     grid: GridState,
     glyphSet: string[],
@@ -111,6 +124,9 @@ export class SourceManager {
     const imageData = this.getImageDataFromSource(source);
     if (!imageData) return false;
 
+    // Fit modes compare aspect ratios, so the target is the grid's pixel
+    // size, not its cell count: cells are 1.6 times taller than wide.
+    const [targetW, targetH] = targetSizeOf(grid);
     this.sampler.applyToGrid(
       imageData,
       grid,
@@ -118,21 +134,39 @@ export class SourceManager {
       grid.rows,
       glyphSet,
       source.getFitMode(),
-      grid.cols,
-      grid.rows,
+      targetW,
+      targetH,
       getControl('sourceContrast', 1),
       getControl('sourceEdge', 0.3),
       1,
       getControl,
+      getControl('sourceInvert', 0) >= 0.5,
     );
     return true;
   }
 
-  getDebugState(): SourceDebugState {
+  /** Shape mask over a finished frame: outside the source's shape, cells are dimmed by `sourceBlend` and blanked at 1. */
+  applyMask(grid: GridState, getControl: (name: string, fallback?: number) => number): boolean {
+    const source = this.getActiveSource();
+    if (!source || this.mode !== 'source' || !source.isReady()) return false;
+    const imageData = this.getImageDataFromSource(source);
+    if (!imageData) return false;
+    const [targetW, targetH] = targetSizeOf(grid);
+    this.sampler.applyMask(imageData, grid, grid.cols, grid.rows, source.getFitMode(), targetW, targetH, {
+      threshold: getControl('sourceThreshold', 0.5),
+      blend: getControl('sourceBlend', 1),
+      contrast: getControl('sourceContrast', 1),
+      invert: getControl('sourceInvert', 0) >= 0.5,
+    });
+    return true;
+  }
+
+  getDebugState(getControl?: (name: string, fallback?: number) => number): SourceDebugState {
     const source = this.getActiveSource();
     const imageData = source ? this.getImageDataFromSource(source) : null;
     return {
       mode: this.mode,
+      applyMode: getControl ? this.getApplyMode(getControl) : 'brightness',
       activeSourceId: this.activeSourceId,
       activeSourceType: source?.type ?? null,
       ready: source?.isReady() ?? false,
@@ -158,4 +192,10 @@ export class SourceManager {
     }
     return null;
   }
+}
+
+/** The grid's pixel size for fit calculations, falling back to cell counts when a grid carries none. */
+export function targetSizeOf(grid: { cols: number; rows: number; width?: number; height?: number }): [number, number] {
+  if (grid.width && grid.height && grid.width > 0 && grid.height > 0) return [grid.width, grid.height];
+  return [grid.cols, grid.rows];
 }

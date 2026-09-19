@@ -47,7 +47,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `setColor(color)` | Canvas foreground color |
 | `setBassGlyphScale(level)` | Host supplied bass level (0 to 1) for per glyph scale pulses |
 | `getLevel()` | Audio amplitude (0 to 1) from the engine's own audio input; 0 without audio |
-| `loadSource(id, input)`, `clearSource()` | Pixel sources: `image` (File or URL), `video` (`{ file }` or `{ src }`), `webcam` (`{ facingMode }`), `canvas` (`{ canvas }`) |
+| `loadSource(id, input)`, `clearSource()` | Sources: `image` (File, URL, SVG file or `{ svg }` markup), `video` (`{ file }` or `{ src }`), `webcam` (`{ facingMode }`), `canvas` (`{ canvas }`), `text` (`{ text, font, weight, size, align }`). With `sourceMask` on, the source is a shape over the look |
 | `enableKeyboardInput()`, `disableKeyboardInput()` | Computer keyboard notes, off by default |
 | `enablePointerInput(options?)`, `disablePointerInput()`, `getPointerState()` | Mouse, touch, and pen on the canvas: press is a `noteOn` at the pointer position. Off by default |
 | `getTempo()` | `{ source, bpm, phase, barPhase, beat, confidence }`: MIDI clock, else audio beat detection, else none. See MIDI_AND_INPUT.md |
@@ -549,7 +549,12 @@ External visual source pipeline — images, video, webcam, canvas. See [SOURCE_P
 | --- | --- | --- |
 | `sourceContrast` | `1` | Brightness contrast multiplier |
 | `sourceEdge` | `0.3` | Edge emphasis blend |
-| `sourceBlend` | `1` | Source share of cell brightness: 1 = source only, 0 = pattern only |
+| `sourceBlend` | `1` | Source share: ramp mode 1 = source only, 0 = pattern only; mask mode how far the outside is dimmed |
+| `sourceInvert` | `0` | Flip light and dark, for dark logos or type on a transparent ground |
+| `sourceMask` | `0` | Shape mask over the procedural look instead of a brightness ramp |
+| `sourceThreshold` | `0.5` | Inside/outside cut in mask mode |
+
+Logos and type: `loadSource('image', 'logo.svg' | { svg })` and `loadSource('text', { text, font, weight, size, align })`. See SOURCE_PIPELINE.md, Logos and type.
 
 ---
 

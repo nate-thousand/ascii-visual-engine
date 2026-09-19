@@ -376,8 +376,21 @@
             <option value="video">Video</option>
             <option value="webcam">Webcam</option>
             <option value="canvas">Canvas</option>
+            <option value="text">Text</option>
           </select>
-          <input type="file" id="image-input" accept="image/*" hidden />
+          <input type="file" id="image-input" accept="image/*,.svg" hidden />
+          <div id="text-row" hidden>
+            <label for="text-input">Type (newline for a new line)</label>
+            <textarea id="text-input" rows="2" style="width: 100%; box-sizing: border-box; background: #111; color: #00ff88; border: 1px solid rgba(0,255,136,0.3); border-radius: 4px; padding: 5px 8px; font-family: inherit; font-size: 12px; resize: vertical;">ASCII</textarea>
+            <div class="row">
+              <input type="text" id="text-font" placeholder="font family" value="sans-serif" style="flex: 2; min-width: 0; background: #111; color: #00ff88; border: 1px solid rgba(0,255,136,0.3); border-radius: 4px; padding: 5px 8px; font-family: inherit; font-size: 12px;" />
+              <select id="text-weight" style="flex: 1;">
+                <option value="400">400</option>
+                <option value="700" selected>700</option>
+                <option value="900">900</option>
+              </select>
+            </div>
+          </div>
           <input type="file" id="video-input" accept="video/*" hidden />
           <div class="row" id="webcam-row" hidden>
             <button type="button" id="start-webcam">Start webcam</button>

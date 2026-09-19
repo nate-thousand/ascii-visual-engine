@@ -1041,7 +1041,7 @@ export class AsciiEngine {
       fps: this.lastFps,
       time: this.time,
       motion: this.motionManager.getDebugState(),
-      source: this.sourceManager.getDebugState(),
+      source: this.sourceManager.getDebugState((name, fallback) => this.getControl(name, fallback)),
       renderer: this.rendererManager.getDebugState(),
       simulation: this.simulationManager.getDebugState(),
       compositing: this.layerManager.getDebugState(),
@@ -1647,11 +1647,12 @@ export class AsciiEngine {
     this.sourceManager.update(dt, sourceCtx);
 
     const motionCtx = this.buildMotionContext(dt);
-    const sourceApplied = this.sourceManager.applyToGrid(
-      motionCtx.grid,
-      this.glyphRegistry.getResolvedGlyphSet(),
-      (name, fallback) => this.getControl(name, fallback),
-    );
+    const getControl = (name: string, fallback?: number) => this.getControl(name, fallback);
+    // In mask mode the source is a shape over the finished frame, so the
+    // procedural stages all run and the mask is applied last.
+    const maskMode = this.sourceManager.hasReadySource() && this.sourceManager.getApplyMode(getControl) === 'mask';
+    const sourceApplied =
+      !maskMode && this.sourceManager.applyToGrid(motionCtx.grid, this.glyphRegistry.getResolvedGlyphSet(), getControl);
 
     const simulationsActive = this.simulationManager.isActive();
     const motionsActive = this.motionManager.getEnabled().length > 0;
@@ -1708,6 +1709,8 @@ export class AsciiEngine {
     const glyphGrid = this.rendererManager.getGridState(this.time);
     this.glyphRegistry.applyToGrid(glyphGrid, this.buildGlyphContext(dt));
     this.applyBassReactiveGlyphScale(glyphGrid);
+
+    if (maskMode) this.sourceManager.applyMask(glyphGrid, getControl);
   }
 
   private tick = (now: number): void => {

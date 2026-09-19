@@ -7,6 +7,7 @@ export type {
   SourceMode,
   SourceDebugState,
   SourceControlName,
+  SourceApplyMode,
 } from './Source';
 export {
   SOURCE_CONTROLS,
@@ -18,6 +19,7 @@ export {
   mapNormalizedToSource,
   mapBrightnessToGlyph,
   pixelBrightness,
+  pixelCoverage,
   pixelEdge,
   pixelContrast,
   clamp01,
@@ -32,3 +34,6 @@ export {
   listSourceIds,
   resolvePresetSource,
 } from './builtins';
+export { TextSource, layoutText } from './TextSource';
+export type { TextSourceOptions, TextLayout, TextLayoutLine } from './TextSource';
+export { isSvgMarkup, sizeSvgMarkup } from './ImageSource';

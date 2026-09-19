@@ -7,6 +7,7 @@ import type {
   SourceType,
 } from './Source';
 import { SourceSampler, mapBrightnessToGlyph } from './SourceSampler';
+import { targetSizeOf } from './SourceManager';
 
 export abstract class PixelSourceBase implements Source {
   readonly id: string;
@@ -46,15 +47,18 @@ export abstract class PixelSourceBase implements Source {
     const ny = y / Math.max(context.rows - 1, 1);
     const contrastAmount = context.getControl('sourceContrast', 1);
     const edgeAmount = context.getControl('sourceEdge', 0.3);
+    const invert = context.getControl('sourceInvert', 0) >= 0.5;
+    const [targetW, targetH] = targetSizeOf(context.grid ?? { cols: context.cols, rows: context.rows });
     return this.sampler.sampleFromImageData(
       data,
       nx,
       ny,
       this.fitMode,
-      context.cols,
-      context.rows,
+      targetW,
+      targetH,
       contrastAmount,
       edgeAmount,
+      invert,
     );
   }
 

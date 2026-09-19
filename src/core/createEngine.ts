@@ -92,8 +92,8 @@ export interface EngineHandle {
   /** Current audio amplitude (0 to 1) from the engine's own audio input; 0 when no audio is connected. */
   getLevel(): number;
 
-  /** Load a pixel source (`image`, `video`, `webcam`, `canvas`) and make it the active input. */
-  loadSource(id: 'image' | 'video' | 'webcam' | 'canvas', input: unknown): Promise<void>;
+  /** Load a source (`image` incl. SVG, `video`, `webcam`, `canvas`, `text`) and make it the active input. */
+  loadSource(id: 'image' | 'video' | 'webcam' | 'canvas' | 'text', input: unknown): Promise<void>;
   /** Back to procedural generation. */
   clearSource(): void;
 
