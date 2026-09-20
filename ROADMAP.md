@@ -129,6 +129,8 @@ In this order. No host drives it (decision 8).
 
 ### 5. Later, if ever
 
+Demand driven (decided 2026-09-20): none of these starts until a host needs it. The frame budget is met on Canvas 2D, so WebGL and workers are wants, not needs.
+
 - [ ] Real WebGL renderer replacing `WebGLRendererStub` (instanced glyph atlas), shader post processing, GPU compositing
 - [ ] Web Worker paths for simulation and grid update
 - [ ] Terminal renderer (Node stdout)
