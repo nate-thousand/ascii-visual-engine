@@ -2,7 +2,7 @@
 
 Rewritten 2026-09-17 against the code, the tests, and CHANGELOG.md. Checkboxes here are verified, not aspirational. The June draft with its duplicate milestone numbers is kept at `docs/ROADMAP-2026-06-draft.md` for history.
 
-**Where we are.** v0.1.0 shipped 2026-06-28. The local working tree carries unreleased work (demo show chrome, hero preset tuning, preset validation, README rewrite) that is ahead of both the June release and the current live site. GitHub `origin/main` has nine commits the local tree does not (CI, snapshot tests, consumer smoke tests, security policy) and an older demo. The live site is broken.
+**Where we are.** v0.1.0 shipped 2026-06-28. The local working tree carries unreleased work (demo show chrome, hero preset tuning, preset validation, README rewrite) that is ahead of both the June release and the current live site. Update 2026-09-20: `main` carries everything through v0.4.0 and the live site is the current harness.
 
 **Definition of complete for this pass:** the local build is the one true version, committed, deployed, and matching its own README.
 
@@ -92,8 +92,8 @@ The only work that turns "local is better" into "the live site is better".
 - [x] **Reconcile with GitHub.** `origin/main` has nine commits not here. Keep from GitHub: `.github/workflows/ci.yml`, `SECURITY.md`, `INTEGRATION.md`, `tests/visual-snapshot.test.ts`, `tests/consumer-smoke.test.ts`, `tests/pattern-system.test.ts`, `tests/helpers/mockCanvas.ts`. Keep from local: the demo show chrome (`examples/vanilla/*`), preset tuning, README, BRIEF, this roadmap. Resolve `src/core/validate.ts` and `tests/preset-validation.test.ts` by picking one implementation (GitHub's is older and in CI; local's is stricter and covers optional numeric fields). Done on `release/0.2.0`: local won, GitHub's extra cases merged into one test file, 189 tests pass
 - [x] **Fold in the platform's vendored copy.** `plantasonic-platform/packages/visual-engine` (0.1.0 plus edits) adds `setColor()`, `setGlyphSet()`, `setBassGlyphScale()` and small edits in `ExportManager`, `GifExporter`, `SourceManager`, `SourceSampler`, `RendererManager`, `GlyphRegistry`, `ThresholdPass`. Done with `tests/host-controls.test.ts`
 - [x] Commit as `0.2.0` on `release/0.2.0` with the CHANGELOG Unreleased section promoted
-- [ ] Deploy `dist-demo/` to visual-engine.xyz and confirm the live page is the eight section harness (deferred: local design work first)
-- [ ] Tag `v0.2.0` on GitHub
+- [x] Deploy `dist-demo/` to visual-engine.xyz and confirm the live page is the harness. Deployed 2026-09-20 from `main` at `f683282` (0.4.0 harness)
+- [x] Tag `v0.2.0` on GitHub. Also `v0.3.0` and `v0.4.0`; `main` fast forwarded to `release/0.3.0` on 2026-09-20
 
 ### 2. The API work (0.3.0)
 
