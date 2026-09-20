@@ -15,6 +15,9 @@ import type {
   RenderMetrics,
 } from './PerformanceTypes';
 
+/** Frames the adaptive step waits after construction or a preset change, about a second at 60 fps. */
+const ADAPTIVE_WARMUP_FRAMES = 60;
+
 export class PerformanceManager {
   private engine: AsciiEngine | null = null;
   private profiler = new FrameProfiler();
@@ -45,6 +48,8 @@ export class PerformanceManager {
   private applyingQuality = false;
   private audioLatencyMs = 0;
   private adaptiveCooldown = 0;
+  /** Frames to ignore before adapting: the profiler has no history on a fresh engine or a new look. */
+  private adaptiveWarmup = ADAPTIVE_WARMUP_FRAMES;
 
   constructor(options: PerformanceManagerOptions = {}) {
     if (options.quality) this.quality = options.quality;
@@ -81,6 +86,7 @@ export class PerformanceManager {
   reapplyQualityScaling(): void {
     this.syncBaseControls();
     if (this.controlsScaled) this.applyQualityPreset(this.quality, true);
+    this.adaptiveWarmup = ADAPTIVE_WARMUP_FRAMES;
   }
 
   destroy(): void {
@@ -307,7 +313,12 @@ export class PerformanceManager {
   }
 
   private runAdaptiveQuality(fps: number): void {
-    if (!this.adaptiveQuality || !this.engine || this.adaptiveCooldown > 0) return;
+    if (this.adaptiveWarmup > 0) {
+      this.adaptiveWarmup--;
+      return;
+    }
+    // fps 0 means no measurement yet, not a stall.
+    if (!this.adaptiveQuality || !this.engine || this.adaptiveCooldown > 0 || fps <= 0) return;
     const settings = resolveQualityPreset(this.quality);
     if (!settings.adaptive) return;
 

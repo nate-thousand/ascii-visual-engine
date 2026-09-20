@@ -21,6 +21,7 @@ Live performance features. See ROADMAP.md section 3.
 
 ### Fixed
 
+- Adaptive quality stepped density down to 95% on the first frame of every fresh engine and every preset change: the profiler had no history, reported fps 0, and the manager read that as a stall. It now waits 60 frames after construction or a preset change and ignores an fps of 0. Hosts with adaptive on saw every look start slightly under its declared density.
 - Source fit modes compared the image's aspect ratio with the grid's cell count, as if cells were square; cells are 1.6 times taller than wide, so every image, video, and webcam frame drew 1.6 times too tall. Fit now uses the grid's pixel size. The last grid column and row also sampled one pixel past the image and came out blank; they now sample the image's edge.
 - Every device input event was mapped twice: once as it arrived through the device's message handler and again when the frame drained the device queue. A key press therefore fired two bursts and every CC wrote its control twice. Events now go through `InputManager.dispatch()` once; the per frame `processQueuedEvents(dt, now)` drains device queues without redispatching and delivers replayed events.
 

@@ -185,6 +185,26 @@ describe('quality scaling is engine state', () => {
     engine.destroy();
   });
 
+  it('adaptive quality waits a second of frames before stepping, so the first frame is at full density', () => {
+    const clock = stubAnimationFrame();
+    const engine = makeEngine('glyphOrganicBloom');
+    engine.getPerformanceManager().setAdaptiveQuality(true);
+    const base = engine.getControl('density', 1);
+    engine.start();
+    // A fresh engine reports no fps yet; it used to read that as a stall and drop density on frame one.
+    clock.advanceFrames(30, 100);
+    expect(engine.getControl('density', 1)).toBe(base);
+    // Past the warm up, a real stall (100 ms frames) does step down.
+    clock.advanceFrames(40, 100);
+    expect(engine.getControl('density', 1)).toBeLessThan(base);
+    // A preset change restarts the warm up.
+    engine.setPreset(getPreset('glyphCrtTerminal'));
+    const next = engine.getControl('density', 1);
+    clock.advanceFrames(30, 100);
+    expect(engine.getControl('density', 1)).toBe(next);
+    engine.destroy();
+  });
+
   it('source and performance control values survive setPreset, matching their managers', () => {
     stubAnimationFrame();
     const engine = makeEngine('glyphOrganicBloom');

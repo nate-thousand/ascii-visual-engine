@@ -14,6 +14,9 @@ function runPresetSnapshot(preset: AsciiPreset, frames = 60): string {
     width: 640,
     height: 480,
     autoStart: true,
+    // Pinned so the fingerprint depends on the preset alone, not the wall clock or the seed.
+    seed: 'snapshot',
+    fixedTimestep: 60,
   });
 
   engine.disablePlugin('glitch');
