@@ -10,6 +10,23 @@ The bar: every hero preset at its default density holds 60 fps at 1920x1080 on a
 
 Open the harness (`npm run dev`), open the Performance section, and press **Run frame budget**. It switches through the six hero presets at the current viewport and pixel ratio, samples the engine profiler once per animation frame for three seconds each, and prints CPU time per frame (mean and 95th percentile), the slowest phase, and the cell count. The same routine is `window.bench({ presets?, seconds?, pixelRatios? })` in the dev console and `runFrameBudget()` in `examples/vanilla/bench.ts`. Adaptive quality is turned off for the run so density stays at the preset default. Keep the tab visible; a hidden tab stops `requestAnimationFrame`.
 
+### 2026-09-20, release/0.3.0 at bcd439a (0.4.0 complete), 1920x1080
+
+Same machine, same method, but the pane was visible this time, so the rAF fps column is real and the browser was compositing the canvas for every frame. Run after morphing, video and input recording, the logo and type sources, and sub cell anti aliasing landed.
+
+| Preset | Cells | Ratio 2, frame ms (mean / p95) | Ratio 2, rAF fps | Ratio 1, frame ms (mean / p95) | Ratio 1, rAF fps | Slowest phase |
+| --- | --- | --- | --- | --- | --- | --- |
+| Organic Bloom | 8960 | 11.1 / 11.6 | 55.4 | 10.5 / 11.0 | 59.6 | render 4.0 |
+| Digital Forest | 8960 | 12.3 / 12.9 | 52.1 | 11.8 / 12.3 | 54.2 | render 3.9 |
+| CRT Terminal | 8960 | 8.5 / 9.4 | 60.1 | 8.0 / 8.5 | 60.1 | render 3.8 |
+| Corrupted Broadcast | 8960 | 10.5 / 10.9 | 59.4 | 10.1 / 10.6 | 60.1 | render 4.1 |
+| Flow Field | 8960 | 10.8 / 12.0 | 41.5 | 10.2 / 10.7 | 59.8 | render 4.1 |
+| Minimal Zen | 3744 | 3.2 / 3.3 | 60.1 | 3.2 / 3.3 | 60.3 | render 1.8 |
+
+All six under the 16.7 ms budget on CPU. The numbers sit 1 to 2 ms above the 09-18 run, and render is 3.8 to 4.1 ms against 3.1 to 3.5: that run had a hidden pane, so `fillText` was never rasterized by the compositor, and this one pays for it. Nothing in the engine changes since then runs per cell in the hot path (the morph, tempo, and source mask checks are per frame), so the two runs are not evidence of a regression in either direction; the next run on a visible pane is the one to compare against.
+
+The rAF fps column shows something the CPU numbers cannot: at ratio 2 the backing store is 3840x2160, and Flow Field (41.5 fps) and Digital Forest (52.1) drop frames while their CPU time is under 13 ms. That is the browser compositing a 33 MB surface, not the engine. At ratio 1 every preset but Digital Forest (54.2) holds 60. Hosts that need a locked 60 on a 4K panel should pin `pixelRatio: 1`; the glyph grid is crisp enough at 1 for a projected wall, which is where 4K panels turn up.
+
 ### 2026-09-18, release/0.3.0, 1920x1080
 
 MacBook, 8 cores, Chromium in the Claude desktop browser pane, emulated 1920x1080 viewport. The pane was hidden during the run, so frames were driven through a `setTimeout` shim; the per frame CPU numbers come from the engine profiler and do not depend on that, the wall clock fps column from that run is not meaningful and is omitted. On a visible pane at 791x1049 the same build held a steady 60 fps rAF rate.
