@@ -5,9 +5,9 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased (0.4.0)
+## Version 0.4.0 (2026-09-20)
 
-Live performance features. See ROADMAP.md section 3.
+Live performance features, plus logos and type as sources. See ROADMAP.md section 3.
 
 ### Added
 
@@ -32,7 +32,7 @@ Live performance features. See ROADMAP.md section 3.
 - `setPreset()` no longer resets source and performance control values (`sourceBlend`, `sourceContrast`, `sourceEdge`, `fpsTarget`, `perfQuality`, `adaptiveQuality`, `dirtyRendering`, `spatialGrid`, `workerOffload`) to their defaults: they are engine state, and their managers were never reset, so `getControl()` disagreed with what the engine was doing. The values set before the switch are kept.
 - `GridBuffer.setDensity()` skips the rebuild when the new density lands on the same column count, so a morph step or an adaptive quality nudge no longer clears every cell.
 
-## Unreleased (0.3.0)
+## Version 0.3.0 (2026-09-18)
 
 The API release. See ROADMAP.md section 2.
 

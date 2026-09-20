@@ -4,7 +4,7 @@ Written 2026-09-17 when engine development moved out of the portfolio chat into 
 
 ## Where things stand
 
-- `release/0.2.0` is complete at `12376f6` (eight commits ahead of `origin/main`); tag `v0.2.0` there when the user says so. Nothing pushed, nothing tagged, nothing deployed.
+- `v0.2.0` is tagged at `12376f6` on `release/0.2.0`, `v0.3.0` at `46801ad` and `v0.4.0` at the head of `release/0.3.0`; branches and tags are pushed (2026-09-20). `main` is not merged and nothing is deployed; both wait on the user.
 - `release/0.3.0` branches from it and carries the 0.3.0 API work; `package.json` says 0.3.0. Done so far: `createEngine()` facade, nested presets (with flat normalization and a fixture backed compatibility test), HiDPI, `PointerInput`, frame budget (with a draw loop fix that took render from 12 ms to 3.3 ms at 1080p), engine state, preset export and loader, plugin params, effect unit tests, section 4 hygiene (git tag install with `prepare`, embed and React examples, TypeDoc, coverage floor in CI).
 - 0.2.0 is the consolidation release: local stabilization work + GitHub main (CI, snapshot and smoke tests, SECURITY, INTEGRATION) + the platform monorepo's vendored additions (`setColor`, `setGlyphSet`, `setBassGlyphScale`, GIF export options, source strength, softened threshold).
 - 2026-09-18: engine state ownership fixed (source, playback, quality scaling own the grid or their base values; `blendWeight` removed), `listLiveControls()` added, glyph presets derive their controls, demo rebuilt as an eight section harness. See the CHANGELOG 0.2.0 section and ROADMAP "Engine state ownership and harness rebuild".

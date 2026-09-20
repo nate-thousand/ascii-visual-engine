@@ -150,7 +150,7 @@ In this order. No host drives it (decision 8).
 | Version | Contents | Status |
 | --- | --- | --- |
 | 0.1.0 | Foundation through scripting and performance | Released 2026-06-28 |
-| 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Complete on `release/0.2.0` at `12376f6`, untagged |
-| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Section 2 complete on `release/0.3.0`, untagged |
-| 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Done on `release/0.3.0` (branch to rename or split at tag time), untagged |
+| 0.2.0 | Stabilization pass, preset validation, engine state ownership, live control discovery, harness rebuild, GitHub and vendored copy consolidated | Tagged `v0.2.0` at `12376f6` |
+| 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Tagged `v0.3.0` at `46801ad` |
+| 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Tagged `v0.4.0` on `release/0.3.0`, 2026-09-20 |
 | 1.0.0 | Section 4 plus a stable API and npm | Later |
