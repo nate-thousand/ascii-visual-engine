@@ -82,6 +82,7 @@
       }
 
       #ui h1 {
+        white-space: nowrap;
         font-size: 13px;
         font-weight: 600;
         letter-spacing: 0.05em;
@@ -302,16 +303,217 @@
         font-size: 10px;
         color: rgba(0, 255, 136, 0.45);
       }
+
+      /* Info button and About dialog */
+      #about-open {
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        min-height: 22px;
+        padding: 0;
+        margin: 0;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 255, 136, 0.45);
+        background: transparent;
+        color: rgba(0, 255, 136, 0.7);
+        font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        cursor: pointer;
+        align-self: center;
+      }
+
+      #about-open:hover,
+      #about-open:focus-visible {
+        color: #000;
+        background: #00ff88;
+        border-color: #00ff88;
+        outline: none;
+      }
+
+      #about {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        margin: auto;
+        width: min(560px, calc(100vw - 32px));
+        max-height: min(80vh, calc(100vh - 32px));
+        overflow-y: auto;
+        padding: 18px 20px 20px;
+        background: rgba(0, 0, 0, 0.88);
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        border-radius: 8px;
+        color: #00ff88;
+        font-size: 12px;
+        line-height: 1.6;
+        backdrop-filter: blur(10px);
+      }
+
+      #about::backdrop {
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      #about[open] {
+        animation: about-in 160ms ease-out;
+      }
+
+      @keyframes about-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #about[open] {
+          animation: none;
+        }
+      }
+
+      #about header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      #about h2 {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      #about h3 {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(0, 255, 136, 0.55);
+        margin: 14px 0 4px;
+      }
+
+      #about p {
+        margin-bottom: 8px;
+      }
+
+      #about ul {
+        list-style: none;
+        margin-bottom: 8px;
+      }
+
+      #about li {
+        padding-left: 14px;
+        position: relative;
+      }
+
+      #about li::before {
+        content: '\00B7';
+        position: absolute;
+        left: 2px;
+        color: rgba(0, 255, 136, 0.5);
+      }
+
+      #about b {
+        font-weight: 600;
+        color: #00ff88;
+      }
+
+      #about code {
+        font-family: inherit;
+        color: #000;
+        background: rgba(0, 255, 136, 0.85);
+        border-radius: 3px;
+        padding: 0 4px;
+      }
+
+      #about a {
+        color: #00ff88;
+      }
+
+      #about-close {
+        flex: 0 0 auto;
+        min-width: 44px;
+        min-height: 28px;
+        padding: 4px 10px;
+        background: transparent;
+        color: rgba(0, 255, 136, 0.7);
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        border-radius: 4px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      #about-close:hover,
+      #about-close:focus-visible {
+        color: #000;
+        background: #00ff88;
+        border-color: #00ff88;
+        outline: none;
+      }
     </style>
   </head>
   <body>
     <canvas id="canvas"></canvas>
     <pre id="dom-output" aria-label="ASCII DOM output"></pre>
 
+    <dialog id="about" aria-labelledby="about-title">
+      <header>
+        <h2 id="about-title">About</h2>
+        <button type="button" id="about-close" aria-label="Close">Close</button>
+      </header>
+
+      <h3>What it is</h3>
+      <p>
+        ASCII Visual Engine is a TypeScript library that turns a canvas into a live grid of text characters and animates it.
+        Version <span id="about-version"></span>. This page is the harness, a test rig that exposes every subsystem.
+        The engine has no UI of its own. Apps embed it and build their own controls.
+      </p>
+
+      <h3>What it does</h3>
+      <p>
+        Every frame the engine fills a grid of cells with a glyph and a brightness, then paints them at 60 fps.
+        The grid can be driven by procedural patterns, physics simulations, an image, video, webcam, SVG logo, or a line of type,
+        and modulated by audio, MIDI, keyboard, or pointer.
+      </p>
+      <ul>
+        <li><b>Presets</b> · 30 built in looks. Morphing blends one look into another over a chosen number of seconds.</li>
+        <li><b>Patterns, effects, motion</b> · radial, spiral, wave, cellular patterns · burst, glitch, trails, noise effects · flow field, orbital, breathing motion, with tempo sync.</li>
+        <li><b>Simulations</b> · particles, boids, cellular automata, reaction diffusion, L-systems, gravity, springs, fluid.</li>
+        <li><b>Sources</b> · image, SVG, video, webcam, canvas, and text as the brightness map, with invert, mask, threshold, and sub cell anti aliasing.</li>
+        <li><b>Audio</b> · Web Audio input, FFT features, beat detection with BPM, mapped to any control or to notes.</li>
+        <li><b>Input</b> · Web MIDI with learn and device presets, MIDI clock sync, keyboard and pointer play, and take recording for rehearsals.</li>
+        <li><b>Rendering</b> · Canvas 2D and DOM, HiDPI, layered compositing with blend modes, post processing passes, eleven glyph libraries.</li>
+        <li><b>Export</b> · PNG, SVG, GIF, ASCII text, JSON scenes, frame recording with scrub, and WebM or MP4 video with audio.</li>
+        <li><b>Performance and scripting</b> · quality presets with adaptive scaling, a frame profiler, deterministic seeds, a sandboxed script API.</li>
+      </ul>
+
+      <h3>How to use it</h3>
+      <ul>
+        <li>Pick a look from <b>Preset</b>. Its sliders are the controls that preset reads. Set morph seconds to crossfade between looks.</li>
+        <li>Open a section to drive one subsystem. Each control below a summary maps to one engine call.</li>
+        <li><b>Source</b> loads an image, SVG, video, webcam, or typed text into the grid. Blend mixes it with the pattern; Mask cuts the pattern to its shape.</li>
+        <li><b>Audio</b> asks for the microphone. <b>Input</b> connects a MIDI device; Learn binds the next knob you touch.</li>
+        <li><b>Export</b> saves a frame, a GIF, a scene file, or records video. <b>Input</b> records and replays takes.</li>
+        <li>Keys · <code>H</code> hides this panel · <code>Space</code> fires a burst · <code>?</code> opens this page · <code>Esc</code> closes it.</li>
+        <li>Boot straight into a look with <code>?preset=&lt;id&gt;</code> in the URL. Save this look as JSON writes a preset you can load back or ship in an app.</li>
+      </ul>
+      <p>
+        Install in an app with <code>npm install github:nate-thousand/ascii-visual-engine#v<span id="about-version-tag"></span></code>
+        and call <code>createEngine(canvas, options)</code>. Docs and source:
+        <a href="https://github.com/nate-thousand/ascii-visual-engine" target="_blank" rel="noopener">github.com/nate-thousand/ascii-visual-engine</a>.
+      </p>
+    </dialog>
+
     <div id="ui">
       <header>
         <h1>ASCII Visual Engine</h1>
         <span class="meta"><span id="fps">fps: 0</span> <span class="kbd">H hides</span></span>
+        <button type="button" id="about-open" aria-label="About this harness" title="About (?)">i</button>
       </header>
       <p>Engine harness. Each section drives one subsystem; sliders are the controls the current preset reads.</p>
 

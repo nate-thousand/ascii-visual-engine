@@ -26,7 +26,7 @@ for (const id of ['amplitude', 'bass', 'mid', 'treble']) {
 }
 
 // Ids the HTML needs for layout or CSS only.
-const LAYOUT_ONLY = new Set(['ui', 'section-composition']);
+const LAYOUT_ONLY = new Set(['ui', 'section-composition', 'about-title']);
 
 describe('harness ids', () => {
   it('every element main.ts looks up exists in index.html', () => {

@@ -23,6 +23,7 @@ import {
 } from 'ascii-visual-engine';
 import { galleryScripts } from '../scripts';
 import { runFrameBudget, benchTable } from './bench';
+import pkg from '../../package.json';
 
 // ---------------------------------------------------------------------------
 // Elements. Every id here exists in index.html; tests/harness-ids.test.ts
@@ -38,6 +39,11 @@ function $<T extends HTMLElement>(id: string): T {
 const canvas = $<HTMLCanvasElement>('canvas');
 const domOutput = $<HTMLPreElement>('dom-output');
 const fpsEl = $<HTMLSpanElement>('fps');
+const aboutDialog = $<HTMLDialogElement>('about');
+const aboutOpen = $<HTMLButtonElement>('about-open');
+const aboutClose = $<HTMLButtonElement>('about-close');
+const aboutVersion = $<HTMLSpanElement>('about-version');
+const aboutVersionTag = $<HTMLSpanElement>('about-version-tag');
 
 const presetSelect = $<HTMLSelectElement>('preset');
 const morphSecondsSelect = $<HTMLSelectElement>('morph-seconds');
@@ -1244,6 +1250,25 @@ engine.on('frame', () => refreshReadouts());
 engine.on('input', () => refreshReadouts());
 
 // ---------------------------------------------------------------------------
+// About
+// ---------------------------------------------------------------------------
+
+aboutVersion.textContent = pkg.version;
+aboutVersionTag.textContent = pkg.version;
+
+function toggleAbout(): void {
+  if (aboutDialog.open) aboutDialog.close();
+  else aboutDialog.showModal();
+}
+
+aboutOpen.addEventListener('click', () => toggleAbout());
+aboutClose.addEventListener('click', () => aboutDialog.close());
+// A click on the backdrop lands on the dialog element itself, not on its content.
+aboutDialog.addEventListener('click', (event) => {
+  if (event.target === aboutDialog) aboutDialog.close();
+});
+
+// ---------------------------------------------------------------------------
 // Keys and window
 // ---------------------------------------------------------------------------
 
@@ -1256,6 +1281,13 @@ window.addEventListener('keydown', (event) => {
   ) {
     return;
   }
+  if (event.key === '?' || (aboutDialog.open && event.key === 'Escape')) {
+    event.preventDefault();
+    toggleAbout();
+    return;
+  }
+  // The About page holds the keys while it is open.
+  if (aboutDialog.open) return;
   if (event.key === 'h' || event.key === 'H') {
     event.preventDefault();
     document.body.classList.toggle('ui-hidden');

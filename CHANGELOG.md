@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **Harness About page.** An info button in the panel header (or `?`) opens a dialog with what the engine is, what it does, and how to use the harness, with the version and the git tag install line. `Esc`, Close, or a click outside closes it; `H` and `Space` are held while it is open.
+
 ## Version 0.4.0 (2026-09-20)
 
 Live performance features, plus logos and type as sources. See ROADMAP.md section 3.
