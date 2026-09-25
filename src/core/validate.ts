@@ -8,8 +8,8 @@ import { AUDIO_SMOOTHING_CONTROLS } from '../audio/AudioTypes';
 import { PERFORMANCE_CONTROLS } from '../performance/PerformanceTypes';
 import { listSimulationIds } from '../simulation/builtins';
 import { listPatternIds } from '../patterns';
-import type { AsciiPreset, PresetInput } from './types';
-import { CONTROL_GROUP, isFlatPreset, normalizePreset } from './presetShape';
+import type { AsciiPreset, } from './types';
+import { CONTROL_GROUP, isFlatPreset, flatKeyReport } from './presetShape';
 import { liveControlDefs } from '../presets/controlCatalog';
 
 /** Control names wired through AsciiEngine.setControl / getControl. */
@@ -98,8 +98,9 @@ export function warnUnknownMotionIds(ids: string[]): void {
 // ---------------------------------------------------------------------------
 // Preset schema validation (structural). Runs on every setPreset() so a preset
 // loaded from JSON fails loudly and specifically instead of breaking mid-frame.
-// Flat input is normalized to the nested shape first; the checks below are
-// against the nested shape. See PRESET_SCHEMA.md.
+// Only the nested shape is accepted; the 0.2 flat shape is an error that
+// names every field to move (or `migratePreset()` does it once). See
+// PRESET_SCHEMA.md.
 // ---------------------------------------------------------------------------
 
 const MOTION_FIELD_TYPES = new Set(['noise', 'wave', 'none']);
@@ -115,9 +116,9 @@ export interface PresetValidationResult {
   ok: boolean;
   /** Structural problems. The preset cannot be applied safely. */
   errors: string[];
-  /** Suspicious but survivable: out-of-range values, unknown ids, the deprecated flat shape. */
+  /** Suspicious but survivable: out-of-range values, unknown ids. */
   warnings: string[];
-  /** The normalized nested preset, when `ok`. */
+  /** The preset with `controls` filled in, when `ok`. */
   preset?: AsciiPreset;
 }
 
@@ -128,8 +129,8 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
 
 /**
  * Validate a preset's structure. Pure: no console output, no side effects.
- * Accepts the nested shape or the deprecated flat shape; the result carries
- * the normalized nested preset when it is valid.
+ * Nested shape only; a 0.2 flat preset fails with every field to move
+ * listed, and `migratePreset()` converts one in place.
  */
 export function validatePreset(input: unknown): PresetValidationResult {
   const errors: string[] = [];
@@ -138,22 +139,16 @@ export function validatePreset(input: unknown): PresetValidationResult {
   if (!isObject(input)) {
     return { ok: false, errors: ['preset must be an object'], warnings };
   }
-  const flat = isFlatPreset(input);
-  const p = normalizePreset(input as unknown as PresetInput) as unknown as Record<string, unknown>;
+  const p: Record<string, unknown> = { ...input };
   const where = isNonEmptyString(p.id) ? `preset "${p.id}"` : 'preset';
-  if (flat) {
-    warnings.push(`${where}: flat preset shape is deprecated at 1.0; see PRESET_SCHEMA.md for the nested shape`);
-    const legacyPatterns = (input as Record<string, unknown>).patterns;
-    if (legacyPatterns !== undefined) {
-      if (!Array.isArray(legacyPatterns)) {
-        errors.push(`${where}: patterns must be an array when present`);
-      } else {
-        const known = new Set<string>(listPatternIds());
-        legacyPatterns.forEach((id, i) => {
-          if (!isNonEmptyString(id) || !known.has(id)) errors.push(`${where}: patterns[${i}] "${String(id)}" is not a known pattern id`);
-        });
-      }
-    }
+  if (isFlatPreset(input)) {
+    return {
+      ok: false,
+      errors: [
+        `${where}: the flat preset shape (0.2) is not accepted since 0.5.0. Move each field into its group (${flatKeyReport(input).join(', ')}), or run migratePreset() once and save the result. See PRESET_SCHEMA.md`,
+      ],
+      warnings,
+    };
   }
 
   if (!isNonEmptyString(p.id)) errors.push('id must be a non-empty string');
@@ -272,8 +267,8 @@ export function validatePreset(input: unknown): PresetValidationResult {
 }
 
 /**
- * Validate, normalize, and throw on structural errors. Warnings go to the
- * console once per preset id. Returns the nested preset. Called from
+ * Validate and throw on structural errors. Warnings go to the console once
+ * per preset id. Returns the preset with `controls` filled in. Called from
  * AsciiEngine.setPreset().
  */
 const warnedPresetIds = new Set<string>();

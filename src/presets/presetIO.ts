@@ -99,9 +99,9 @@ export function presetToJson(preset: AsciiPreset): string {
 }
 
 /**
- * Fetch a preset (nested or flat) and validate it. Resolves to the
- * normalized nested preset; rejects with every structural error listed.
- * Nothing is applied; pass the result to `setPreset()`.
+ * Fetch a preset and validate it. Resolves to the preset with `controls`
+ * filled in; rejects with every structural error listed. Nothing is
+ * applied; pass the result to `setPreset()`.
  */
 export async function loadPresetFromUrl(url: string, init?: RequestInit): Promise<AsciiPreset> {
   const response = await fetch(url, init);

@@ -1,6 +1,6 @@
 # Preset Schema
 
-A preset is a plain JSON serializable object that describes a look. The engine interprets it at runtime; it carries no code. This is the 0.3 nested shape. The 0.2 flat shape is still accepted everywhere and normalized on load (see the end of this document); it is deprecated at 1.0. The flat reference is kept at `docs/PRESET_SCHEMA-0.2-flat.md`.
+A preset is a plain JSON serializable object that describes a look. The engine interprets it at runtime; it carries no code. This is the nested shape introduced in 0.3 and the only shape the engine accepts since 0.5.0. The 0.2 flat shape fails validation with every field to move listed; `migratePreset()` converts an old file once (see the end of this document). The flat reference is kept at `docs/PRESET_SCHEMA-0.2-flat.md` for history.
 
 ## Shape
 
@@ -78,7 +78,7 @@ Three rules make the shape predictable:
 
 ## Validation
 
-`AsciiEngine.setPreset()` and the constructor run `assertValidPreset()`, which normalizes, validates, and throws with every structural problem listed. Soft problems (a default outside its range, an unknown control name, the deprecated flat shape) warn once per preset id. `validatePreset(json)` does the same without throwing and returns `{ ok, errors, warnings, preset }`, where `preset` is the normalized nested object with `controls` filled in.
+`AsciiEngine.setPreset()` and the constructor run `assertValidPreset()`, which validates and throws with every structural problem listed. Soft problems (a default outside its range, an unknown control name) warn once per preset id. `validatePreset(json)` does the same without throwing and returns `{ ok, errors, warnings, preset }`, where `preset` is the object with `controls` filled in.
 
 Structural errors: missing or mistyped `id`, `name`, `glyphSet`; `plugins` or `controls` not arrays; a plugin `type` outside `pattern effect input renderer utility`; a plugin `params` that is not an object of finite numbers; a control with `min > max` or a non positive `step`; a base or group number that is not finite; `density` not greater than 0; `motion.field` outside `noise wave none`; a group that is not an object; a legacy `patterns` id that is not a known pattern.
 
@@ -146,7 +146,7 @@ import { createEngine, listPresets, validatePreset } from 'ascii-visual-engine';
 
 const engine = createEngine(canvas, { preset: 'glyphOrganicBloom' });
 engine.setPreset(myNestedPreset);      // objects or built in ids
-engine.setPreset(myOldFlatPreset);     // still fine, warns once
+engine.setPreset(migratePreset(oldFlatJson)); // a 0.2 file, converted once; save the result
 
 const result = validatePreset(JSON.parse(text));
 if (result.ok) engine.setPreset(result.preset!);
@@ -155,11 +155,11 @@ else console.error(result.errors);
 
 `listLiveControls(preset)` returns the control names a preset's composition actually reads; `liveControlDefs(preset)` turns that into slider definitions; `withLiveControls(preset)` fills `controls` the same way the built ins do.
 
-Saving a look: `engine.exportPreset({ id, name })` captures the enabled plugins, motions with their weights, simulations, post passes, layers, glyph configuration, and every control the composition reads at its current value, as a nested preset; `presetToJson()` serializes it. Loading one: `engine.loadPresetFromUrl(url)` fetches, validates, and applies; `loadPresetFromUrl(url)` on its own only fetches and validates; `parsePreset(json)` validates something already parsed. All three accept the flat shape too and return the nested one.
+Saving a look: `engine.exportPreset({ id, name })` captures the enabled plugins, motions with their weights, simulations, post passes, layers, glyph configuration, and every control the composition reads at its current value, as a nested preset; `presetToJson()` serializes it. Loading one: `engine.loadPresetFromUrl(url)` fetches, validates, and applies; `loadPresetFromUrl(url)` on its own only fetches and validates; `parsePreset(json)` validates something already parsed. All three reject the 0.2 flat shape with the fields to move listed.
 
-## The flat shape (deprecated at 1.0)
+## Migrating a 0.2 flat preset
 
-The 0.1 and 0.2 shape kept every field at the top level. Any preset carrying a flat only key is treated as flat and normalized:
+The 0.1 and 0.2 shape kept every field at the top level. Since 0.5.0 any preset carrying a flat only key fails validation with one error naming each field and its home. `migratePreset(json)` performs this mapping once; save what it returns and load that from then on:
 
 | Flat | Nested |
 | --- | --- |
@@ -177,4 +177,4 @@ The 0.1 and 0.2 shape kept every field at the top level. Any preset carrying a f
 | `glyphLanguage glyphCategories glyphRules glyphMorphing glyphAnimation` | `glyphs.language categories rules morphing animation` |
 | `effects`, `patterns` | folded into `plugins` when `plugins` is empty, as they always were |
 
-`normalizePreset(flat)` performs this mapping; `flattenPreset(nested)` is its inverse for hosts that still read flat fields; `isFlatPreset(x)` tells the two apart. `tests/fixtures/flat-presets.json` holds the 30 built ins exactly as 0.2.0 shipped them, and `tests/preset-shape.test.ts` proves each normalizes to its converted nested form and renders the same frames.
+`isFlatPreset(x)` tells the two apart and `flatKeyReport(x)` lists the fields to move. `tests/fixtures/flat-presets.json` holds the 30 built ins exactly as 0.2.0 shipped them, and `tests/preset-shape.test.ts` proves each migrates to its nested built in and renders the same frames.

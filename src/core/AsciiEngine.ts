@@ -27,7 +27,6 @@ import type {
   EngineEventPayload,
   GridState,
   NoteEvent,
-  PresetInput,
   EngineState,
 } from './types';
 import { BASE_DEFAULTS, getPresetValue, presetControlValues } from './presetShape';
@@ -368,8 +367,8 @@ export class AsciiEngine {
     return preset;
   }
 
-  /** Apply a look. Accepts the nested shape or the deprecated flat shape; the stored preset is always nested. */
-  setPreset(input: PresetInput): void {
+  /** Apply a look. Nested shape only; a 0.2 flat preset throws with the fields to move listed. */
+  setPreset(input: AsciiPreset): void {
     if (!this.alive('setPreset')) return;
     const preset = assertValidPreset(input);
     if (this.morph && !this.applyingMorph) this.cancelMorph();
@@ -401,7 +400,7 @@ export class AsciiEngine {
    * with `false` if it was cancelled. Emits `morph` on start, at the switch,
    * and at the end.
    */
-  morphTo(target: PresetInput | string, options: MorphOptions = {}): Promise<boolean> {
+  morphTo(target: AsciiPreset | string, options: MorphOptions = {}): Promise<boolean> {
     if (!this.alive('morphTo')) return Promise.resolve(false);
     let resolved: AsciiPreset;
     if (typeof target === 'string') {

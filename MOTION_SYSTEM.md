@@ -134,7 +134,7 @@ A preset with `motion.field` and no behaviors gets the legacy set:
 - `wave` enables the `wave` motion
 - `noise` enables `curlNoise` and `brownian`
 
-Flat presets (`motions`, `motionField`, top level `strength` and friends) are normalized into this group on load.
+A 0.2 flat preset (`motions`, `motionField`, top level `strength` and friends) is rejected since 0.5.0; `migratePreset()` moves those fields into this group once.
 
 ---
 

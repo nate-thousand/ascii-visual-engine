@@ -111,13 +111,19 @@ describe('loadPresetFromUrl', () => {
     vi.unstubAllGlobals();
   });
 
-  it('fetches, validates, normalizes, and returns the preset', async () => {
-    const flat = { id: 'remote', name: 'Remote', glyphSet: ['.', '#'], motionField: 'wave', plugins: [], controls: [], density: 1, speed: 1, trailAmount: 0.3, glitchAmount: 0 };
-    vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => flat, url })));
+  it('fetches, validates, fills controls, and returns the preset', async () => {
+    const remote = { id: 'remote', name: 'Remote', glyphSet: ['.', '#'], motion: { field: 'wave' }, density: 1, speed: 1, trailAmount: 0.3, glitchAmount: 0 };
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => remote, url })));
     const preset = await loadPresetFromUrl('https://example.test/remote.json');
     expect(preset.id).toBe('remote');
     expect(preset.motion?.field).toBe('wave');
     expect(preset.controls?.map((c) => c.name)).toEqual(['density', 'speed', 'strength', 'frequency', 'amplitude']);
+  });
+
+  it('rejects a 0.2 flat file with the fields to move and the migration hint', async () => {
+    const flat = { id: 'remote', name: 'Remote', glyphSet: ['.', '#'], motionField: 'wave', plugins: [], controls: [], density: 1, speed: 1, trailAmount: 0.3, glitchAmount: 0 };
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => flat, url })));
+    await expect(loadPresetFromUrl('https://example.test/old.json')).rejects.toThrow(/not accepted since 0\.5\.0.*motionField -> motion\.field.*migratePreset/);
   });
 
   it('rejects on HTTP errors, non JSON, and invalid presets with the reasons', async () => {

@@ -219,9 +219,9 @@ export interface PresetGlyphsConfig {
 
 /**
  * A look. Every group is optional; numeric fields inside a group are the
- * defaults for the control of the same name. Flat presets (0.1 and 0.2
- * shape, see `FlatPreset`) are accepted everywhere a preset is and are
- * normalized to this shape on load. Flat is deprecated at 1.0.
+ * defaults for the control of the same name. This is the only shape the
+ * engine accepts; the 0.2 flat shape is rejected with a list of fields to
+ * move, and `migratePreset()` converts an old file once.
  */
 export interface AsciiPreset {
   id: string;
@@ -245,77 +245,6 @@ export interface AsciiPreset {
   layers?: LayerPresetConfig[];
   source?: SourcePresetConfig;
 }
-
-/**
- * The flat preset shape from 0.1 and 0.2. Still accepted by every entry
- * point; `normalizePreset()` turns it into an `AsciiPreset`. Deprecated at 1.0.
- */
-export interface FlatPreset {
-  id: string;
-  name: string;
-  glyphSet: string[];
-  motionField: MotionFieldType;
-  plugins: PluginConfig[];
-  motions?: MotionConfig[];
-  simulations?: SimulationConfig[];
-  source?: SourcePresetConfig;
-  layers?: LayerPresetConfig[];
-  postProcessing?: PostProcessingPresetConfig[];
-  /** @deprecated Use `plugins` */
-  effects?: EffectConfig[];
-  /** @deprecated Use `plugins` */
-  patterns?: PatternId[];
-  controls: ControlDef[];
-  density: number;
-  speed: number;
-  trailAmount: number;
-  glitchAmount: number;
-  symmetry?: number;
-  petals?: number;
-  spiralAmount?: number;
-  cellularAmount?: number;
-  scanlineAmount?: number;
-  strength?: number;
-  randomness?: number;
-  frequency?: number;
-  amplitude?: number;
-  decay?: number;
-  drag?: number;
-  gravity?: number;
-  noiseScale?: number;
-  flowStrength?: number;
-  tempoSync?: number;
-  simStrength?: number;
-  simSpeed?: number;
-  simDensity?: number;
-  simDecay?: number;
-  simSpawnRate?: number;
-  postFeedback?: number;
-  postSmear?: number;
-  postDisplacement?: number;
-  postThreshold?: number;
-  postInvert?: number;
-  postEdge?: number;
-  postPosterize?: number;
-  postScanline?: number;
-  postDither?: number;
-  audioMapping?: AudioMappingPresetConfig;
-  audioAttack?: number;
-  audioRelease?: number;
-  audioSensitivity?: number;
-  audioNoiseGate?: number;
-  audioMinThreshold?: number;
-  audioMaxClamp?: number;
-  inputMapping?: InputMappingPresetConfig;
-  glyphLanguage?: string | string[];
-  glyphCategories?: GlyphCategoryId[];
-  glyphRules?: GlyphRuleConfig[];
-  glyphMorphing?: GlyphMorphConfig;
-  glyphAnimation?: GlyphAnimationConfig;
-}
-
-/** Anything a preset entry point accepts. */
-export type PresetInput = AsciiPreset | FlatPreset;
 
 export interface GridDimensions {
   cols: number;

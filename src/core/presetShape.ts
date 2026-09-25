@@ -1,4 +1,4 @@
-import type { AsciiPreset, FlatPreset, PresetInput } from './types';
+import type { AsciiPreset } from './types';
 
 /**
  * Where each numeric control lives in the nested preset shape. `base` is the
@@ -53,7 +53,25 @@ export type PresetGroupName = (typeof CONTROL_GROUP)[PresetControlName];
 /** Engine defaults for the four base values when a preset leaves them out. */
 export const BASE_DEFAULTS = { density: 1, speed: 1, trailAmount: 0.3, glitchAmount: 0.1 } as const;
 
-const NUMERIC_GROUPS: Exclude<PresetGroupName, 'base'>[] = ['pattern', 'motion', 'simulation', 'post', 'audio'];
+/** Where each flat only key of the 0.1 and 0.2 shape lives in the nested shape. */
+const FLAT_KEY_HOME: Record<string, string> = {
+  motionField: 'motion.field',
+  motions: 'motion.behaviors',
+  simulations: 'simulation.behaviors',
+  postProcessing: 'post.passes',
+  effects: 'plugins',
+  patterns: 'plugins',
+  audioMapping: 'audio.mapping',
+  inputMapping: 'input',
+  glyphLanguage: 'glyphs.language',
+  glyphCategories: 'glyphs.categories',
+  glyphRules: 'glyphs.rules',
+  glyphMorphing: 'glyphs.morphing',
+  glyphAnimation: 'glyphs.animation',
+};
+for (const name of Object.keys(CONTROL_GROUP) as PresetControlName[]) {
+  if (CONTROL_GROUP[name] !== 'base') FLAT_KEY_HOME[name] = `${CONTROL_GROUP[name]}.${name}`;
+}
 
 /** Flat keys that only exist in the 0.1 and 0.2 shape. Any of them marks a preset as flat. */
 const FLAT_ONLY_KEYS = new Set([
@@ -76,10 +94,18 @@ const FLAT_ONLY_KEYS = new Set([
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
-/** True when the input carries any flat only key. Nested presets never do. */
-export function isFlatPreset(input: unknown): input is FlatPreset {
+/** True when the input carries any flat only key of the 0.2 shape. Nested presets never do. */
+export function isFlatPreset(input: unknown): boolean {
   if (!isObject(input)) return false;
   return Object.keys(input).some((k) => FLAT_ONLY_KEYS.has(k));
+}
+
+/** Each flat only key the input carries, with where it belongs, for the error a flat preset gets. */
+export function flatKeyReport(input: unknown): string[] {
+  if (!isObject(input)) return [];
+  return Object.keys(input)
+    .filter((k) => FLAT_ONLY_KEYS.has(k))
+    .map((k) => `${k} -> ${FLAT_KEY_HOME[k]}`);
 }
 
 /** Read a preset's default for a control, wherever its group puts it. */
@@ -118,14 +144,16 @@ function defined<T extends Record<string, unknown>>(obj: T): T | undefined {
 }
 
 /**
- * Turn any accepted preset input into the nested shape. Pure and structural:
- * it re-homes fields and copies everything else through, so a malformed
- * input stays malformed for `validatePreset()` to report. Already nested
- * input comes back as a shallow copy.
+ * One way conversion of a 0.2 flat preset to the nested shape, for hosts
+ * with old preset files: run it once, save the result, and load that. The
+ * engine itself no longer accepts the flat shape (since 0.5.0). Pure and
+ * structural: it re-homes fields and copies everything else through, so a
+ * malformed input stays malformed for `validatePreset()` to report. Already
+ * nested input comes back as a shallow copy.
  */
-export function normalizePreset(input: PresetInput): AsciiPreset {
+export function migratePreset(input: unknown): AsciiPreset {
   if (!isFlatPreset(input)) return { ...(input as AsciiPreset) };
-  const f = input as unknown as Record<string, unknown>;
+  const f = input as Record<string, unknown>;
 
   const rest: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(f)) {
@@ -188,40 +216,4 @@ function legacyPluginsFrom(f: Record<string, unknown>): { id: string; type: stri
     }
   }
   return ids.length > 0 ? ids : null;
-}
-
-/**
- * The inverse: a nested preset as the 0.2 flat shape, for hosts that still
- * read flat fields. Lossless for anything the flat shape can express.
- */
-export function flattenPreset(preset: AsciiPreset): FlatPreset {
-  const { motion, pattern, simulation, post, audio, input, glyphs, ...top } = preset;
-  const flat: Record<string, unknown> = {
-    ...top,
-    plugins: preset.plugins ?? [],
-    controls: preset.controls ?? [],
-    density: preset.density ?? BASE_DEFAULTS.density,
-    speed: preset.speed ?? BASE_DEFAULTS.speed,
-    trailAmount: preset.trailAmount ?? BASE_DEFAULTS.trailAmount,
-    glitchAmount: preset.glitchAmount ?? BASE_DEFAULTS.glitchAmount,
-    motionField: motion?.field ?? 'none',
-  };
-  if (motion?.behaviors) flat.motions = motion.behaviors;
-  if (simulation?.behaviors) flat.simulations = simulation.behaviors;
-  if (post?.passes) flat.postProcessing = post.passes;
-  if (audio?.mapping) flat.audioMapping = audio.mapping;
-  if (input) flat.inputMapping = input;
-  if (glyphs?.language !== undefined) flat.glyphLanguage = glyphs.language;
-  if (glyphs?.categories) flat.glyphCategories = glyphs.categories;
-  if (glyphs?.rules) flat.glyphRules = glyphs.rules;
-  if (glyphs?.morphing) flat.glyphMorphing = glyphs.morphing;
-  if (glyphs?.animation) flat.glyphAnimation = glyphs.animation;
-  for (const group of NUMERIC_GROUPS) {
-    const holder = preset[group] as Record<string, unknown> | undefined;
-    if (!holder) continue;
-    for (const name of controlsOf(group)) {
-      if (typeof holder[name] === 'number') flat[name] = holder[name];
-    }
-  }
-  return flat as unknown as FlatPreset;
 }

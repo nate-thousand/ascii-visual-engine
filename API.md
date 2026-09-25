@@ -40,7 +40,7 @@ Mounts an `AsciiEngine` on a canvas and returns the host surface. Everything pas
 | `setPreset(preset \| id)`, `setPresetById(id)`, `getPreset()` | Look. Unknown ids warn and keep the current look |
 | `morphTo(preset \| id, options?)`, `cancelMorph()`, `getMorphState()` | Blend into another look over time; see Preset morphing below |
 | `exportPreset(options?)` | The current look as a preset: enabled plugins, motions with weights, simulations, passes, layers, glyph config, every live control at its current value. `{ id?, name? }` |
-| `loadPresetFromUrl(url, init?)` | Fetch, validate, and apply a preset JSON file (nested or flat). Rejects with every error listed; the look is untouched on failure |
+| `loadPresetFromUrl(url, init?)` | Fetch, validate, and apply a preset JSON file. Rejects with every error listed, including a 0.2 flat file; the look is untouched on failure |
 | `setControl(name, value)`, `getControl(name, fallback?)` | Numeric controls: `density`, `speed`, anything in `preset.controls` |
 | `describePluginParams(id)`, `getPluginParams(id)`, `setPluginParams(id, params)` | Plugin tunables, e.g. `spiral` arms or `glitch` rate |
 | `setGlyphSet(glyphs)` | Override glyph characters, bypassing the glyph language |
@@ -406,7 +406,7 @@ interface EngineEventPayload {
 
 ### AsciiPreset
 
-The nested preset shape; see PRESET_SCHEMA.md for every field. `FlatPreset` is the deprecated 0.2 shape and `PresetInput` is either. Helpers: `normalizePreset(input)`, `flattenPreset(preset)`, `isFlatPreset(x)`, `getPresetValue(preset, name)`, `presetControlValues(preset)`, `CONTROL_GROUP`.
+The preset shape; see PRESET_SCHEMA.md for every field. It is the only shape accepted since 0.5.0. Helpers: `migratePreset(json)` converts a 0.2 flat preset once, `isFlatPreset(x)` and `flatKeyReport(x)` recognize one, `getPresetValue(preset, name)`, `presetControlValues(preset)`, `CONTROL_GROUP`.
 
 See [PRESET_SCHEMA.md](./PRESET_SCHEMA.md) for the complete format.
 

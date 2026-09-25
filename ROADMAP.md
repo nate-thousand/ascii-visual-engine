@@ -16,7 +16,7 @@ The grill on "simpler, more powerful, more responsive" closed with these. They r
 | --- | --- | --- |
 | 1 | The engine is a library that powers other apps. Hosts own the UI. The demo is a harness. | Engineering hours go to the API and the engine, not the demo |
 | 2 | Simpler means two tiers: a small facade for app authors and nested, all optional presets for look authors. Nothing removed. | Facade = the twelve methods hosts call today (`start stop resize destroy setControl setPresetById setGlyphSet setColor setBassGlyphScale getLevel disableKeyboardInput getScriptEngine`) plus `on` |
-| 3 | Flat presets keep working. `validatePreset()` normalizes flat to nested on load. Flat is deprecated at 1.0 | No host preset breaks in 0.3 |
+| 3 | Flat presets keep working through 0.4. `validatePreset()` normalizes flat to nested on load and warns. Dropped in 0.5.0 (2026-09-25): flat fails validation with the fields to move listed; `migratePreset()` converts an old file once | No host preset broke in 0.3; the break landed in 0.5.0 with a migration path |
 | 4 | Target machine is a laptop driving a screen at 1080p, sometimes 4K. | Retina crispness and 60 fps at 1080p on every hero preset at default density are the bar. WebGL waits until Canvas 2D is measured at 4K |
 | 5 | Responsive means, in order: frame rate, then input to visible change under 20 ms, then layout (a demo concern). | |
 | 6 | Touch is an input plugin, not a demo feature: `PointerInput`, same shape as `KeyboardInput`, off by default. | |
@@ -127,7 +127,13 @@ In this order. No host drives it (decision 8).
 - [x] TypeDoc API reference: `npm run docs:api` into `docs/api/` (ignored), built in CI
 - [x] Coverage floor in CI: `npm run test:coverage`, 77 / 80 / 69 / 77 (statements, branches, functions, lines) as of 2026-09-19
 
-### 5. Later, if ever
+### 5. Toward 1.0
+
+- [x] Drop the flat preset shape (0.5.0, 2026-09-25): validation rejects it with every field to move listed, `migratePreset()` converts old files once, `FlatPreset`, `PresetInput`, `normalizePreset`, `flattenPreset` removed
+- [ ] Freeze the facade: `EngineHandle` is the 1.0 contract, everything under `engine` stays reachable but unversioned
+- [ ] npm publish under a scope when a third host appears (decision 7)
+
+### 6. Later, if ever
 
 Demand driven (decided 2026-09-20): none of these starts until a host needs it. The frame budget is met on Canvas 2D, so WebGL and workers are wants, not needs.
 
@@ -156,4 +162,5 @@ Demand driven (decided 2026-09-20): none of these starts until a host needs it. 
 | 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Tagged `v0.3.0` at `46801ad` |
 | 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Tagged `v0.4.0` on `release/0.3.0`, 2026-09-20 |
 | 0.4.1 | NaN guards at every entry point, stable reaction diffusion, harness About page | Tagged `v0.4.1` on `release/0.3.0`, 2026-09-25 |
-| 1.0.0 | Section 4 plus a stable API and npm | Later |
+| 0.5.0 | Flat preset shape dropped; `migratePreset()` | Local on `release/0.3.0`, 2026-09-25 |
+| 1.0.0 | Section 5: frozen facade and npm | Later |

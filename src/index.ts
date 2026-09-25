@@ -16,8 +16,6 @@ export { EventBus } from './core/EventBus';
 export type {
   AsciiEngineOptions,
   AsciiPreset,
-  FlatPreset,
-  PresetInput,
   PresetMotionConfig,
   PresetPatternConfig,
   PresetSimulationConfig,
@@ -138,7 +136,7 @@ export type { EngineDebugState } from './core/debug';
 export type { SourcePresetConfig } from './core/types';
 export { KNOWN_CONTROLS, warnUnknownControl, warnUnknownPluginIds, warnUnknownPreset, warnUnknownMotionIds, warnUnknownSimulationIds, validatePreset, assertValidPreset } from './core/validate';
 export type { PresetValidationResult } from './core/validate';
-export { normalizePreset, flattenPreset, isFlatPreset, getPresetValue, presetControlValues, CONTROL_GROUP, BASE_DEFAULTS } from './core/presetShape';
+export { migratePreset, isFlatPreset, flatKeyReport, getPresetValue, presetControlValues, CONTROL_GROUP, BASE_DEFAULTS } from './core/presetShape';
 export type { PresetControlName, PresetGroupName } from './core/presetShape';
 export { listLiveControls, CONTROL_CONSUMERS, GLOBAL_CONTROLS, AUDIO_CONTROLS } from './core/liveControls';
 export { CONTROL_CATALOG, liveControlDefs, withLiveControls } from './presets/controlCatalog';

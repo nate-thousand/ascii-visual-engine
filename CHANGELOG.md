@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 0.5.0 (2026-09-25)
+
+The flat preset shape is gone. Everything else is unchanged; this is the last breaking change before 1.0.
+
+### Removed
+
+- **The 0.2 flat preset shape.** `setPreset()`, `morphTo()`, `validatePreset()`, `parsePreset()`, and `loadPresetFromUrl()` accept the nested shape only. A flat preset now fails validation with one error that lists every flat field and where it belongs (`motionField -> motion.field`, `strength -> motion.strength`, `patterns -> plugins`, and so on) and points at `migratePreset()`. Removed from the package: the `FlatPreset` and `PresetInput` types, `normalizePreset()`, and `flattenPreset()`. Every flat preset that loaded in 0.4 with a deprecation warning stops loading; nested presets, the 30 built ins, exported looks, and scene documents are unaffected.
+
+### Added
+
+- `migratePreset(json)`: one way conversion of a 0.2 flat preset to the nested shape, for hosts with old files. Run it once, save the result, load that. `flatKeyReport(json)` lists a flat preset's fields with their nested homes; `isFlatPreset(json)` stays. `tests/fixtures/flat-presets.json` (the 30 built ins as 0.2.0 shipped them) is now the migration fixture: each migrates to its nested built in and renders the same frames.
+
 ## Version 0.4.1 (2026-09-25)
 
 Hardening after the first host report, plus the harness About page.

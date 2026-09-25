@@ -31,20 +31,20 @@ describe('validatePreset', () => {
     expect(r.errors.join('\n')).toMatch(/density must be a finite number/);
   });
 
-  it('rejects a bad motion field and bad plugin types, nested or flat', () => {
+  it('rejects a bad motion field and bad plugin types, and the flat shape outright', () => {
     const nested = clone(basicPreset) as Record<string, unknown>;
     nested.motion = { field: 'spiral' };
     (nested.plugins as unknown[]).push({ id: 'wave', type: 'shader' });
     const r = validatePreset(nested);
     expect(r.errors.some(e => /motion\.field must be one of/.test(e))).toBe(true);
     expect(r.errors.some(e => /plugins\[\d+\]\.type must be one of/.test(e))).toBe(true);
-    expect(r.warnings.some(e => /flat preset shape is deprecated/.test(e))).toBe(false);
+    expect(r.warnings.some(e => /flat/.test(e))).toBe(false);
 
     const flat = clone(basicPreset) as Record<string, unknown>;
     flat.motionField = 'spiral';
     const f = validatePreset(flat);
-    expect(f.errors.some(e => /motion\.field must be one of/.test(e))).toBe(true);
-    expect(f.warnings.some(e => /flat preset shape is deprecated/.test(e))).toBe(true);
+    expect(f.ok).toBe(false);
+    expect(f.errors).toEqual([expect.stringMatching(/flat preset shape \(0\.2\) is not accepted since 0\.5\.0.*motionField -> motion\.field/)]);
   });
 
   it('rejects controls with min greater than max, warns on out-of-range defaults', () => {
@@ -69,7 +69,7 @@ describe('validatePreset', () => {
   it('rejects NaN and non-number optional fields', () => {
     const p = clone(basicPreset) as Record<string, unknown>;
     p.speed = Number.NaN;
-    p.postFeedback = '0.5';
+    p.post = { postFeedback: '0.5' };
     const r = validatePreset(p);
     expect(r.errors.some(e => /speed must be a finite number/.test(e))).toBe(true);
     expect(r.errors.some(e => /postFeedback must be a finite number when present/.test(e))).toBe(true);
@@ -95,10 +95,10 @@ describe('assertValidPreset', () => {
     warn.mockRestore();
   });
 
-  it('rejects unknown legacy pattern ids', () => {
+  it('rejects the legacy patterns field as part of the flat shape', () => {
     const result = validatePreset({ ...basicPreset, patterns: ['wave', 'notARealPattern' as never] });
     expect(result.ok).toBe(false);
-    expect(result.errors.some((e) => e.includes('notARealPattern'))).toBe(true);
+    expect(result.errors).toEqual([expect.stringMatching(/not accepted since 0\.5\.0.*patterns -> plugins/)]);
   });
 
   it('throws from assertValidPreset with the preset id and field in the message', () => {

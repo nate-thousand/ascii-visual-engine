@@ -242,7 +242,7 @@ const preset: AsciiPreset = {
 };
 ```
 
-Legacy `effects`, `patterns`, and `motionField` are folded into `plugins` by `normalizePreset()` when a flat preset loads.
+Legacy `effects`, `patterns`, and `motionField` are part of the 0.2 flat shape, rejected since 0.5.0; `migratePreset()` folds them into `plugins` once.
 
 ### Params
 

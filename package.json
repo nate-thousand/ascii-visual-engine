@@ -1,6 +1,6 @@
 {
   "name": "ascii-visual-engine",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A reusable TypeScript framework for building expressive, real-time ASCII visual systems",
   "type": "module",
   "main": "./dist/ascii-visual-engine.cjs",
