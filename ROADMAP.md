@@ -162,5 +162,5 @@ Demand driven (decided 2026-09-20): none of these starts until a host needs it. 
 | 0.3.0 | Section 2: facade, nested presets, HiDPI, PointerInput, frame budget, engine state, preset loader and export, params, effect tests | Tagged `v0.3.0` at `46801ad` |
 | 0.4.0 | Section 3: beat detection, MIDI clock, seeds, morphing, video recording | Tagged `v0.4.0` on `release/0.3.0`, 2026-09-20 |
 | 0.4.1 | NaN guards at every entry point, stable reaction diffusion, harness About page | Tagged `v0.4.1` on `release/0.3.0`, 2026-09-25 |
-| 0.5.0 | Flat preset shape dropped; `migratePreset()` | Local on `release/0.3.0`, 2026-09-25 |
+| 0.5.0 | Flat preset shape dropped; `migratePreset()` | Tagged `v0.5.0` on `release/0.3.0`, 2026-09-25 |
 | 1.0.0 | Section 5: frozen facade and npm | Later |
