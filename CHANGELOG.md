@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- **NaN no longer blanks the canvas.** A NaN in any cell's brightness or burst reached `buckets[NaN].push` in the canvas draw loop, which threw every frame and left the canvas black while the engine still reported running at 60 fps. Reported from the Plantasonic reference app on its two glitch-heavy worlds about two seconds in. Four layers now stop it: `setControl()`, `setBassGlyphScale()`, and `noteOn()` ignore non finite numbers and warn once per name (`warnNonFinite`); the burst effect guards its own note input; the canvas bucket treats a NaN cell as dark; and the reaction diffusion simulation, which was the one built in preset that produced NaN on its own (its explicit Euler step was past the stability limit and the fields diverged within seconds), now uses the standard 3x3 Gray-Scott kernel at a unit step with clamped fields, so its look has changed. `tests/nan-guard.test.ts` runs every built in preset for four seconds with bursts and checks every cell stays finite.
+
 ### Added
 
 - **Harness About page.** An info button in the panel header (or `?`) opens a dialog with what the engine is, what it does, and how to use the harness, with the version and the git tag install line. `Esc`, Close, or a click outside closes it; `H` and `Space` are held while it is open.

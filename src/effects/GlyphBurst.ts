@@ -44,10 +44,10 @@ export class GlyphBurst implements Effect, Parameterized {
   }
 
   onNoteOn(event: NoteEvent): void {
-    const intensity = event.intensity ?? 1;
+    const intensity = Number.isFinite(event.intensity) ? (event.intensity as number) : 1;
     this.bursts.push({
-      x: event.x ?? this.random.next(),
-      y: event.y ?? this.random.next(),
+      x: Number.isFinite(event.x) ? (event.x as number) : this.random.next(),
+      y: Number.isFinite(event.y) ? (event.y as number) : this.random.next(),
       intensity,
       age: 0,
       maxAge: this.params.get('life') + intensity * 0.7,

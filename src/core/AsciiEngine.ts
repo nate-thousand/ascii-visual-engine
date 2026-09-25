@@ -36,7 +36,7 @@ import { Random, deriveSeed } from './Random';
 import { PresetMorph, NO_MORPH, type MorphOptions, type MorphState } from './PresetMorph';
 import { exportPreset, loadPresetFromUrl, type ExportPresetOptions } from '../presets/presetIO';
 import type { ParamDef } from '../plugins/ParamStore';
-import { warnUnknownControl, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
+import { warnUnknownControl, warnNonFinite, warnUnknownPluginIds, warnUnknownMotionIds, warnUnknownSimulationIds, assertValidPreset } from './validate';
 import type { EngineDebugState } from './debug';
 import {
   SourceManager,
@@ -126,6 +126,20 @@ const DEFAULT_PRESET: AsciiPreset = {
 /** A seed that differs per engine when none is given: reproducibility is opt in. */
 function freshSeed(): number {
   return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+}
+
+/** Drop non finite `x`, `y`, and `intensity` so effects fall back to their defaults instead of spreading NaN. */
+function finiteNoteEvent(event: NoteEvent): NoteEvent {
+  let out = event;
+  for (const key of ['x', 'y', 'intensity'] as const) {
+    const value = event[key];
+    if (value !== undefined && !Number.isFinite(value)) {
+      if (out === event) out = { ...event };
+      delete out[key];
+      warnNonFinite('noteOn', key, value);
+    }
+  }
+  return out;
 }
 
 export class AsciiEngine {
@@ -467,6 +481,11 @@ export class AsciiEngine {
   setControl(name: string, value: number): void {
     if (!this.alive('setControl')) return;
     warnUnknownControl(name);
+    // A NaN here would spread through every cell and blank the frame.
+    if (!Number.isFinite(value)) {
+      warnNonFinite('setControl', name, value);
+      return;
+    }
     this.controlValues.set(name, value);
     if (this.morph && !this.applyingMorph) this.morph.release(name);
 
@@ -929,6 +948,7 @@ export class AsciiEngine {
 
   noteOn(event: NoteEvent = {}): void {
     if (!this.alive('noteOn')) return;
+    event = finiteNoteEvent(event);
     this.lastNoteOn = { ...event };
     this.pluginManager.dispatchNoteOn(event);
     this.eventBus.emit('noteOn', event);
@@ -973,6 +993,10 @@ export class AsciiEngine {
 
   /** Normalized bass level (0 to 1) for per glyph random scale pulses. */
   setBassGlyphScale(level: number): void {
+    if (!Number.isFinite(level)) {
+      warnNonFinite('setBassGlyphScale', 'level', level);
+      return;
+    }
     this.bassGlyphScale = Math.min(1, Math.max(0, level));
   }
 

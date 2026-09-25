@@ -113,7 +113,10 @@ export function drawGridToCanvas(
 
   const bucketOf = (cell: GridCell): number => {
     const brightness = Math.min(1, cell.brightness + cell.burst);
-    return Math.max(0, Math.min(ALPHA_LEVELS - 1, Math.round(brightness * (ALPHA_LEVELS - 1))));
+    // Comparisons with NaN are false, so a NaN cell lands in the dark bucket instead of at buckets[NaN].
+    if (!(brightness > 0)) return 0;
+    if (brightness >= 1) return ALPHA_LEVELS - 1;
+    return Math.round(brightness * (ALPHA_LEVELS - 1));
   };
 
   let drawn = 0;

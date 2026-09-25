@@ -41,6 +41,10 @@ export class ReactionDiffusionSimulation implements Simulation {
     const kill = 0.062;
     const da = 1.0;
     const db = 0.5;
+    // Gray-Scott with the usual 3x3 kernel (weights sum to zero) and a unit
+    // step. The old four neighbour Laplacian at 0.6 was past the explicit
+    // Euler stability limit, so the fields blew up to NaN within seconds
+    // and the renderer threw on buckets[NaN].
 
     for (let s = 0; s < steps; s++) {
       for (let y = 1; y < this.rows - 1; y++) {
@@ -51,8 +55,8 @@ export class ReactionDiffusionSimulation implements Simulation {
           const aVal = this.a![idx];
           const bVal = this.b![idx];
           const reaction = aVal * bVal * bVal;
-          this.nextA![idx] = aVal + (da * lapA - reaction + feed * (1 - aVal)) * 0.6;
-          this.nextB![idx] = bVal + (db * lapB + reaction - (kill + feed) * bVal) * 0.6;
+          this.nextA![idx] = clamp01(aVal + (da * lapA - reaction + feed * (1 - aVal)));
+          this.nextB![idx] = clamp01(bVal + (db * lapB + reaction - (kill + feed) * bVal));
         }
       }
       const tmpA = this.a;
@@ -121,12 +125,11 @@ export class ReactionDiffusionSimulation implements Simulation {
 
   private laplacian(field: Float32Array, x: number, y: number): number {
     const idx = y * this.cols + x;
+    const c = this.cols;
     return (
-      field[idx - 1] +
-      field[idx + 1] +
-      field[idx - this.cols] +
-      field[idx + this.cols] -
-      4 * field[idx]
+      0.2 * (field[idx - 1] + field[idx + 1] + field[idx - c] + field[idx + c]) +
+      0.05 * (field[idx - c - 1] + field[idx - c + 1] + field[idx + c - 1] + field[idx + c + 1]) -
+      field[idx]
     );
   }
 

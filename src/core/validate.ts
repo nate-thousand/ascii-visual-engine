@@ -35,6 +35,16 @@ const warnedControls = new Set<string>();
 const warnedPlugins = new Set<string>();
 const warnedMotions = new Set<string>();
 
+const warnedNonFinite = new Set<string>();
+
+/** Once per call site and name: a NaN or infinite number reached the engine and was ignored. */
+export function warnNonFinite(where: string, name: string, value: unknown): void {
+  const key = `${where}:${name}`;
+  if (warnedNonFinite.has(key)) return;
+  warnedNonFinite.add(key);
+  console.warn(`[AsciiEngine] ${where}: "${name}" was ${String(value)}; ignored. Numbers must be finite.`);
+}
+
 export function warnUnknownControl(name: string): void {
   if (KNOWN_CONTROLS.has(name) || warnedControls.has(name)) return;
   warnedControls.add(name);
